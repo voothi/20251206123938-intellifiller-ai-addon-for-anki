@@ -2,8 +2,9 @@ import json
 import httpx
 
 class SimpleAnthropicClient:
-    def __init__(self, api_key):
+    def __init__(self, api_key, model="claude-haiku-4-5"):
         self.api_key = api_key
+        self.model = model
         self.base_url = "https://api.anthropic.com/v1/messages"
         
     def create_message(self, prompt, max_tokens=2000):
@@ -14,7 +15,7 @@ class SimpleAnthropicClient:
         }
         
         data = {
-            "model": "claude-3-opus-20240229",
+            "model": self.model,
             "max_tokens": max_tokens,
             "messages": [{"role": "user", "content": prompt}]
         }

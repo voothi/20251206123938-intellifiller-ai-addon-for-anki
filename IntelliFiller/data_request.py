@@ -65,19 +65,25 @@ def send_prompt_to_llm(prompt):
                         "content": prompt,
                     }
                 ],
-                model="gpt-4o-mini",
+                model=config.get('openaiModel', 'gpt-4o-mini'),
             )
             print("Response from OpenAI:", response)
             return response.choices[0].message.content.strip()
             
         def try_anthropic_call():
-            client = SimpleAnthropicClient(api_key=config['anthropicKey'])
+            client = SimpleAnthropicClient(
+                api_key=config['anthropicKey'], 
+                model=config.get('anthropicModel', 'claude-haiku-4-5')
+            )
             response = client.create_message(prompt)
             print("Response from Anthropic:", response)
             return response
 
         def try_gemini_call():
-            client = GeminiClient(api_key=config['geminiKey'])
+            client = GeminiClient(
+                api_key=config['geminiKey'],
+                model=config.get('geminiModel', 'gemini-2.0-flash-lite-001')
+            )
             response = client.generate_content(prompt)
             print("Response from Gemini:", response)
             return response

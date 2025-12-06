@@ -24,6 +24,14 @@ class Ui_SettingsWindow(object):
         self.apiKey.setObjectName("apiKey")
         self.verticalLayout.addWidget(self.apiKey)
 
+        # OpenAI Model
+        self.labelOpenaiModel = QtWidgets.QLabel(SettingsWindow)
+        self.labelOpenaiModel.setObjectName("labelOpenaiModel")
+        self.verticalLayout.addWidget(self.labelOpenaiModel)
+        self.openaiModel = QtWidgets.QLineEdit(SettingsWindow)
+        self.openaiModel.setObjectName("openaiModel")
+        self.verticalLayout.addWidget(self.openaiModel)
+
         # Anthropic API Key
         self.labelAnthropicKey = QtWidgets.QLabel(SettingsWindow)
         self.labelAnthropicKey.setObjectName("labelAnthropicKey")
@@ -32,6 +40,14 @@ class Ui_SettingsWindow(object):
         self.anthropicKey.setObjectName("anthropicKey")
         self.verticalLayout.addWidget(self.anthropicKey)
 
+        # Anthropic Model
+        self.labelAnthropicModel = QtWidgets.QLabel(SettingsWindow)
+        self.labelAnthropicModel.setObjectName("labelAnthropicModel")
+        self.verticalLayout.addWidget(self.labelAnthropicModel)
+        self.anthropicModel = QtWidgets.QLineEdit(SettingsWindow)
+        self.anthropicModel.setObjectName("anthropicModel")
+        self.verticalLayout.addWidget(self.anthropicModel)
+
         # Gemini API Key
         self.labelGeminiKey = QtWidgets.QLabel(SettingsWindow)
         self.labelGeminiKey.setObjectName("labelGeminiKey")
@@ -39,6 +55,14 @@ class Ui_SettingsWindow(object):
         self.geminiKey = QtWidgets.QLineEdit(SettingsWindow)
         self.geminiKey.setObjectName("geminiKey")
         self.verticalLayout.addWidget(self.geminiKey)
+
+        # Gemini Model
+        self.labelGeminiModel = QtWidgets.QLabel(SettingsWindow)
+        self.labelGeminiModel.setObjectName("labelGeminiModel")
+        self.verticalLayout.addWidget(self.labelGeminiModel)
+        self.geminiModel = QtWidgets.QLineEdit(SettingsWindow)
+        self.geminiModel.setObjectName("geminiModel")
+        self.verticalLayout.addWidget(self.geminiModel)
 
         # API Selection
         self.labelSelectedApi = QtWidgets.QLabel(SettingsWindow)
@@ -107,10 +131,16 @@ class Ui_SettingsWindow(object):
         SettingsWindow.setWindowTitle(_translate("SettingsWindow", "IntelliFiller Settings"))
         self.labelApiKey.setText(_translate("SettingsWindow", "OpenAI API Key:"))
         self.apiKey.setPlaceholderText(_translate("SettingsWindow", "OpenAI API key"))
+        self.labelOpenaiModel.setText(_translate("SettingsWindow", "OpenAI Model:"))
+        self.openaiModel.setPlaceholderText(_translate("SettingsWindow", "gpt-4o-mini"))
         self.labelAnthropicKey.setText(_translate("SettingsWindow", "Anthropic API Key:"))
         self.anthropicKey.setPlaceholderText(_translate("SettingsWindow", "Anthropic API key"))
+        self.labelAnthropicModel.setText(_translate("SettingsWindow", "Anthropic Model:"))
+        self.anthropicModel.setPlaceholderText(_translate("SettingsWindow", "claude-haiku-4-5"))
         self.labelGeminiKey.setText(_translate("SettingsWindow", "Google Gemini API Key:"))
         self.geminiKey.setPlaceholderText(_translate("SettingsWindow", "Google Gemini API key"))
+        self.labelGeminiModel.setText(_translate("SettingsWindow", "Google Gemini Model:"))
+        self.geminiModel.setPlaceholderText(_translate("SettingsWindow", "gemini-2.0-flash-lite-001"))
         self.labelSelectedApi.setText(_translate("SettingsWindow", "Selected API:"))
         self.labelEmulate.setText(_translate("SettingsWindow", "Emulate:"))
         self.emulate.setItemText(0, _translate("SettingsWindow", "yes"))

@@ -38,6 +38,20 @@
     </widget>
    </item>
    <item>
+    <widget class="QLabel" name="labelOpenaiModel">
+     <property name="text">
+      <string>OpenAI Model:</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLineEdit" name="openaiModel">
+     <property name="placeholderText">
+      <string>gpt-4o-mini</string>
+     </property>
+    </widget>
+   </item>
+   <item>
     <widget class="QLabel" name="labelAnthropicKey">
      <property name="text">
       <string>Anthropic API Key:</string>
@@ -52,6 +66,20 @@
     </widget>
    </item>
    <item>
+    <widget class="QLabel" name="labelAnthropicModel">
+     <property name="text">
+      <string>Anthropic Model:</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLineEdit" name="anthropicModel">
+     <property name="placeholderText">
+      <string>claude-haiku-4-5</string>
+     </property>
+    </widget>
+   </item>
+   <item>
     <widget class="QLabel" name="labelGeminiKey">
      <property name="text">
       <string>Google Gemini API Key:</string>
@@ -62,6 +90,20 @@
     <widget class="QLineEdit" name="geminiKey">
      <property name="placeholderText">
       <string>Google Gemini API key</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLabel" name="labelGeminiModel">
+     <property name="text">
+      <string>Google Gemini Model:</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLineEdit" name="geminiModel">
+     <property name="placeholderText">
+      <string>gemini-2.0-flash-lite-001</string>
      </property>
     </widget>
    </item>

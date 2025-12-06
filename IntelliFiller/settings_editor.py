@@ -36,8 +36,11 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
 
     def setup_config(self, config):
         self.apiKey.setText(config.get("apiKey", ""))
+        self.openaiModel.setText(config.get("openaiModel", ""))
         self.anthropicKey.setText(config.get("anthropicKey", ""))
+        self.anthropicModel.setText(config.get("anthropicModel", ""))
         self.geminiKey.setText(config.get("geminiKey", ""))
+        self.geminiModel.setText(config.get("geminiModel", ""))
         self.selectedApi.setCurrentText(config.get("selectedApi", "openai"))
         self.emulate.setCurrentText(config.get("emulate", "no"))
         
@@ -65,8 +68,11 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
         config = mw.addonManager.getConfig(__name__)
         
         config["apiKey"] = self.apiKey.text()
+        config["openaiModel"] = self.openaiModel.text()
         config["anthropicKey"] = self.anthropicKey.text()
+        config["anthropicModel"] = self.anthropicModel.text()
         config["geminiKey"] = self.geminiKey.text()
+        config["geminiModel"] = self.geminiModel.text()
         config["selectedApi"] = self.selectedApi.currentText()
         config["emulate"] = self.emulate.currentText()
         
