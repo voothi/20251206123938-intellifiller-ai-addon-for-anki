@@ -61,6 +61,7 @@ class ProgressDialog(QDialog):
     def on_worker_finished(self):
         self.update_progress(
             self.progress_bar.maximum())  # when the worker is finished, set the progress bar to maximum
+        mw.reset() # Refresh Anki UI (including browser)
         self.close()  # close the dialog when the worker finishes
 
     def cancel(self):
