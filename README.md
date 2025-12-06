@@ -2,8 +2,17 @@
 
 This is an enhanced version of the [IntelliFiller](https://github.com/ganqqwerty/intellifiller-ai-addon-for-anki) addon for Anki, allowing you to automatically fill note fields using various Large Language Models (LLMs).
 
+> **Attribution & Source**
+>
+> This add-on is a modified fork of **IntelliFiller** by ganqqwerty.
+>
+> *   **Original Project**: [Source Code](https://github.com/ganqqwerty/intellifiller-ai-addon-for-anki) | [AnkiWeb (9559994708)](https://ankiweb.net/shared/info/9559994708)
+> *   **This Enhanced Version**: [Source Code](https://github.com/voothi/20251206123938-intellifiller-ai-addon-for-anki) | [AnkiWeb (1149226090)](https://ankiweb.net/shared/info/1149226090)
+
 > [!NOTE]
 > **Tested on Windows 11**
+
+[![AnkiWeb](https://img.shields.io/badge/AnkiWeb-1149226090-blue)](https://ankiweb.net/shared/info/1149226090)
 
 ## Table of Contents
 
@@ -119,7 +128,7 @@ You can also launch IntelliFiller directly from the note editor:
 
 ## Original Project
 
-This project is a fork of [IntelliFiller AI addon for Anki](https://github.com/ganqqwerty/intellifiller-ai-addon-for-anki).
+This project is a fork of [IntelliFiller AI addon for Anki](https://github.com/ganqqwerty/intellifiller-ai-addon-for-anki) (forked from version 2.1.0).
 Significant improvements have been made to support a wider range of AI providers and configuration options.
 
 [Return to Top](#table-of-contents)
