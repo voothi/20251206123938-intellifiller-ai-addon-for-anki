@@ -19,66 +19,88 @@ class Ui_SettingsWindow(object):
         self.tabApi.setObjectName("tabApi")
         self.tabApiLayout = QtWidgets.QVBoxLayout(self.tabApi)
         
-        # Use FormLayout for API settings for better alignment
-        self.formLayout = QtWidgets.QFormLayout()
-        
-        # Selected API
+        # 1. API Selector at the top
         self.labelSelectedApi = QtWidgets.QLabel(self.tabApi)
         self.selectedApi = QtWidgets.QComboBox(self.tabApi)
         self.selectedApi.addItems(["openai", "anthropic", "gemini", "openrouter", "custom"])
-        self.formLayout.addRow(self.labelSelectedApi, self.selectedApi)
         
-        # Models and Keys
-        self.labelApiKey = QtWidgets.QLabel(self.tabApi)
-        self.apiKey = QtWidgets.QLineEdit(self.tabApi)
-        self.formLayout.addRow(self.labelApiKey, self.apiKey)
+        self.apiSelectorLayout = QtWidgets.QFormLayout()
+        self.apiSelectorLayout.addRow(self.labelSelectedApi, self.selectedApi)
+        self.tabApiLayout.addLayout(self.apiSelectorLayout)
         
-        self.labelOpenaiModel = QtWidgets.QLabel(self.tabApi)
-        self.openaiModel = QtWidgets.QLineEdit(self.tabApi)
-        self.formLayout.addRow(self.labelOpenaiModel, self.openaiModel)
-
-        self.labelAnthropicKey = QtWidgets.QLabel(self.tabApi)
-        self.anthropicKey = QtWidgets.QLineEdit(self.tabApi)
-        self.formLayout.addRow(self.labelAnthropicKey, self.anthropicKey)
-
-        self.labelAnthropicModel = QtWidgets.QLabel(self.tabApi)
-        self.anthropicModel = QtWidgets.QLineEdit(self.tabApi)
-        self.formLayout.addRow(self.labelAnthropicModel, self.anthropicModel)
-
-        self.labelGeminiKey = QtWidgets.QLabel(self.tabApi)
-        self.geminiKey = QtWidgets.QLineEdit(self.tabApi)
-        self.formLayout.addRow(self.labelGeminiKey, self.geminiKey)
-
-        self.labelGeminiModel = QtWidgets.QLabel(self.tabApi)
-        self.geminiModel = QtWidgets.QLineEdit(self.tabApi)
-        self.formLayout.addRow(self.labelGeminiModel, self.geminiModel)
-
-        self.labelOpenrouterKey = QtWidgets.QLabel(self.tabApi)
-        self.openrouterKey = QtWidgets.QLineEdit(self.tabApi)
-        self.formLayout.addRow(self.labelOpenrouterKey, self.openrouterKey)
-
-        self.labelOpenrouterModel = QtWidgets.QLabel(self.tabApi)
-        self.openrouterModel = QtWidgets.QLineEdit(self.tabApi)
-        self.formLayout.addRow(self.labelOpenrouterModel, self.openrouterModel)
-
-        self.labelCustomUrl = QtWidgets.QLabel(self.tabApi)
-        self.customUrl = QtWidgets.QLineEdit(self.tabApi)
-        self.formLayout.addRow(self.labelCustomUrl, self.customUrl)
+        # 2. Stacked Widget for Provider specific fields
+        self.stackedWidget = QtWidgets.QStackedWidget(self.tabApi)
+        self.tabApiLayout.addWidget(self.stackedWidget)
         
-        self.labelCustomKey = QtWidgets.QLabel(self.tabApi)
-        self.customKey = QtWidgets.QLineEdit(self.tabApi)
-        self.formLayout.addRow(self.labelCustomKey, self.customKey)
+        # Page 0: OpenAI
+        self.pageOpenai = QtWidgets.QWidget()
+        self.pageOpenaiLayout = QtWidgets.QFormLayout(self.pageOpenai)
+        self.labelApiKey = QtWidgets.QLabel(self.pageOpenai)
+        self.apiKey = QtWidgets.QLineEdit(self.pageOpenai)
+        self.pageOpenaiLayout.addRow(self.labelApiKey, self.apiKey)
+        self.labelOpenaiModel = QtWidgets.QLabel(self.pageOpenai)
+        self.openaiModel = QtWidgets.QLineEdit(self.pageOpenai)
+        self.pageOpenaiLayout.addRow(self.labelOpenaiModel, self.openaiModel)
+        self.stackedWidget.addWidget(self.pageOpenai)
         
-        self.labelCustomModel = QtWidgets.QLabel(self.tabApi)
-        self.customModel = QtWidgets.QLineEdit(self.tabApi)
-        self.formLayout.addRow(self.labelCustomModel, self.customModel)
+        # Page 1: Anthropic
+        self.pageAnthropic = QtWidgets.QWidget()
+        self.pageAnthropicLayout = QtWidgets.QFormLayout(self.pageAnthropic)
+        self.labelAnthropicKey = QtWidgets.QLabel(self.pageAnthropic)
+        self.anthropicKey = QtWidgets.QLineEdit(self.pageAnthropic)
+        self.pageAnthropicLayout.addRow(self.labelAnthropicKey, self.anthropicKey)
+        self.labelAnthropicModel = QtWidgets.QLabel(self.pageAnthropic)
+        self.anthropicModel = QtWidgets.QLineEdit(self.pageAnthropic)
+        self.pageAnthropicLayout.addRow(self.labelAnthropicModel, self.anthropicModel)
+        self.stackedWidget.addWidget(self.pageAnthropic)
+        
+        # Page 2: Gemini
+        self.pageGemini = QtWidgets.QWidget()
+        self.pageGeminiLayout = QtWidgets.QFormLayout(self.pageGemini)
+        self.labelGeminiKey = QtWidgets.QLabel(self.pageGemini)
+        self.geminiKey = QtWidgets.QLineEdit(self.pageGemini)
+        self.pageGeminiLayout.addRow(self.labelGeminiKey, self.geminiKey)
+        self.labelGeminiModel = QtWidgets.QLabel(self.pageGemini)
+        self.geminiModel = QtWidgets.QLineEdit(self.pageGemini)
+        self.pageGeminiLayout.addRow(self.labelGeminiModel, self.geminiModel)
+        self.stackedWidget.addWidget(self.pageGemini)
+        
+        # Page 3: OpenRouter
+        self.pageOpenrouter = QtWidgets.QWidget()
+        self.pageOpenrouterLayout = QtWidgets.QFormLayout(self.pageOpenrouter)
+        self.labelOpenrouterKey = QtWidgets.QLabel(self.pageOpenrouter)
+        self.openrouterKey = QtWidgets.QLineEdit(self.pageOpenrouter)
+        self.pageOpenrouterLayout.addRow(self.labelOpenrouterKey, self.openrouterKey)
+        self.labelOpenrouterModel = QtWidgets.QLabel(self.pageOpenrouter)
+        self.openrouterModel = QtWidgets.QLineEdit(self.pageOpenrouter)
+        self.pageOpenrouterLayout.addRow(self.labelOpenrouterModel, self.openrouterModel)
+        self.stackedWidget.addWidget(self.pageOpenrouter)
+        
+        # Page 4: Custom
+        self.pageCustom = QtWidgets.QWidget()
+        self.pageCustomLayout = QtWidgets.QFormLayout(self.pageCustom)
+        self.labelCustomUrl = QtWidgets.QLabel(self.pageCustom)
+        self.customUrl = QtWidgets.QLineEdit(self.pageCustom)
+        self.pageCustomLayout.addRow(self.labelCustomUrl, self.customUrl)
+        self.labelCustomKey = QtWidgets.QLabel(self.pageCustom)
+        self.customKey = QtWidgets.QLineEdit(self.pageCustom)
+        self.pageCustomLayout.addRow(self.labelCustomKey, self.customKey)
+        self.labelCustomModel = QtWidgets.QLabel(self.pageCustom)
+        self.customModel = QtWidgets.QLineEdit(self.pageCustom)
+        self.pageCustomLayout.addRow(self.labelCustomModel, self.customModel)
+        self.stackedWidget.addWidget(self.pageCustom)
 
+        # Emulation (Outside stack, always visible)
+        self.emulationLayout = QtWidgets.QFormLayout()
         self.labelEmulate = QtWidgets.QLabel(self.tabApi)
         self.emulate = QtWidgets.QComboBox(self.tabApi)
         self.emulate.addItems(["yes", "no"])
-        self.formLayout.addRow(self.labelEmulate, self.emulate)
+        self.emulationLayout.addRow(self.labelEmulate, self.emulate)
+        self.tabApiLayout.addLayout(self.emulationLayout)
+        
+        # Spacer to push everything up
+        self.tabApiLayout.addStretch()
 
-        self.tabApiLayout.addLayout(self.formLayout)
         self.tabWidget.addTab(self.tabApi, "")
 
         # --- Prompts Tab ---
@@ -115,6 +137,7 @@ class Ui_SettingsWindow(object):
         SettingsWindow.setWindowTitle(_translate("SettingsWindow", "IntelliFiller Settings"))
         
         self.labelSelectedApi.setText(_translate("SettingsWindow", "Selected API:"))
+        
         self.labelApiKey.setText(_translate("SettingsWindow", "OpenAI API Key:"))
         self.apiKey.setPlaceholderText(_translate("SettingsWindow", "OpenAI API key"))
         self.labelOpenaiModel.setText(_translate("SettingsWindow", "OpenAI Model:"))

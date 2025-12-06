@@ -29,6 +29,11 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
         config = mw.addonManager.getConfig(__name__)
         self.setup_config(config)
         self.saveButton.clicked.connect(self.saveConfig)
+        
+        # Connect API selection to stacked widget page
+        self.selectedApi.currentIndexChanged.connect(self.stackedWidget.setCurrentIndex)
+        # Set initial page based on config
+        self.stackedWidget.setCurrentIndex(self.selectedApi.currentIndex())
 
     def setWindowSize(self):
         screen_size = QGuiApplication.primaryScreen().geometry()
@@ -47,6 +52,10 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
         self.customKey.setText(config.get("customKey", ""))
         self.customModel.setText(config.get("customModel", ""))
         self.selectedApi.setCurrentText(config.get("selectedApi", "openai"))
+        
+        # Ensure correct stack page is shown after setting text
+        self.stackedWidget.setCurrentIndex(self.selectedApi.currentIndex())
+        
         self.emulate.setCurrentText(config.get("emulate", "no"))
         
         self.promptWidgets = []

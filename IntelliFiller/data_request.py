@@ -65,7 +65,7 @@ def send_prompt_to_llm(prompt):
                         "content": prompt,
                     }
                 ],
-                model=config.get('openaiModel', 'gpt-4o-mini'),
+                model=config.get('openaiModel') or 'gpt-4o-mini',
             )
             print("Response from OpenAI:", response)
             return response.choices[0].message.content.strip()
@@ -73,7 +73,7 @@ def send_prompt_to_llm(prompt):
         def try_anthropic_call():
             client = SimpleAnthropicClient(
                 api_key=config['anthropicKey'], 
-                model=config.get('anthropicModel', 'claude-haiku-4-5')
+                model=config.get('anthropicModel') or 'claude-haiku-4-5'
             )
             response = client.create_message(prompt)
             print("Response from Anthropic:", response)
@@ -82,7 +82,7 @@ def send_prompt_to_llm(prompt):
         def try_gemini_call():
             client = GeminiClient(
                 api_key=config['geminiKey'],
-                model=config.get('geminiModel', 'gemini-2.0-flash-lite-001')
+                model=config.get('geminiModel') or 'gemini-2.0-flash-lite-001'
             )
             response = client.generate_content(prompt)
             print("Response from Gemini:", response)
@@ -95,7 +95,7 @@ def send_prompt_to_llm(prompt):
             )
             response = client.chat.completions.create(
                 messages=[{"role": "user", "content": prompt}],
-                model=config.get('openrouterModel', 'google/gemini-2.0-flash-lite-001'),
+                model=config.get('openrouterModel') or 'google/gemini-2.0-flash-lite-001',
                 extra_headers={
                     "HTTP-Referer": "https://ankiweb.net/",
                     "X-Title": "IntelliFiller Anki Addon",
@@ -111,7 +111,7 @@ def send_prompt_to_llm(prompt):
             )
             response = client.chat.completions.create(
                 messages=[{"role": "user", "content": prompt}],
-                model=config.get('customModel', 'my-model'),
+                model=config.get('customModel') or 'my-model',
             )
             print("Response from Custom Provider:", response)
             return response.choices[0].message.content.strip()
