@@ -48,6 +48,8 @@ To install this addon from the source code, follow these steps:
 3.  Install dependencies (see [Build Instructions](#build-instructions)).
 4.  Restart Anki.
 
+![Installation](installation.png)
+
 [Return to Top](#table-of-contents)
 
 ## Build Instructions
@@ -88,6 +90,9 @@ To create an `.ankiaddon` package for distribution:
 
 1.  **Open Anki Browser**: Go to the card browser.
 2.  **Select Cards**: Select one or more cards you want to fill.
+
+    ![Select Multiple Cards](multiple-cards.png)
+
 3.  **Right-Click**: Choose **IntelliFiller** from the context menu.
 4.  **Configure**:
     *   Select your **Provider** (OpenAI, Anthropic, Gemini, etc.).
@@ -95,7 +100,20 @@ To create an `.ankiaddon` package for distribution:
     *   Choose or type the **Model Name**.
     *   Write your prompt using field placeholders like `{{{Front}}}`.
     *   Select the **Destination Field** for the result.
+
+    ![Run Configuration](run-request.png)
+
+    > **Tip**: You can save prompts to reuse them later!
+    >
+    > ![Save Prompts](save-prompts.png)
+
 5.  **Run**: Click **Run** to process the cards.
+
+### Editor Integration
+
+You can also launch IntelliFiller directly from the note editor:
+
+![Editor Button](editor-button.png)
 
 [Return to Top](#table-of-contents)
 
