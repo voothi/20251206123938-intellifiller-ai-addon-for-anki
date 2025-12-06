@@ -8,13 +8,6 @@ from anki.hooks import addHook
 import os
 import sys
 
-
-from .settings_editor import SettingsWindow
-from .process_notes import process_notes, generate_for_single_note
-from .run_prompt_dialog import RunPromptDialog
-
-ADDON_NAME = 'IntelliFiller'
-
 # Ensure our addon’s vendor folder is the first thing in sys.path
 vendor_path = os.path.join(os.path.dirname(__file__), 'vendor')
 sys.path.insert(0, vendor_path)
@@ -22,6 +15,15 @@ sys.path.insert(0, vendor_path)
 # Debugging information
 print("🔍 Anki Addon Loading Dependencies From:", vendor_path)
 print("🔍 sys.path:", sys.path)
+
+
+from .settings_editor import SettingsWindow
+from .process_notes import process_notes, generate_for_single_note
+from .run_prompt_dialog import RunPromptDialog
+
+ADDON_NAME = 'IntelliFiller'
+
+
 
 # Check if the correct typing_extensions is loaded
 try:
