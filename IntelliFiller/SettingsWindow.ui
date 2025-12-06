@@ -108,6 +108,76 @@
     </widget>
    </item>
    <item>
+    <widget class="QLabel" name="labelOpenrouterKey">
+     <property name="text">
+      <string>OpenRouter API Key:</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLineEdit" name="openrouterKey">
+     <property name="placeholderText">
+      <string>OpenRouter API Key</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLabel" name="labelOpenrouterModel">
+     <property name="text">
+      <string>OpenRouter Model:</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLineEdit" name="openrouterModel">
+     <property name="placeholderText">
+      <string>google/gemini-2.0-flash-lite-001</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLabel" name="labelCustomUrl">
+     <property name="text">
+      <string>OpenAI Compatible Base URL:</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLineEdit" name="customUrl">
+     <property name="placeholderText">
+      <string>https://api.example.com/v1</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLabel" name="labelCustomKey">
+     <property name="text">
+      <string>OpenAI Compatible API Key:</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLineEdit" name="customKey">
+     <property name="placeholderText">
+      <string>API Key</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLabel" name="labelCustomModel">
+     <property name="text">
+      <string>OpenAI Compatible Model ID:</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLineEdit" name="customModel">
+     <property name="placeholderText">
+      <string>Model ID</string>
+     </property>
+    </widget>
+   </item>
+   <item>
     <widget class="QLabel" name="labelSelectedApi">
      <property name="text">
       <string>Selected API:</string>
@@ -129,6 +199,16 @@
      <item>
       <property name="text">
        <string>gemini</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>openrouter</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>custom</string>
       </property>
      </item>
     </widget>

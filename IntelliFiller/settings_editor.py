@@ -41,6 +41,11 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
         self.anthropicModel.setText(config.get("anthropicModel", ""))
         self.geminiKey.setText(config.get("geminiKey", ""))
         self.geminiModel.setText(config.get("geminiModel", ""))
+        self.openrouterKey.setText(config.get("openrouterKey", ""))
+        self.openrouterModel.setText(config.get("openrouterModel", ""))
+        self.customUrl.setText(config.get("customUrl", ""))
+        self.customKey.setText(config.get("customKey", ""))
+        self.customModel.setText(config.get("customModel", ""))
         self.selectedApi.setCurrentText(config.get("selectedApi", "openai"))
         self.emulate.setCurrentText(config.get("emulate", "no"))
         
@@ -73,6 +78,11 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
         config["anthropicModel"] = self.anthropicModel.text()
         config["geminiKey"] = self.geminiKey.text()
         config["geminiModel"] = self.geminiModel.text()
+        config["openrouterKey"] = self.openrouterKey.text()
+        config["openrouterModel"] = self.openrouterModel.text()
+        config["customUrl"] = self.customUrl.text()
+        config["customKey"] = self.customKey.text()
+        config["customModel"] = self.customModel.text()
         config["selectedApi"] = self.selectedApi.currentText()
         config["emulate"] = self.emulate.currentText()
         

@@ -64,6 +64,46 @@ class Ui_SettingsWindow(object):
         self.geminiModel.setObjectName("geminiModel")
         self.verticalLayout.addWidget(self.geminiModel)
 
+        # OpenRouter API Key
+        self.labelOpenrouterKey = QtWidgets.QLabel(SettingsWindow)
+        self.labelOpenrouterKey.setObjectName("labelOpenrouterKey")
+        self.verticalLayout.addWidget(self.labelOpenrouterKey)
+        self.openrouterKey = QtWidgets.QLineEdit(SettingsWindow)
+        self.openrouterKey.setObjectName("openrouterKey")
+        self.verticalLayout.addWidget(self.openrouterKey)
+
+        # OpenRouter Model
+        self.labelOpenrouterModel = QtWidgets.QLabel(SettingsWindow)
+        self.labelOpenrouterModel.setObjectName("labelOpenrouterModel")
+        self.verticalLayout.addWidget(self.labelOpenrouterModel)
+        self.openrouterModel = QtWidgets.QLineEdit(SettingsWindow)
+        self.openrouterModel.setObjectName("openrouterModel")
+        self.verticalLayout.addWidget(self.openrouterModel)
+
+        # Custom Base URL
+        self.labelCustomUrl = QtWidgets.QLabel(SettingsWindow)
+        self.labelCustomUrl.setObjectName("labelCustomUrl")
+        self.verticalLayout.addWidget(self.labelCustomUrl)
+        self.customUrl = QtWidgets.QLineEdit(SettingsWindow)
+        self.customUrl.setObjectName("customUrl")
+        self.verticalLayout.addWidget(self.customUrl)
+
+        # Custom API Key
+        self.labelCustomKey = QtWidgets.QLabel(SettingsWindow)
+        self.labelCustomKey.setObjectName("labelCustomKey")
+        self.verticalLayout.addWidget(self.labelCustomKey)
+        self.customKey = QtWidgets.QLineEdit(SettingsWindow)
+        self.customKey.setObjectName("customKey")
+        self.verticalLayout.addWidget(self.customKey)
+
+        # Custom Model
+        self.labelCustomModel = QtWidgets.QLabel(SettingsWindow)
+        self.labelCustomModel.setObjectName("labelCustomModel")
+        self.verticalLayout.addWidget(self.labelCustomModel)
+        self.customModel = QtWidgets.QLineEdit(SettingsWindow)
+        self.customModel.setObjectName("customModel")
+        self.verticalLayout.addWidget(self.customModel)
+
         # API Selection
         self.labelSelectedApi = QtWidgets.QLabel(SettingsWindow)
         self.labelSelectedApi.setObjectName("labelSelectedApi")
@@ -73,6 +113,8 @@ class Ui_SettingsWindow(object):
         self.selectedApi.addItem("openai")
         self.selectedApi.addItem("anthropic")
         self.selectedApi.addItem("gemini")
+        self.selectedApi.addItem("openrouter")
+        self.selectedApi.addItem("custom")
         self.verticalLayout.addWidget(self.selectedApi)
 
         # Emulate
@@ -141,6 +183,16 @@ class Ui_SettingsWindow(object):
         self.geminiKey.setPlaceholderText(_translate("SettingsWindow", "Google Gemini API key"))
         self.labelGeminiModel.setText(_translate("SettingsWindow", "Google Gemini Model:"))
         self.geminiModel.setPlaceholderText(_translate("SettingsWindow", "gemini-2.0-flash-lite-001"))
+        self.labelOpenrouterKey.setText(_translate("SettingsWindow", "OpenRouter API Key:"))
+        self.openrouterKey.setPlaceholderText(_translate("SettingsWindow", "OpenRouter API Key"))
+        self.labelOpenrouterModel.setText(_translate("SettingsWindow", "OpenRouter Model:"))
+        self.openrouterModel.setPlaceholderText(_translate("SettingsWindow", "google/gemini-2.0-flash-lite-001"))
+        self.labelCustomUrl.setText(_translate("SettingsWindow", "OpenAI Compatible Base URL:"))
+        self.customUrl.setPlaceholderText(_translate("SettingsWindow", "https://api.example.com/v1"))
+        self.labelCustomKey.setText(_translate("SettingsWindow", "OpenAI Compatible API Key:"))
+        self.customKey.setPlaceholderText(_translate("SettingsWindow", "API Key"))
+        self.labelCustomModel.setText(_translate("SettingsWindow", "OpenAI Compatible Model ID:"))
+        self.customModel.setPlaceholderText(_translate("SettingsWindow", "Model ID"))
         self.labelSelectedApi.setText(_translate("SettingsWindow", "Selected API:"))
         self.labelEmulate.setText(_translate("SettingsWindow", "Emulate:"))
         self.emulate.setItemText(0, _translate("SettingsWindow", "yes"))

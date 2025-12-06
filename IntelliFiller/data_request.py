@@ -88,11 +88,43 @@ def send_prompt_to_llm(prompt):
             print("Response from Gemini:", response)
             return response.strip()
 
+        def try_openrouter_call():
+            client = openai.OpenAI(
+                base_url="https://openrouter.ai/api/v1",
+                api_key=config['openrouterKey'],
+            )
+            response = client.chat.completions.create(
+                messages=[{"role": "user", "content": prompt}],
+                model=config.get('openrouterModel', 'google/gemini-2.0-flash-lite-001'),
+                extra_headers={
+                    "HTTP-Referer": "https://ankiweb.net/",
+                    "X-Title": "IntelliFiller Anki Addon",
+                }
+            )
+            print("Response from OpenRouter:", response)
+            return response.choices[0].message.content.strip()
+
+        def try_custom_call():
+            client = openai.OpenAI(
+                base_url=config['customUrl'],
+                api_key=config['customKey'],
+            )
+            response = client.chat.completions.create(
+                messages=[{"role": "user", "content": prompt}],
+                model=config.get('customModel', 'my-model'),
+            )
+            print("Response from Custom Provider:", response)
+            return response.choices[0].message.content.strip()
+
         try:
             if config['selectedApi'] == 'anthropic':
                 return try_anthropic_call()
             elif config['selectedApi'] == 'gemini':
                 return try_gemini_call()
+            elif config['selectedApi'] == 'openrouter':
+                return try_openrouter_call()
+            elif config['selectedApi'] == 'custom':
+                return try_custom_call()
             else:  # openai
                 return try_openai_call()
         except openai.APIConnectionError as e:
