@@ -33,9 +33,13 @@ class RunPromptDialog(QDialog):
 
         run_button = QPushButton("Run")
         run_button.clicked.connect(self.try_to_accept)
+        # Make it the default button and give it focus
+        run_button.setAutoDefault(True)
+        run_button.setDefault(True)
 
         layout.addWidget(run_button)
         self.setLayout(layout)
+        run_button.setFocus()
 
     def try_to_accept(self):
         self.prompt_config["prompt"] = self.prompt_editor.toPlainText()
