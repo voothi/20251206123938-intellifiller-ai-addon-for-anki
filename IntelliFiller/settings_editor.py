@@ -37,6 +37,7 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
     def setup_config(self, config):
         self.apiKey.setText(config.get("apiKey", ""))
         self.anthropicKey.setText(config.get("anthropicKey", ""))
+        self.geminiKey.setText(config.get("geminiKey", ""))
         self.selectedApi.setCurrentText(config.get("selectedApi", "openai"))
         self.emulate.setCurrentText(config.get("emulate", "no"))
         
@@ -65,6 +66,7 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
         
         config["apiKey"] = self.apiKey.text()
         config["anthropicKey"] = self.anthropicKey.text()
+        config["geminiKey"] = self.geminiKey.text()
         config["selectedApi"] = self.selectedApi.currentText()
         config["emulate"] = self.emulate.currentText()
         

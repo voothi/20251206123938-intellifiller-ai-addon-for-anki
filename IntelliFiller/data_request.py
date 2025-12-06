@@ -27,6 +27,7 @@ sys.path.append(vendor_dir)
 
 import openai
 from .anthropic_client import SimpleAnthropicClient
+from .gemini_client import GeminiClient
 from html import unescape
 
 
@@ -74,9 +75,18 @@ def send_prompt_to_llm(prompt):
             response = client.create_message(prompt)
             print("Response from Anthropic:", response)
             return response
+
+        def try_gemini_call():
+            client = GeminiClient(api_key=config['geminiKey'])
+            response = client.generate_content(prompt)
+            print("Response from Gemini:", response)
+            return response
+
         try:
             if config['selectedApi'] == 'anthropic':
                 return try_anthropic_call()
+            elif config['selectedApi'] == 'gemini':
+                return try_gemini_call()
             else:  # openai
                 return try_openai_call()
         except openai.APIConnectionError as e:

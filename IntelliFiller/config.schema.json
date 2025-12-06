@@ -10,9 +10,17 @@
       "type": "string",
       "description": "API key to access Anthropic Claude API."
     },
+    "geminiKey": {
+      "type": "string",
+      "description": "API key to access Google Gemini API."
+    },
     "selectedApi": {
       "type": "string",
-      "enum": ["openai", "anthropic"],
+      "enum": [
+        "openai",
+        "anthropic",
+        "gemini"
+      ],
       "description": "Which API to use"
     },
     "emulate": {
@@ -53,6 +61,7 @@
   "required": [
     "apiKey",
     "anthropicKey",
+    "geminiKey",
     "selectedApi",
     "emulate",
     "prompts"
