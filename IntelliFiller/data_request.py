@@ -77,7 +77,7 @@ def send_prompt_to_llm(prompt):
             )
             response = client.create_message(prompt)
             print("Response from Anthropic:", response)
-            return response
+            return response.strip()
 
         def try_gemini_call():
             client = GeminiClient(
@@ -86,7 +86,7 @@ def send_prompt_to_llm(prompt):
             )
             response = client.generate_content(prompt)
             print("Response from Gemini:", response)
-            return response
+            return response.strip()
 
         try:
             if config['selectedApi'] == 'anthropic':
