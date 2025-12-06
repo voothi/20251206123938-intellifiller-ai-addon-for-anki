@@ -2,7 +2,23 @@
 
 This is an enhanced version of the [IntelliFiller](https://github.com/ganqqwerty/intellifiller-ai-addon-for-anki) addon for Anki, allowing you to automatically fill note fields using various Large Language Models (LLMs).
 
+> [!NOTE]
 > **Tested on Windows 11**
+
+## Table of Contents
+
+- [Features](#features)
+- [Prerequisites](#prerequisites)
+- [Installation from Source](#installation-from-source)
+- [Build Instructions](#build-instructions)
+  - [For Local Development (Windows 11 / Current OS)](#for-local-development-windows-11--current-os)
+  - [For Cross-Platform Release](#for-cross-platform-release)
+  - [Packaging](#packaging)
+- [Usage](#usage)
+- [Original Project](#original-project)
+- [License](#license)
+
+---
 
 ## Features
 
@@ -13,10 +29,14 @@ This is an enhanced version of the [IntelliFiller](https://github.com/ganqqwerty
 * **Flexible Prompting**: Design prompts that use existing field data (e.g., `{{{Sentence}}}`) to generate new content.
 * **Prompt Management**: Save and reuse your favorite prompts.
 
+[Return to Top](#table-of-contents)
+
 ## Prerequisites
 
 * **Anki** (Latest version recommended)
 * **Python 3.9** (For building from source)
+
+[Return to Top](#table-of-contents)
 
 ## Installation from Source
 
@@ -27,6 +47,8 @@ To install this addon from the source code, follow these steps:
     *   To find this directory, open Anki, go to **Tools** -> **Add-ons**, click **View Files**.
 3.  Install dependencies (see [Build Instructions](#build-instructions)).
 4.  Restart Anki.
+
+[Return to Top](#table-of-contents)
 
 ## Build Instructions
 
@@ -60,6 +82,8 @@ To create an `.ankiaddon` package for distribution:
 2.  Zip the contents of the `IntelliFiller` folder.
 3.  Rename the `.zip` file to `.ankiaddon`.
 
+[Return to Top](#table-of-contents)
+
 ## Usage
 
 1.  **Open Anki Browser**: Go to the card browser.
@@ -73,10 +97,14 @@ To create an `.ankiaddon` package for distribution:
     *   Select the **Destination Field** for the result.
 5.  **Run**: Click **Run** to process the cards.
 
+[Return to Top](#table-of-contents)
+
 ## Original Project
 
 This project is a fork of [IntelliFiller AI addon for Anki](https://github.com/ganqqwerty/intellifiller-ai-addon-for-anki).
 Significant improvements have been made to support a wider range of AI providers and configuration options.
+
+[Return to Top](#table-of-contents)
 
 ## License
 
