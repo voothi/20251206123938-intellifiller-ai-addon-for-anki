@@ -29,6 +29,7 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
         config = mw.addonManager.getConfig(__name__)
         self.setup_config(config)
         self.saveButton.clicked.connect(self.saveConfig)
+        self.addPromptButton.clicked.connect(self.add_new_prompt)
         
         # Connect API selection to stacked widget page
         self.selectedApi.currentIndexChanged.connect(self.stackedWidget.setCurrentIndex)
@@ -65,6 +66,13 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
         self.promptWidgets = []
         for prompt in config.get("prompts", []):
             self.add_prompt(prompt)
+
+    def add_new_prompt(self):
+        self.add_prompt({
+            "prompt": "",
+            "targetField": "",
+            "promptName": ""
+        })
 
     def add_prompt(self, prompt):
         promptWidget = PromptWidget()
