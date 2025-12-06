@@ -51,7 +51,11 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
         self.customUrl.setText(config.get("customUrl", ""))
         self.customKey.setText(config.get("customKey", ""))
         self.customModel.setText(config.get("customModel", ""))
-        self.selectedApi.setCurrentText(config.get("selectedApi", "openai"))
+        
+        # Select correct API based on stored key (data)
+        index = self.selectedApi.findData(config.get("selectedApi", "openai"))
+        if index >= 0:
+            self.selectedApi.setCurrentIndex(index)
         
         # Ensure correct stack page is shown after setting text
         self.stackedWidget.setCurrentIndex(self.selectedApi.currentIndex())
@@ -92,7 +96,7 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
         config["customUrl"] = self.customUrl.text()
         config["customKey"] = self.customKey.text()
         config["customModel"] = self.customModel.text()
-        config["selectedApi"] = self.selectedApi.currentText()
+        config["selectedApi"] = self.selectedApi.currentData()
         config["emulate"] = self.emulate.currentText()
         
         config["prompts"] = []

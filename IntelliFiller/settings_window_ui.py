@@ -22,7 +22,11 @@ class Ui_SettingsWindow(object):
         # 1. API Selector at the top
         self.labelSelectedApi = QtWidgets.QLabel(self.tabApi)
         self.selectedApi = QtWidgets.QComboBox(self.tabApi)
-        self.selectedApi.addItems(["openai", "anthropic", "gemini", "openrouter", "custom"])
+        self.selectedApi.addItem("OpenAI", "openai")
+        self.selectedApi.addItem("Anthropic", "anthropic")
+        self.selectedApi.addItem("Google Gemini", "gemini")
+        self.selectedApi.addItem("OpenRouter", "openrouter")
+        self.selectedApi.addItem("OpenAI Compatible", "custom")
         
         self.apiSelectorLayout = QtWidgets.QFormLayout()
         self.apiSelectorLayout.addRow(self.labelSelectedApi, self.selectedApi)
