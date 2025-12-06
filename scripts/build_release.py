@@ -26,7 +26,8 @@ def build_all_platforms():
         
         print(f"Building for {platform_tag}...")
         subprocess.check_call([
-            'pip3.9', 'install',
+            sys.executable, '-m', 'pip', 'install',
+            '--no-user',
             '--platform', platform_tag,
             '--target', platform_dir,
             '--only-binary=:all:',
