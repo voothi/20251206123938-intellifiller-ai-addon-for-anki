@@ -16,7 +16,7 @@ from .run_prompt_dialog import RunPromptDialog
 ADDON_NAME = 'IntelliFiller'
 
 # Ensure our addon’s vendor folder is the first thing in sys.path
-vendor_path = os.path.join(os.path.dirname(__file__), 'vendor', 'darwin_arm64')
+vendor_path = os.path.join(os.path.dirname(__file__), 'vendor')
 sys.path.insert(0, vendor_path)
 
 # Debugging information
