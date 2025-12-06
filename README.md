@@ -25,6 +25,7 @@ This is an enhanced version of the [IntelliFiller](https://github.com/ganqqwerty
   - [Packaging](#packaging)
 - [Usage](#usage)
 - [Original Project](#original-project)
+- [Kardenwort Ecosystem](#kardenwort-ecosystem)
 - [License](#license)
 
 ---
@@ -130,6 +131,12 @@ You can also launch IntelliFiller directly from the note editor:
 
 This project is a fork of [IntelliFiller AI addon for Anki](https://github.com/ganqqwerty/intellifiller-ai-addon-for-anki) (forked from version 2.1.0).
 Significant improvements have been made to support a wider range of AI providers and configuration options.
+
+[Return to Top](#table-of-contents)
+
+## Kardenwort Ecosystem
+
+This project is part of the [Kardenwort](https://github.com/kardenwort) environment, designed to create a focused and efficient learning ecosystem.
 
 [Return to Top](#table-of-contents)
 
