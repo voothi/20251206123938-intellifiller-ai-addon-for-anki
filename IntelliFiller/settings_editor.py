@@ -272,7 +272,10 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
         self.close()
 
     def get_current_config(self):
-        config = {}
+        # Start with existing settings to preserve hidden fields (like 'history')
+        config = ConfigManager.load_settings()
+        
+        # Overlay UI values
         config["openaiModel"] = self.openaiModel.text()
         config["apiKey"] = self.apiKey.text()
         config["anthropicKey"] = self.anthropicKey.text()
