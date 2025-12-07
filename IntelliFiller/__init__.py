@@ -265,6 +265,8 @@ def check_security_cleanup():
         btn_later = msg.addButton("Not Now", QMessageBox.ButtonRole.NoRole)
         btn_ignore = msg.addButton("Don't Ask Again", QMessageBox.ButtonRole.RejectRole)
         
+        msg.setDefaultButton(btn_later)
+        
         msg.exec()
         
         if msg.clickedButton() == btn_clean:
