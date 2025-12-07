@@ -81,8 +81,38 @@ def add_context_menu_items(browser, menu):
     submenu = QMenu(ADDON_NAME, menu)
     menu.addMenu(submenu)
     config = mw.addonManager.getConfig(__name__)
+    prompts = config.get('prompts', [])
+    max_favorites = config.get('maxFavorites', 3)
+    history = config.get('history', [])
 
-    for prompt_config in config['prompts']:
+    # Smart Menu Logic
+    # 1. Pinned prompts
+    pinned_prompts = [p for p in prompts if p.get('pinned', False)]
+    
+    # 2. History prompts (excluding pinned ones to avoid duplicates)
+    pinned_names = {p['promptName'] for p in pinned_prompts}
+    history_prompts = []
+    for name in history:
+        # Find prompt config by name
+        match = next((p for p in prompts if p['promptName'] == name), None)
+        if match and match['promptName'] not in pinned_names:
+            history_prompts.append(match)
+            pinned_names.add(name) # Prevention of duplicates if history has dups
+            
+    # Combine and limit
+    smart_prompts = (pinned_prompts + history_prompts)[:max_favorites]
+
+    # Add Smart Items to top level menu
+    if smart_prompts:
+        for prompt_config in smart_prompts:
+            action = QAction(prompt_config["promptName"], browser)
+            action.triggered.connect(lambda _, br=browser, pc=prompt_config: create_run_prompt_dialog_from_browser(br, pc))
+            menu.addAction(action)
+        
+        menu.addSeparator()
+
+    # Submenu with all items
+    for prompt_config in prompts:
         action = QAction(prompt_config["promptName"], browser)
         action.triggered.connect(lambda _, br=browser, pc=prompt_config: create_run_prompt_dialog_from_browser(br, pc))
         submenu.addAction(action)

@@ -63,6 +63,7 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
         
         self.emulate.setCurrentText(config.get("emulate", "no"))
         self.overwriteField.setChecked(config.get("overwriteField", False))
+        self.maxFavorites.setValue(config.get("maxFavorites", 3))
         
         self.promptWidgets = []
         for prompt in config.get("prompts", []):
@@ -80,6 +81,7 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
         promptWidget.promptInput.setPlainText(prompt["prompt"])
         promptWidget.targetFieldInput.setText(prompt["targetField"])
         promptWidget.promptNameInput.setText(prompt["promptName"])
+        promptWidget.pinnedCheckbox.setChecked(prompt.get("pinned", False))
         promptWidget.removePromptButton.clicked.connect(
             lambda: self.remove_prompt(promptWidget))
         
@@ -108,6 +110,7 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
         config["selectedApi"] = self.selectedApi.currentData()
         config["emulate"] = self.emulate.currentText()
         config["overwriteField"] = self.overwriteField.isChecked()
+        config["maxFavorites"] = self.maxFavorites.value()
         
         config["prompts"] = []
         for promptWidget in self.promptWidgets:
@@ -118,7 +121,8 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
             config["prompts"].append({
                 "prompt": promptInput.toPlainText(),
                 "targetField": targetFieldInput.text(),
-                "promptName": promptNameInput.text()
+                "promptName": promptNameInput.text(),
+                "pinned": promptWidget.pinnedCheckbox.isChecked()
             })
         
         mw.addonManager.writeConfig(__name__, config)

@@ -105,6 +105,12 @@ class Ui_SettingsWindow(object):
         self.overwriteField = QtWidgets.QCheckBox(self.tabApi)
         self.emulationLayout.addRow(self.overwriteFieldLabel, self.overwriteField)
         
+        self.labelMaxFavorites = QtWidgets.QLabel(self.tabApi)
+        self.maxFavorites = QtWidgets.QSpinBox(self.tabApi)
+        self.maxFavorites.setMinimum(0)
+        self.maxFavorites.setMaximum(10)
+        self.emulationLayout.addRow(self.labelMaxFavorites, self.maxFavorites)
+        
         self.tabApiLayout.addLayout(self.emulationLayout)
         
         # Spacer to push everything up
@@ -179,6 +185,7 @@ class Ui_SettingsWindow(object):
         self.emulate.setItemText(1, _translate("SettingsWindow", "no"))
         self.overwriteFieldLabel.setText(_translate("SettingsWindow", "Overwrite Target Field:"))
         self.overwriteField.setText(_translate("SettingsWindow", ""))
+        self.labelMaxFavorites.setText(_translate("SettingsWindow", "Max Smart Menu Items:"))
         
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabApi), _translate("SettingsWindow", "API Settings"))
         

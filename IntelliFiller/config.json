@@ -3,6 +3,8 @@
   "apiKey": "sk-H16sB4vjHI78qkrTBW301BlbkFarYSeOH6w1mH5DoLgzRRl",
   "emulate": "no",
   "overwriteField": false,
+  "maxFavorites": 3,
+  "history": [],
   "prompts": [
     {
       "prompt": "Explain how the word is used in context. \nWord: {{{Word}}} \nContext: {{{Sentence}}}",

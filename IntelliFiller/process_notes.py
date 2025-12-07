@@ -99,8 +99,27 @@ def process_notes(browser, prompt_config):
     config = mw.addonManager.getConfig(__name__)
     prompt_config['overwriteField'] = config.get('overwriteField', False)
 
+    # Update history
+    update_history_config(prompt_config['promptName'])
+
     if len(selected_notes) == 1 and browser.editor and browser.editor.note:
         generate_for_single_note(browser.editor, prompt_config)
     else:
         progress_dialog = ProgressDialog(browser)
         progress_dialog.run_task(selected_notes, prompt_config)
+
+def update_history_config(prompt_name):
+    config = mw.addonManager.getConfig(__name__)
+    history = config.get('history', [])
+    max_img = 10 # Keep more history than visible maxFavorites to allow flexibility, or just enough
+    
+    # Move to front if exists, else add to front
+    if prompt_name in history:
+        history.remove(prompt_name)
+    history.insert(0, prompt_name)
+    
+    # Limit size (arbitrary limit to keep config clean, e.g. 20)
+    history = history[:20]
+    
+    config['history'] = history
+    mw.addonManager.writeConfig(__name__, config)

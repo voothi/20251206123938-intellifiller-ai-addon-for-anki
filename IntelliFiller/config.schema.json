@@ -52,6 +52,10 @@
           "promptName": {
             "type": "string",
             "description": "Name for this prompt configuration."
+          },
+          "pinned": {
+            "type": "boolean",
+            "description": "If true, this prompt will be pinned to the top level context menu."
           }
         },
         "required": [
@@ -60,6 +64,19 @@
           "promptName"
         ]
       }
+    },
+    "maxFavorites": {
+      "type": "integer",
+      "description": "Maximum number of favorite/history items to show in the context menu.",
+      "default": 3
+    },
+    "history": {
+      "type": "array",
+      "description": "List of names of recently used prompts.",
+      "items": {
+        "type": "string"
+      },
+      "default": []
     }
   },
   "required": [
