@@ -100,6 +100,11 @@ class Ui_SettingsWindow(object):
         self.emulate = QtWidgets.QComboBox(self.tabApi)
         self.emulate.addItems(["yes", "no"])
         self.emulationLayout.addRow(self.labelEmulate, self.emulate)
+        
+        self.overwriteFieldLabel = QtWidgets.QLabel(self.tabApi)
+        self.overwriteField = QtWidgets.QCheckBox(self.tabApi)
+        self.emulationLayout.addRow(self.overwriteFieldLabel, self.overwriteField)
+        
         self.tabApiLayout.addLayout(self.emulationLayout)
         
         # Spacer to push everything up
@@ -172,6 +177,8 @@ class Ui_SettingsWindow(object):
         self.labelEmulate.setText(_translate("SettingsWindow", "Emulate:"))
         self.emulate.setItemText(0, _translate("SettingsWindow", "yes"))
         self.emulate.setItemText(1, _translate("SettingsWindow", "no"))
+        self.overwriteFieldLabel.setText(_translate("SettingsWindow", "Overwrite Target Field:"))
+        self.overwriteField.setText(_translate("SettingsWindow", ""))
         
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabApi), _translate("SettingsWindow", "API Settings"))
         

@@ -31,6 +31,10 @@
       ],
       "description": "Setting to enable or disable emulation mode."
     },
+    "overwriteField": {
+      "type": "boolean",
+      "description": "If true, overwrite the target field. If false, append to it."
+    },
     "prompts": {
       "type": "array",
       "description": "Array of prompt configurations.",

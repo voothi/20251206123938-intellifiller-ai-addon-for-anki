@@ -62,6 +62,7 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
         self.stackedWidget.setCurrentIndex(self.selectedApi.currentIndex())
         
         self.emulate.setCurrentText(config.get("emulate", "no"))
+        self.overwriteField.setChecked(config.get("overwriteField", False))
         
         self.promptWidgets = []
         for prompt in config.get("prompts", []):
@@ -106,6 +107,7 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
         config["customModel"] = self.customModel.text()
         config["selectedApi"] = self.selectedApi.currentData()
         config["emulate"] = self.emulate.currentText()
+        config["overwriteField"] = self.overwriteField.isChecked()
         
         config["prompts"] = []
         for promptWidget in self.promptWidgets:

@@ -76,7 +76,8 @@ def generate_for_single_note(editor, prompt_config):
     response = send_prompt_to_llm(prompt)
 
     target_field = prompt_config['targetField']
-    fill_field_for_note_in_editor(response, target_field, editor)
+    overwrite = prompt_config.get('overwriteField', False)
+    fill_field_for_note_in_editor(response, target_field, editor, overwrite)
 
 
 def enrich_without_editor(nid: NoteId, prompt_config):
@@ -84,7 +85,8 @@ def enrich_without_editor(nid: NoteId, prompt_config):
     note = mw.col.get_note(nid)
     prompt = create_prompt(note, prompt_config)
     response = send_prompt_to_llm(prompt)
-    fill_field_for_note_not_in_editor(response, note, prompt_config['targetField'])
+    overwrite = prompt_config.get('overwriteField', False)
+    fill_field_for_note_not_in_editor(response, note, prompt_config['targetField'], overwrite)
 
 
 def process_notes(browser, prompt_config):
@@ -92,6 +94,10 @@ def process_notes(browser, prompt_config):
     if not selected_notes:
         showWarning("No notes selected.")
         return
+
+    # Inject global overwrite setting into prompt_config
+    config = mw.addonManager.getConfig(__name__)
+    prompt_config['overwriteField'] = config.get('overwriteField', False)
 
     if len(selected_notes) == 1 and browser.editor and browser.editor.note:
         generate_for_single_note(browser.editor, prompt_config)
