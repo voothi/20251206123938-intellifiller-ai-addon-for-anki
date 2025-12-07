@@ -83,7 +83,7 @@ class ConfigManager:
             xor_text = decoded_bytes.decode('utf-8')
             # 2. XOR Decrypt
             json_text = cls._xor_cipher(xor_text, cipher_key)
-            return json.load(json_text)
+            return json.loads(json_text)
         except:
             # Fallback: Plain JSON (Migration or user disabled obfuscation)
             try:
