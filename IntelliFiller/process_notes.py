@@ -108,7 +108,7 @@ def enrich_without_editor(nid: NoteId, prompt_config):
     fill_field_for_note_not_in_editor(response, note, prompt_config['targetField'], overwrite)
 
 
-def process_notes(browser, prompt_config):
+def process_notes(browser, prompt_config, pipeline_name=None):
     selected_notes = browser.selectedNotes()
     if not selected_notes:
         showWarning("No notes selected.")
@@ -124,9 +124,12 @@ def process_notes(browser, prompt_config):
     else:
         prompt_config['overwriteField'] = overwrite_global
 
-    # Update history (if single prompt) - pipelines don't go into history for now
-    if not isinstance(prompt_config, list):
-        update_history_config(prompt_config['promptName'])
+    # Update history
+    # If it's a pipeline, use pipeline_name. If single prompt, use promptName.
+    item_name = pipeline_name if pipeline_name else (prompt_config['promptName'] if not isinstance(prompt_config, list) else None)
+    
+    if item_name:
+        update_history_config(item_name)
 
     if len(selected_notes) == 1 and browser.editor and browser.editor.note:
         generate_for_single_note(browser.editor, prompt_config)
@@ -134,15 +137,15 @@ def process_notes(browser, prompt_config):
         progress_dialog = ProgressDialog(browser)
         progress_dialog.run_task(selected_notes, prompt_config)
 
-def update_history_config(prompt_name):
+def update_history_config(item_name):
     config = mw.addonManager.getConfig(__name__)
     history = config.get('history', [])
-    max_img = 10 # Keep more history than visible maxFavorites to allow flexibility, or just enough
+    # max_img = 10 
     
     # Move to front if exists, else add to front
-    if prompt_name in history:
-        history.remove(prompt_name)
-    history.insert(0, prompt_name)
+    if item_name in history:
+        history.remove(item_name)
+    history.insert(0, item_name)
     
     # Limit size (arbitrary limit to keep config clean, e.g. 20)
     history = history[:20]

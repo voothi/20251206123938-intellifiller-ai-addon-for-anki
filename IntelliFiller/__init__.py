@@ -108,28 +108,61 @@ def add_context_menu_items(browser, menu):
     history = config.get('history', [])
 
     # Smart Menu Logic
-    # 1. Pinned prompts
-    pinned_prompts = [p for p in prompts if p.get('pinned', False)]
+    pinned_items = []
     
-    # 2. History prompts (excluding pinned ones to avoid duplicates)
-    pinned_names = {p['promptName'] for p in pinned_prompts}
-    history_prompts = []
-    for name in history:
-        # Find prompt config by name
-        match = next((p for p in prompts if p['promptName'] == name), None)
-        if match and match['promptName'] not in pinned_names:
-            history_prompts.append(match)
-            pinned_names.add(name) # Prevention of duplicates if history has dups
+    # 1. Pinned Prompts
+    for p in prompts:
+        if p.get('pinned', False):
+            pinned_items.append({"type": "prompt", "config": p, "name": p["promptName"]})
             
+    # 2. Pinned Pipelines
+    pipelines = config.get("pipelines", [])
+    for pl in pipelines:
+        if pl.get('pinned', False):
+             pinned_items.append({"type": "pipeline", "config": pl, "name": pl["pipelineName"]})
+
+    # 3. History (Recent) Items
+    # Combine history logic for both prompts and pipelines
+    history_items = []
+    pinned_names = {item['name'] for item in pinned_items}
+    
+    for name in history:
+        if name in pinned_names:
+            continue
+            
+        # Try to find in prompts
+        prompt_match = next((p for p in prompts if p['promptName'] == name), None)
+        if prompt_match:
+            history_items.append({"type": "prompt", "config": prompt_match, "name": name})
+            pinned_names.add(name)
+            continue
+            
+        # Try to find in pipelines
+        pipeline_match = next((pl for pl in pipelines if pl['pipelineName'] == name), None)
+        if pipeline_match:
+             history_items.append({"type": "pipeline", "config": pipeline_match, "name": name})
+             pinned_names.add(name)
+
     # Combine and limit
-    smart_prompts = (pinned_prompts + history_prompts)[:max_favorites]
+    smart_items = (pinned_items + history_items)[:max_favorites]
 
     # Add Smart Items to top level menu
-    if smart_prompts:
-        for prompt_config in smart_prompts:
-            action = QAction(prompt_config["promptName"], browser)
-            # Use run_prompt_directly for smart menu items
-            action.triggered.connect(lambda _, br=browser, pc=prompt_config: run_prompt_directly(br, pc))
+    if smart_items:
+        for item in smart_items:
+            action = QAction(item["name"], browser)
+            
+            if item["type"] == "prompt":
+                action.triggered.connect(lambda _, br=browser, pc=item["config"]: run_prompt_directly(br, pc))
+            elif item["type"] == "pipeline":
+                # Resolve pipeline prompts
+                resolved_prompts = []
+                for prompt_name in item["config"]["prompts"]:
+                     match = next((p for p in prompts if p['promptName'] == prompt_name), None)
+                     if match:
+                         resolved_prompts.append(match)
+                if resolved_prompts:
+                     action.triggered.connect(lambda _, br=browser, pl=resolved_prompts, name=item["name"]: process_notes(br, pl, name))
+
             submenu.addAction(action)
         
         submenu.addSeparator()
@@ -157,7 +190,7 @@ def add_context_menu_items(browser, menu):
                     resolved_prompts.append(match)
             
             if resolved_prompts:
-                action.triggered.connect(lambda _, br=browser, pl=resolved_prompts: process_notes(br, pl))
+                action.triggered.connect(lambda _, br=browser, pl=resolved_prompts, name=pipeline["pipelineName"]: process_notes(br, pl, name))
                 pipelines_menu.addAction(action)
 
 

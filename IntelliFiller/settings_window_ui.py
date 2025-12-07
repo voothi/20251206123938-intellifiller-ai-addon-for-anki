@@ -165,6 +165,9 @@ class Ui_SettingsWindow(object):
         self.pipelineNameLayout.addWidget(self.pipelineName)
         self.pipelineDetailsLayout.addLayout(self.pipelineNameLayout)
         
+        self.pipelinePinnedCheckbox = QtWidgets.QCheckBox("Pin to Menu", self.pipelineDetailsGroup)
+        self.pipelineDetailsLayout.addWidget(self.pipelinePinnedCheckbox)
+        
         self.labelPipelinePrompts = QtWidgets.QLabel("Prompts in Pipeline (Sequential):", self.pipelineDetailsGroup)
         self.pipelineDetailsLayout.addWidget(self.labelPipelinePrompts)
         

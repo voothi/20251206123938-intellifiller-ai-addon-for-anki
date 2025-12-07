@@ -78,6 +78,10 @@
             "items": {
               "type": "string"
             }
+          },
+          "pinned": {
+            "type": "boolean",
+            "description": "If true, this pipeline will be pinned to the top level context menu."
           }
         },
         "required": [

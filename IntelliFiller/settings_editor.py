@@ -76,6 +76,7 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
         self.addPipelineButton.clicked.connect(self.add_new_pipeline)
         self.removePipelineButton.clicked.connect(self.remove_selected_pipeline)
         self.pipelineName.textChanged.connect(self.update_current_pipeline_name)
+        self.pipelinePinnedCheckbox.clicked.connect(self.update_current_pipeline_pinned)
         self.addPromptToPipelineButton.clicked.connect(self.add_prompt_to_pipeline)
         self.removePromptFromPipelineButton.clicked.connect(self.remove_prompt_from_pipeline)
 
@@ -83,8 +84,6 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
         self.refresh_pipelines_list()
 
         self.promptWidgets = []
-        for prompt in config.get("prompts", []):
-            self.add_prompt(prompt)
 
     def refresh_pipelines_list(self):
         self.pipelinesList.clear()
@@ -95,19 +94,21 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
         if row < 0 or row >= len(self.pipelines):
             self.pipelineDetailsGroup.setEnabled(False)
             self.pipelineName.clear()
+            self.pipelinePinnedCheckbox.setChecked(False)
             self.pipelinePromptsList.clear()
             return
 
         self.pipelineDetailsGroup.setEnabled(True)
         pipeline = self.pipelines[row]
         self.pipelineName.setText(pipeline["pipelineName"])
+        self.pipelinePinnedCheckbox.setChecked(pipeline.get("pinned", False))
         
         self.pipelinePromptsList.clear()
         for prompt_name in pipeline["prompts"]:
             self.pipelinePromptsList.addItem(prompt_name)
 
     def add_new_pipeline(self):
-        new_pipeline = {"pipelineName": "New Pipeline", "prompts": []}
+        new_pipeline = {"pipelineName": "New Pipeline", "prompts": [], "pinned": False}
         self.pipelines.append(new_pipeline)
         self.refresh_pipelines_list()
         self.pipelinesList.setCurrentRow(len(self.pipelines) - 1)
@@ -124,6 +125,11 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
             self.pipelines[row]["pipelineName"] = text
             item = self.pipelinesList.item(row)
             item.setText(text)
+
+    def update_current_pipeline_pinned(self):
+        row = self.pipelinesList.currentRow()
+        if row >= 0:
+            self.pipelines[row]["pinned"] = self.pipelinePinnedCheckbox.isChecked()
 
     def add_prompt_to_pipeline(self):
         row = self.pipelinesList.currentRow()
