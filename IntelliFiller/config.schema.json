@@ -35,6 +35,11 @@
       "type": "boolean",
       "description": "If true, overwrite the target field. If false, append to it."
     },
+    "flatMenu": {
+      "type": "boolean",
+      "description": "If true, show items directly in the root context menu.",
+      "default": false
+    },
     "prompts": {
       "type": "array",
       "description": "Array of prompt configurations.",

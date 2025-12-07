@@ -100,9 +100,16 @@ def create_run_prompt_dialog_from_editor(editor: Editor, prompt_config):
         handle_edit_current_mode(editor, prompt_config)
 
 def add_context_menu_items(browser, menu):
-    submenu = QMenu(ADDON_NAME, menu)
-    menu.addMenu(submenu)
     config = mw.addonManager.getConfig(__name__)
+    flat_menu = config.get('flatMenu', False) # Check config
+
+    if flat_menu:
+        menu.addSeparator() # Add visual separation in root menu
+        submenu = menu
+    else:
+        submenu = QMenu(ADDON_NAME, menu)
+        menu.addMenu(submenu)
+
     prompts = config.get('prompts', [])
     max_favorites = config.get('maxFavorites', 3)
     history = config.get('history', [])

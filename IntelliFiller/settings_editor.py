@@ -70,6 +70,7 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
         
         self.emulate.setCurrentText(config.get("emulate", "no"))
         self.overwriteField.setChecked(config.get("overwriteField", False))
+        self.flatMenu.setChecked(config.get("flatMenu", False))
         self.maxFavorites.setValue(config.get("maxFavorites", 3))
         
         self.pipelinesList.currentRowChanged.connect(self.display_pipeline_details)
@@ -217,6 +218,7 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
         config["selectedApi"] = self.selectedApi.currentData()
         config["emulate"] = self.emulate.currentText()
         config["overwriteField"] = self.overwriteField.isChecked()
+        config["flatMenu"] = self.flatMenu.isChecked()
         config["maxFavorites"] = self.maxFavorites.value()
         
         config["prompts"] = []

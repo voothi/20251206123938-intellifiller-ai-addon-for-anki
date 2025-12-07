@@ -105,6 +105,10 @@ class Ui_SettingsWindow(object):
         self.overwriteField = QtWidgets.QCheckBox(self.tabApi)
         self.emulationLayout.addRow(self.overwriteFieldLabel, self.overwriteField)
         
+        self.flatMenuLabel = QtWidgets.QLabel(self.tabApi)
+        self.flatMenu = QtWidgets.QCheckBox(self.tabApi)
+        self.emulationLayout.addRow(self.flatMenuLabel, self.flatMenu)
+        
         self.labelMaxFavorites = QtWidgets.QLabel(self.tabApi)
         self.maxFavorites = QtWidgets.QSpinBox(self.tabApi)
         self.maxFavorites.setMinimum(0)
@@ -235,6 +239,9 @@ class Ui_SettingsWindow(object):
         self.emulate.setItemText(1, _translate("SettingsWindow", "no"))
         self.overwriteFieldLabel.setText(_translate("SettingsWindow", "Overwrite Target Field:"))
         self.overwriteField.setText(_translate("SettingsWindow", ""))
+        self.flatMenuLabel.setText(_translate("SettingsWindow", "Show in Root Menu:"))
+        self.flatMenu.setText(_translate("SettingsWindow", ""))
+        self.flatMenu.setToolTip(_translate("SettingsWindow", "If checked, removes the 'IntelliFiller' submenu and shows items directly in the main context menu."))
         self.labelMaxFavorites.setText(_translate("SettingsWindow", "Max Smart Menu Items:"))
         
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabApi), _translate("SettingsWindow", "API Settings"))
