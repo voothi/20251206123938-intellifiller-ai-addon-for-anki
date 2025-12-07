@@ -83,11 +83,10 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
             "promptName": ""
         })
         
-        # Scroll to bottom to ensure the new widget is visible
-        # We use a single shot timer to allow layout to settle
-        QTimer.singleShot(10, lambda: self.scrollArea.verticalScrollBar().setValue(
-            self.scrollArea.verticalScrollBar().maximum()
-        ))
+        # Scroll to ensure the new widget is fully visible
+        # Use ensureWidgetVisible which handles scrolling logic better than setting value to maximum
+        # Increase delay to 50ms to ensure layout has fully recalculated size
+        QTimer.singleShot(50, lambda: self.scrollArea.ensureWidgetVisible(promptWidget))
         
         # Set focus to the prompt name
         promptWidget.promptNameInput.setFocus()
