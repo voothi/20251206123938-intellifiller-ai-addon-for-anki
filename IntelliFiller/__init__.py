@@ -20,6 +20,7 @@ print("🔍 sys.path:", sys.path)
 from .settings_editor import SettingsWindow
 from .process_notes import process_notes, generate_for_single_note
 from .run_prompt_dialog import RunPromptDialog
+from .config_manager import ConfigManager
 
 ADDON_NAME = 'IntelliFiller'
 
@@ -31,6 +32,9 @@ try:
     print("✅ Loaded typing_extensions from:", typing_extensions.__file__)
 except ImportError as e:
     print("❌ Failed to load typing_extensions:", e)
+
+# Perform migration if needed
+ConfigManager.migrate_legacy_config(__name__)
 
 def handle_edit_current_mode(editor: Editor, prompt_config):
     editCurrentWindow: EditCurrent = editor.parentWindow
@@ -84,14 +88,7 @@ def handle_add_cards_mode(editor: Editor, prompt_config):
         generate_for_single_note(editor, updated_prompt_config)
 
 def save_prompt_config(updated_prompt_config):
-    config = mw.addonManager.getConfig(__name__)
-    prompts = config.get("prompts", [])
-    for i, p in enumerate(prompts):
-        if p["promptName"] == updated_prompt_config["promptName"]:
-            prompts[i] = updated_prompt_config
-            break
-    config["prompts"] = prompts
-    mw.addonManager.writeConfig(__name__, config)
+    ConfigManager.save_prompt(updated_prompt_config)
 
 def create_run_prompt_dialog_from_editor(editor: Editor, prompt_config):
     if editor.editorMode == EditorMode.BROWSER:
@@ -100,8 +97,8 @@ def create_run_prompt_dialog_from_editor(editor: Editor, prompt_config):
         handle_edit_current_mode(editor, prompt_config)
 
 def add_context_menu_items(browser, menu):
-    config = mw.addonManager.getConfig(__name__)
-    flat_menu = config.get('flatMenu', False) # Check config
+    settings = ConfigManager.load_settings()
+    flat_menu = settings.get('flatMenu', False) 
 
     if flat_menu:
         menu.addSeparator() # Add visual separation in root menu
@@ -110,9 +107,10 @@ def add_context_menu_items(browser, menu):
         submenu = QMenu(ADDON_NAME, menu)
         menu.addMenu(submenu)
 
-    prompts = config.get('prompts', [])
-    max_favorites = config.get('maxFavorites', 3)
-    history = config.get('history', [])
+    prompts = ConfigManager.list_prompts()
+    max_favorites = settings.get('maxFavorites', 3)
+    history = settings.get('history', [])
+    pipelines = settings.get("pipelines", [])
 
     # Smart Menu Logic
     pinned_items = []
@@ -183,7 +181,6 @@ def add_context_menu_items(browser, menu):
         prompts_menu.addAction(action)
 
     # Pipelines Submenu
-    pipelines = config.get("pipelines", [])
     if pipelines:
         pipelines_menu = QMenu("Pipelines", submenu)
         submenu.addMenu(pipelines_menu)
@@ -212,7 +209,7 @@ def open_settings():
 
 
 def on_editor_button(editor):
-    prompts = mw.addonManager.getConfig(__name__).get('prompts', [])
+    prompts = ConfigManager.list_prompts()
 
     menu = QMenu(editor.widget)
     for i, prompt in enumerate(prompts):

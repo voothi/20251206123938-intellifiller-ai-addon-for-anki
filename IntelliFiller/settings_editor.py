@@ -7,6 +7,7 @@ from aqt.utils import showInfo
 
 from .prompt_ui import Ui_Form
 from .settings_window_ui import Ui_SettingsWindow
+from .config_manager import ConfigManager
 import json
 
 class PromptWidget(QWidget, Ui_Form):
@@ -26,7 +27,7 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
         self.setupUi(self)
         
         self.setWindowTitle('ChatGPT Settings')
-        config = mw.addonManager.getConfig(__name__)
+        config = ConfigManager.get_full_config()
         self.setup_config(config)
         self.saveButton.clicked.connect(self.saveConfig)
         self.addPromptButton.clicked.connect(self.add_new_prompt)
@@ -220,15 +221,49 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
         promptWidgetToRemove.deleteLater()
 
     def saveConfig(self):
-        config = self.get_current_config()
-        mw.addonManager.writeConfig(__name__, config)
+        full_config = self.get_current_config()
+        
+        # 1. Credentials
+        cred_keys = [
+            "apiKey", "openaiModel", 
+            "anthropicKey", "anthropicModel", 
+            "geminiKey", "geminiModel", 
+            "openrouterKey", "openrouterModel", 
+            "customUrl", "customKey", "customModel"
+        ]
+        credentials = {k: full_config.get(k, "") for k in cred_keys}
+        ConfigManager.save_credentials(credentials)
+
+        # 2. Prompts
+        # Capture state BEFORE saving to know what to delete later
+        existing_prompts = ConfigManager.list_prompts()
+        existing_names = set(p['promptName'] for p in existing_prompts)
+        new_names = set(p['promptName'] for p in full_config['prompts'])
+        
+        # Save all current prompts FIRST (Safety Fix)
+        for prompt in full_config['prompts']:
+            ConfigManager.save_prompt(prompt)
+
+        # Remove obsolete files (Safe to do now)
+        for name in existing_names:
+            if name not in new_names:
+                ConfigManager.delete_prompt_file(name)
+
+        # 3. Settings (exclude credentials and prompts)
+        settings = {}
+        for k, v in full_config.items():
+            if k not in cred_keys and k != "prompts":
+                settings[k] = v
+        
+        ConfigManager.save_settings(settings)
+
         showInfo("Configuration saved.")
         self.config_saved = True
-        self.original_config = json.dumps(config, sort_keys=True) # Update original config
+        self.original_config = json.dumps(full_config, sort_keys=True) # Update original config
         self.close()
 
     def get_current_config(self):
-        config = mw.addonManager.getConfig(__name__)
+        config = ConfigManager.get_full_config()
         
         config["apiKey"] = self.apiKey.text()
         config["openaiModel"] = self.openaiModel.text()
