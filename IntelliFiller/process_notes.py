@@ -84,6 +84,78 @@ class ProgressDialog(QDialog):
         self.close()
 
 
+import json
+import re
+
+def parse_llm_json(response_text):
+    """
+    Parses JSON from LLM response, handling markdown code blocks.
+    Returns dict or None if parsing fails.
+    """
+    if not response_text:
+        return None
+        
+    # Remove markdown code blocks
+    # Pattern to match ```json ... ``` or just ``` ... ```
+    pattern = r"```(?:json)?\s*(.*?)\s*```"
+    match = re.search(pattern, response_text, re.DOTALL)
+    if match:
+        json_str = match.group(1)
+    else:
+        json_str = response_text
+        
+    try:
+        return json.loads(json_str)
+    except json.JSONDecodeError:
+        # Fallback: try to find start/end braces if there's extra text
+        start = json_str.find('{')
+        end = json_str.rfind('}')
+        if start != -1 and end != -1:
+             try:
+                 return json.loads(json_str[start:end+1])
+             except:
+                 pass
+        return None
+
+def apply_response_to_note(note_or_editor, prompt_config, response, is_editor=False):
+    """
+    Applies the LLM response to the note (or editor) based on format.
+    """
+    fmt = prompt_config.get("responseFormat", "text")
+    overwrite = prompt_config.get('overwriteField', False)
+    
+    if fmt == "json":
+        data = parse_llm_json(response)
+        if not data:
+            showWarning(f"Failed to parse JSON response for prompt '{prompt_config.get('promptName', '?')}'")
+            return
+
+        mapping = prompt_config.get("fieldMapping", {})
+        for json_key, target_field in mapping.items():
+            if json_key in data:
+                val = data[json_key]
+                # Convert non-string values to string
+                if isinstance(val, (dict, list)):
+                    val = json.dumps(val, ensure_ascii=False)
+                val = str(val)
+                
+                if is_editor:
+                    fill_field_for_note_in_editor(val, target_field, note_or_editor, overwrite)
+                else:
+                    fill_field_for_note_not_in_editor(val, note_or_editor, target_field, overwrite)
+            else:
+                # Key missing in response? Warning logic could go here.
+                pass
+                
+    else:
+        # Text mode (legacy)
+        target_field = prompt_config['targetField']
+        if is_editor:
+            fill_field_for_note_in_editor(response, target_field, note_or_editor, overwrite)
+        else:
+            fill_field_for_note_not_in_editor(response, note_or_editor, target_field, overwrite)
+
+
 def generate_for_single_note(editor, prompt_config):
     """Generate text for a single note (editor note)."""
     # handle pipeline (list of prompts)
@@ -92,13 +164,8 @@ def generate_for_single_note(editor, prompt_config):
     for p_config in prompts:
         prompt = create_prompt(editor.note, p_config)
         response = send_prompt_to_llm(prompt)
-
-        target_field = p_config['targetField']
-        overwrite = p_config.get('overwriteField', False)
-        # Note: In EditorMode, intermediate updates might not reflect immediately for the next prompt 
-        # if the next prompt relies on the field updated by the previous one, unless we flush/reload.
-        # But for now, we assume simple sequential execution.
-        fill_field_for_note_in_editor(response, target_field, editor, overwrite)
+        # Delegate application logic
+        apply_response_to_note(editor, p_config, response, is_editor=True)
 
 
 def enrich_without_editor(nid_or_note, prompt_config):
@@ -110,8 +177,9 @@ def enrich_without_editor(nid_or_note, prompt_config):
         
     prompt = create_prompt(note, prompt_config)
     response = send_prompt_to_llm(prompt)
-    overwrite = prompt_config.get('overwriteField', False)
-    fill_field_for_note_not_in_editor(response, note, prompt_config['targetField'], overwrite)
+    
+    # Delegate application logic
+    apply_response_to_note(note, prompt_config, response, is_editor=False)
 
 
 def process_notes(browser, prompt_config, pipeline_name=None):

@@ -54,6 +54,22 @@
             "type": "string",
             "description": "Field name where the GPT response should be stored."
           },
+          "responseFormat": {
+            "type": "string",
+            "enum": [
+              "text",
+              "json"
+            ],
+            "default": "text",
+            "description": "Format of the response expected from the LLM."
+          },
+          "fieldMapping": {
+            "type": "object",
+            "description": "Mapping of JSON keys to Anki fields (used when responseFormat is json).",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
           "promptName": {
             "type": "string",
             "description": "Name for this prompt configuration."

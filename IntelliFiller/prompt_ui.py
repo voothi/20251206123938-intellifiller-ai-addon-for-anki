@@ -58,6 +58,24 @@ class Ui_Form(object):
         self.targetFieldInput.setObjectName("targetFieldInput")
         self.frameLayout.addWidget(self.targetFieldInput)
         
+        # New: Response Format Selector
+        self.responseFormatLayout = QtWidgets.QHBoxLayout()
+        self.labelResponseFormat = QtWidgets.QLabel("Response Format:", parent=self.frame)
+        self.responseFormat = QtWidgets.QComboBox(parent=self.frame)
+        self.responseFormat.addItems(["Text", "JSON"])
+        self.responseFormat.setObjectName("responseFormat")
+        self.responseFormatLayout.addWidget(self.labelResponseFormat)
+        self.responseFormatLayout.addWidget(self.responseFormat)
+        self.responseFormatLayout.addStretch()
+        self.frameLayout.addLayout(self.responseFormatLayout)
+        
+        # New: Field Mapping Input (Hidden by default or managed by logic)
+        self.fieldMappingInput = QtWidgets.QPlainTextEdit(parent=self.frame)
+        self.fieldMappingInput.setPlaceholderText("JSON Mapping (Key: Field Name)\nExample:\ntranslation: Word Translation\nipa: IPA Field")
+        self.fieldMappingInput.setMaximumHeight(100)
+        self.fieldMappingInput.setObjectName("fieldMappingInput")
+        self.frameLayout.addWidget(self.fieldMappingInput)
+        
         self.pinnedCheckbox = QtWidgets.QCheckBox(parent=self.frame)
         self.pinnedCheckbox.setText("Pin to Menu")
         self.pinnedCheckbox.setObjectName("pinnedCheckbox")

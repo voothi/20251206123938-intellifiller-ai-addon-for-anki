@@ -181,12 +181,38 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
         promptWidget.targetFieldInput.setText(prompt["targetField"])
         promptWidget.promptNameInput.setText(prompt["promptName"])
         promptWidget.pinnedCheckbox.setChecked(prompt.get("pinned", False))
+        
+        # JSON / Multi-field setup
+        fmt = prompt.get("responseFormat", "text")
+        promptWidget.responseFormat.setCurrentText("JSON" if fmt == "json" else "Text")
+        
+        mapping = prompt.get("fieldMapping", {})
+        mapping_text = ""
+        for k, v in mapping.items():
+            mapping_text += f"{k}: {v}\n"
+        promptWidget.fieldMappingInput.setPlainText(mapping_text.strip())
+        
+        # Connect visibility toggle
+        promptWidget.responseFormat.currentTextChanged.connect(
+            lambda text, w=promptWidget: self.toggle_prompt_format(w, text))
+        
+        # Initial state
+        self.toggle_prompt_format(promptWidget, promptWidget.responseFormat.currentText())
+
         promptWidget.removePromptButton.clicked.connect(
             lambda: self.remove_prompt(promptWidget))
         
         self.promptsLayout.addWidget(promptWidget)
         self.promptWidgets.append(promptWidget)
         return promptWidget
+
+    def toggle_prompt_format(self, widget, text):
+        is_json = (text == "JSON")
+        widget.targetFieldInput.setVisible(not is_json)
+        widget.fieldMappingInput.setVisible(is_json)
+        # Updates placeholder based on mode
+        if is_json:
+             widget.targetFieldInput.clear() # Clear it? Or keep it? Maybe keep it.
 
     def remove_prompt(self, promptWidgetToRemove):
         self.promptWidgets.remove(promptWidgetToRemove)
@@ -227,11 +253,25 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
             targetFieldInput = promptWidget.targetFieldInput
             promptNameInput = promptWidget.promptNameInput
             
+            # Helper to parse mapping
+            fmt_text = promptWidget.responseFormat.currentText()
+            fmt = "json" if fmt_text == "JSON" else "text"
+            
+            mapping = {}
+            if fmt == "json":
+                lines = promptWidget.fieldMappingInput.toPlainText().split('\n')
+                for line in lines:
+                    if ':' in line:
+                        k, v = line.split(':', 1)
+                        mapping[k.strip()] = v.strip()
+            
             config["prompts"].append({
                 "prompt": promptInput.toPlainText(),
                 "targetField": targetFieldInput.text(),
                 "promptName": promptNameInput.text(),
-                "pinned": promptWidget.pinnedCheckbox.isChecked()
+                "pinned": promptWidget.pinnedCheckbox.isChecked(),
+                "responseFormat": fmt,
+                "fieldMapping": mapping
             })
         
         config["pipelines"] = self.pipelines
