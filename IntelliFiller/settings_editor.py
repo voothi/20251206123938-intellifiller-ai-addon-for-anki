@@ -1,5 +1,5 @@
 from PyQt6.QtGui import QGuiApplication, QIcon
-from PyQt6.QtWidgets import QWidget, QDialog, QInputDialog, QMessageBox
+from PyQt6.QtWidgets import QWidget, QDialog, QInputDialog, QMessageBox, QLineEdit
 from PyQt6.QtCore import QSize, Qt, QTimer
 from aqt import mw
 from aqt.qt import *
@@ -65,17 +65,17 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
             self._add_eye_toggle(field)
 
     def _add_eye_toggle(self, line_edit):
-        line_edit.setEchoMode(QtWidgets.QLineEdit.EchoMode.Password)
+        line_edit.setEchoMode(QLineEdit.EchoMode.Password)
         
         # Action to toggle visibility
-        action = line_edit.addAction(self.icon_eye, QtWidgets.QLineEdit.ActionPosition.TrailingPosition)
+        action = line_edit.addAction(self.icon_eye, QLineEdit.ActionPosition.TrailingPosition)
         
         def toggle():
-            if line_edit.echoMode() == QtWidgets.QLineEdit.EchoMode.Password:
-                line_edit.setEchoMode(QtWidgets.QLineEdit.EchoMode.Normal)
+            if line_edit.echoMode() == QLineEdit.EchoMode.Password:
+                line_edit.setEchoMode(QLineEdit.EchoMode.Normal)
                 action.setIcon(self.icon_eye_off)
             else:
-                line_edit.setEchoMode(QtWidgets.QLineEdit.EchoMode.Password)
+                line_edit.setEchoMode(QLineEdit.EchoMode.Password)
                 action.setIcon(self.icon_eye)
         
         action.triggered.connect(toggle)
