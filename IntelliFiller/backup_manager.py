@@ -47,28 +47,41 @@ class BackupManager:
 
     def scan_changes(self):
         """
-        Scans user_files for changes.
+        Scans user_files and root JSON files for changes.
         Returns (has_changes, updated_manifest)
         """
         manifest = self.load_manifest()
         new_manifest = {}
         has_changes = False
         
-        # Files to exclude from backup
-        excludes = ['backup_manifest.json']
+        # Files to exclude
+        excludes_names = ['backup_manifest.json']
 
-        all_files = []
+        all_items = []
+
+        # 1. user_files (Recursive)
         for root, dirs, files in os.walk(self.user_files_dir):
             for file in files:
-                if file in excludes:
-                    continue
-                all_files.append(os.path.join(root, file))
+                if file in excludes_names: continue
+                full_path = os.path.join(root, file)
+                # Rel path should start with user_files/ to distinguish
+                rel_from_addon = os.path.relpath(full_path, self.addon_dir)
+                all_items.append((full_path, rel_from_addon))
 
-        current_files_set = set(all_files)
+        # 2. Root JSON files (Non-recursive, just the specific files)
+        # "In general, all json files from this folder"
+        root_files = glob.glob(os.path.join(self.addon_dir, "*.json"))
+        # Also specifically check if meta.json exists (it might not be a .json if user meant something else, but they said meta.json)
+        # User said: "meta.json", "config.json", "config.schema.json", "manifest.json"
         
+        for file_path in root_files:
+            fname = os.path.basename(file_path)
+            if fname in excludes_names: continue
+            # Rel path is just filename
+            all_items.append((file_path, fname))
+
         # Check for new or modified files
-        for file_path in all_files:
-            rel_path = os.path.relpath(file_path, self.user_files_dir)
+        for file_path, rel_path in all_items:
             try:
                 mtime = os.path.getmtime(file_path)
             except OSError:
@@ -77,10 +90,8 @@ class BackupManager:
             last_entry = manifest.get(rel_path)
             
             if last_entry and last_entry.get('mtime') == mtime:
-                # File mtime matched, assume unchanged (optimization)
                 new_manifest[rel_path] = last_entry
             else:
-                # Mtime changed or new file, check MD5
                 md5 = self.calculate_md5(file_path)
                 if not last_entry or last_entry.get('md5') != md5:
                     has_changes = True
@@ -89,7 +100,6 @@ class BackupManager:
 
         # Check for deleted files
         old_files_set = set(manifest.keys())
-        # Convert current files to rel paths for comparison
         current_rel_paths = set(new_manifest.keys())
         
         if old_files_set != current_rel_paths:
@@ -110,80 +120,79 @@ class BackupManager:
         has_changes, new_manifest = self.scan_changes()
         
         if not has_changes:
-            return # No backup needed
+            return 
 
         local_path = backup_config.get('localPath')
         if not local_path:
-            return # No path configured
+            return 
             
         if not os.path.exists(local_path):
             try:
                 os.makedirs(local_path)
             except:
-                return # Cannot create dir
+                return 
 
-        # Create Backup
         timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
         filename = f"{timestamp}-intellifiller-backup.zip"
         target_file = os.path.join(local_path, filename)
         
         password = backup_config.get('zipPassword')
         
-        self.create_zip(self.user_files_dir, target_file, password)
+        self.create_zip(target_file, password)
         
-        # Update manifest only after successful backup
         self.save_manifest(new_manifest)
         
-        # External Backup
         external_path = backup_config.get('externalPath')
         if external_path and os.path.isdir(external_path):
              try:
                  shutil.copy2(target_file, os.path.join(external_path, filename))
-                 # Prune external? Maybe later. For now just copy.
                  self.prune_backups(external_path, backup_config)
              except:
                  pass
 
-        # Prune Local
         self.prune_backups(local_path, backup_config)
 
-    def create_zip(self, source_dir, target_file, password=None):
+    def create_zip(self, target_file, password=None):
         """
-        Creates a zip file of the source directory.
+        Creates a zip file containing user_files (subfolder) and root json files.
         """
-        excludes = ['backup_manifest.json']
-        
+        excludes_names = ['backup_manifest.json']
         compression = zipfile.ZIP_DEFLATED
         
+        # Collect files to zip mapping: {full_path: arcname}
+        files_to_zip = {}
+        
+        # 1. user_files
+        for root, dirs, files in os.walk(self.user_files_dir):
+            for file in files:
+                if file in excludes_names: continue
+                full_path = os.path.join(root, file)
+                # Store inside 'user_files/' folder in zip
+                rel_from_user_files = os.path.relpath(full_path, self.user_files_dir)
+                arcname = os.path.join('user_files', rel_from_user_files)
+                files_to_zip[full_path] = arcname
+                
+        # 2. Root JSONs
+        root_files = glob.glob(os.path.join(self.addon_dir, "*.json"))
+        for file_path in root_files:
+            fname = os.path.basename(file_path)
+            if fname in excludes_names: continue
+            files_to_zip[file_path] = fname
+
+        def write_to_zip(zf):
+             for full_path, arcname in files_to_zip.items():
+                try:
+                    zf.write(full_path, arcname)
+                except:
+                    pass
+
         if password and HAS_PYZIPPER:
              with pyzipper.AESZipFile(target_file, 'w', compression=compression, encryption=pyzipper.WZ_AES) as zf:
                 zf.setpassword(password.encode('utf-8'))
-                for root, dirs, files in os.walk(source_dir):
-                    for file in files:
-                        if file in excludes: continue
-                        file_path = os.path.join(root, file)
-                        arcname = os.path.relpath(file_path, source_dir)
-                        zf.write(file_path, arcname)
+                write_to_zip(zf)
         else:
-            # Standard zipfile or fallback
-            # Note: Standard zipfile does NOT support creating encrypted zips easily.
-            # If a password is provided but no pyzipper, we might just warn or skip encryption?
-            # For now, we will just create a standard zip if pyzipper is missing, 
-            # effectively ignoring the password (major security gap but better than crash).
-            # Ideally we should alert the user.
-            
             with zipfile.ZipFile(target_file, 'w', compression=compression) as zf:
-                 for root, dirs, files in os.walk(source_dir):
-                    for file in files:
-                        if file in excludes: continue
-                        file_path = os.path.join(root, file)
-                        arcname = os.path.relpath(file_path, source_dir)
-                        try:
-                            # If password was requested but we can't do it, we just write plain.
-                            # Standard zipfile.setpassword is only for extraction.
-                            zf.write(file_path, arcname)
-                        except:
-                            pass
+                 write_to_zip(zf)
 
     def prune_backups(self, directory, config):
         """
