@@ -73,6 +73,8 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
         self.overwriteField.setChecked(config.get("overwriteField", False))
         self.flatMenu.setChecked(config.get("flatMenu", False))
         self.maxFavorites.setValue(config.get("maxFavorites", 3))
+        # Default to True (Security by Default)
+        self.obfuscateCreds.setChecked(config.get("obfuscateCreds", True))
         
         self.pipelinesList.currentRowChanged.connect(self.display_pipeline_details)
         self.addPipelineButton.clicked.connect(self.add_new_pipeline)
@@ -232,7 +234,10 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
             "customUrl", "customKey", "customModel"
         ]
         credentials = {k: full_config.get(k, "") for k in cred_keys}
-        ConfigManager.save_credentials(credentials)
+        
+        # Pull obfuscation setting directly from UI since it's part of 'settings', not 'credentials'
+        should_obfuscate = self.obfuscateCreds.isChecked()
+        ConfigManager.save_credentials(credentials, obfuscate=should_obfuscate)
 
         # 2. Prompts
         # Capture state BEFORE saving to know what to delete later
@@ -281,6 +286,7 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
         config["overwriteField"] = self.overwriteField.isChecked()
         config["flatMenu"] = self.flatMenu.isChecked()
         config["maxFavorites"] = self.maxFavorites.value()
+        config["obfuscateCreds"] = self.obfuscateCreds.isChecked()
         
         config["prompts"] = []
         for promptWidget in self.promptWidgets:

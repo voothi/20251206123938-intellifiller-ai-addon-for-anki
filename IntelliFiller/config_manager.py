@@ -1,6 +1,7 @@
 import os
 import json
 import shutil
+import base64
 from aqt import mw
 
 class ConfigManager:
@@ -9,6 +10,31 @@ class ConfigManager:
     SETTINGS_FILE = os.path.join(USER_FILES_DIR, "settings.json")
     CREDENTIALS_FILE = os.path.join(USER_FILES_DIR, "credentials.json")
     PROMPTS_DIR = os.path.join(USER_FILES_DIR, "prompts")
+    
+    # Portable hardcoded key (Security against casual observation, not crypto-analysis)
+    _SECRET_KEY = "IntelliFiller_Portable_Key_2025"
+
+    @classmethod
+    def _write_file_safely(cls, path, content_str):
+        """Atomic write: Write to .tmp then rename."""
+        tmp_path = path + ".tmp"
+        try:
+            with open(tmp_path, "w", encoding="utf-8") as f:
+                f.write(content_str)
+            # Atomic replacement
+            if os.path.exists(path):
+                os.replace(tmp_path, path)
+            else:
+                os.rename(tmp_path, path)
+        except Exception as e:
+            if os.path.exists(tmp_path):
+                os.remove(tmp_path)
+            raise e
+
+    @classmethod
+    def _xor_cipher(cls, text, key):
+        """Simple XOR cipher for obfuscation."""
+        return ''.join(chr(ord(c) ^ ord(key[i % len(key)])) for i, c in enumerate(text))
 
     @classmethod
     def _ensure_directories(cls):
@@ -35,22 +61,48 @@ class ConfigManager:
     @classmethod
     def save_settings(cls, data):
         cls._ensure_directories()
-        with open(cls.SETTINGS_FILE, "w", encoding="utf-8") as f:
-            json.dump(data, f, indent=2, sort_keys=True)
+        content = json.dumps(data, indent=2, sort_keys=True)
+        cls._write_file_safely(cls.SETTINGS_FILE, content)
 
     @classmethod
     def load_credentials(cls):
         cls._ensure_directories()
-        if os.path.exists(cls.CREDENTIALS_FILE):
-             with open(cls.CREDENTIALS_FILE, "r", encoding="utf-8") as f:
-                 return json.load(f)
-        return {}
+        if not os.path.exists(cls.CREDENTIALS_FILE):
+             return {}
+        
+        with open(cls.CREDENTIALS_FILE, "r", encoding="utf-8") as f:
+            content = f.read().strip()
+            
+        # Try to decode as Obfuscated first
+        try:
+            # 1. Base64 Decode
+            decoded_bytes = base64.b64decode(content)
+            xor_text = decoded_bytes.decode('utf-8')
+            # 2. XOR Decrypt
+            json_text = cls._xor_cipher(xor_text, cls._SECRET_KEY)
+            return json.load(json_text)
+        except:
+            # Fallback: Plain JSON (Migration or user disabled obfuscation)
+            try:
+                return json.loads(content)
+            except json.JSONDecodeError:
+                return {}
     
     @classmethod
-    def save_credentials(cls, data):
+    def save_credentials(cls, data, obfuscate=True):
         cls._ensure_directories()
-        with open(cls.CREDENTIALS_FILE, "w", encoding="utf-8") as f:
-            json.dump(data, f, indent=2, sort_keys=True)
+        json_text = json.dumps(data, indent=2, sort_keys=True)
+        
+        if obfuscate:
+            # 1. XOR Encrypt
+            xor_text = cls._xor_cipher(json_text, cls._SECRET_KEY)
+            # 2. Base64 Encode (to make it safe text string)
+            encoded_bytes = base64.b64encode(xor_text.encode('utf-8'))
+            final_content = encoded_bytes.decode('utf-8')
+        else:
+            final_content = json_text
+            
+        cls._write_file_safely(cls.CREDENTIALS_FILE, final_content)
 
     @classmethod
     def list_prompts(cls):
@@ -83,8 +135,8 @@ class ConfigManager:
         filename = f"{safe_name}.json"
         path = os.path.join(cls.PROMPTS_DIR, filename)
         
-        with open(path, "w", encoding="utf-8") as f:
-            json.dump(prompt_data, f, indent=2, sort_keys=True)
+        content = json.dumps(prompt_data, indent=2, sort_keys=True)
+        cls._write_file_safely(path, content)
 
     @classmethod
     def delete_prompt_file(cls, prompt_name):
@@ -119,7 +171,8 @@ class ConfigManager:
             "customUrl", "customKey", "customModel"
         ]
         credentials = {k: legacy_config.get(k, "") for k in cred_keys}
-        cls.save_credentials(credentials)
+        # Default to obfuscated on migration
+        cls.save_credentials(credentials, obfuscate=True)
 
         # 2. Prompts
         prompts = legacy_config.get("prompts", [])

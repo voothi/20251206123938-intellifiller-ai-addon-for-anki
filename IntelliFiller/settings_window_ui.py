@@ -114,6 +114,10 @@ class Ui_SettingsWindow(object):
         self.maxFavorites.setMinimum(0)
         self.maxFavorites.setMaximum(10)
         self.emulationLayout.addRow(self.labelMaxFavorites, self.maxFavorites)
+
+        self.labelObfuscate = QtWidgets.QLabel(self.tabApi)
+        self.obfuscateCreds = QtWidgets.QCheckBox(self.tabApi)
+        self.emulationLayout.addRow(self.labelObfuscate, self.obfuscateCreds)
         
         self.tabApiLayout.addLayout(self.emulationLayout)
         
@@ -243,6 +247,9 @@ class Ui_SettingsWindow(object):
         self.flatMenu.setText(_translate("SettingsWindow", ""))
         self.flatMenu.setToolTip(_translate("SettingsWindow", "If checked, removes the 'IntelliFiller' submenu and shows items directly in the main context menu."))
         self.labelMaxFavorites.setText(_translate("SettingsWindow", "Max Smart Menu Items:"))
+        self.labelObfuscate.setText(_translate("SettingsWindow", "Obfuscate Credentials File:"))
+        self.obfuscateCreds.setText(_translate("SettingsWindow", ""))
+        self.obfuscateCreds.setToolTip(_translate("SettingsWindow", "Encrypts user_files/credentials.json with a reversible cipher to prevent casual reading."))
         
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabApi), _translate("SettingsWindow", "API Settings"))
         
