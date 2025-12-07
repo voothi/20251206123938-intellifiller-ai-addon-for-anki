@@ -130,13 +130,13 @@ def add_context_menu_items(browser, menu):
             action = QAction(prompt_config["promptName"], browser)
             # Use run_prompt_directly for smart menu items
             action.triggered.connect(lambda _, br=browser, pc=prompt_config: run_prompt_directly(br, pc))
-            menu.addAction(action)
+            submenu.addAction(action)
         
-        menu.addSeparator()
+        submenu.addSeparator()
 
     # Prompts Submenu
-    prompts_menu = QMenu("Prompts", menu)
-    menu.addMenu(prompts_menu)
+    prompts_menu = QMenu("Prompts", submenu)
+    submenu.addMenu(prompts_menu)
     for prompt_config in prompts:
         action = QAction(prompt_config["promptName"], browser)
         action.triggered.connect(lambda _, br=browser, pc=prompt_config: create_run_prompt_dialog_from_browser(br, pc))
@@ -145,8 +145,8 @@ def add_context_menu_items(browser, menu):
     # Pipelines Submenu
     pipelines = config.get("pipelines", [])
     if pipelines:
-        pipelines_menu = QMenu("Pipelines", menu)
-        menu.addMenu(pipelines_menu)
+        pipelines_menu = QMenu("Pipelines", submenu)
+        submenu.addMenu(pipelines_menu)
         for pipeline in pipelines:
             action = QAction(pipeline["pipelineName"], browser)
             # Resolve prompts for pipeline
