@@ -89,6 +89,7 @@ class ConfigManager:
             try:
                 return json.loads(content)
             except json.JSONDecodeError:
+                print(f"ConfigManager: Failed to load credentials (JSON decode error). Content preview: {content[:20]}...")
                 return {}
     
     @classmethod
@@ -178,6 +179,7 @@ class ConfigManager:
         ]
         credentials = {k: legacy_config.get(k, "") for k in cred_keys}
         # Default to obfuscated on migration
+        print(f"[{addon_name}] Migrating credentials: Found {len([v for v in credentials.values() if v])} non-empty keys.")
         cls.save_credentials(credentials, obfuscate=True)
 
         # 2. Prompts

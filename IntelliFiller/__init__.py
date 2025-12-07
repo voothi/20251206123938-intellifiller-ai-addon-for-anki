@@ -120,8 +120,8 @@ def add_context_menu_items(browser, menu):
         if p.get('pinned', False):
             pinned_items.append({"type": "prompt", "config": p, "name": p["promptName"]})
             
+            
     # 2. Pinned Pipelines
-    pipelines = config.get("pipelines", [])
     for pl in pipelines:
         if pl.get('pinned', False):
              pinned_items.append({"type": "pipeline", "config": pl, "name": pl["pipelineName"]})
