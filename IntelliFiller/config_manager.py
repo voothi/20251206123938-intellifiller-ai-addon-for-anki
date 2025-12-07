@@ -178,6 +178,25 @@ class ConfigManager:
             "customUrl", "customKey", "customModel"
         ]
         credentials = {k: legacy_config.get(k, "") for k in cred_keys}
+        
+        # [ROBUSTNESS] Fallback to meta.json if keys are missing/empty in legacy_config
+        # This handles the case where config.json is stale but meta.json has new keys
+        meta_path = os.path.join(cls.ADDON_DIR, "meta.json")
+        if os.path.exists(meta_path):
+            try:
+                with open(meta_path, "r", encoding="utf-8") as f:
+                    meta_data = json.load(f)
+                    meta_config = meta_data.get("config", {})
+                    
+                    for k in cred_keys:
+                        # If value is empty in current credentials, try to fetch from meta.json
+                        if not credentials.get(k):
+                            credentials[k] = meta_config.get(k, "")
+                    
+                    print(f"[{addon_name}] Merged configuration from meta.json.")
+            except Exception as e:
+                print(f"[{addon_name}] Failed to read meta.json: {e}")
+
         # Default to obfuscated on migration
         print(f"[{addon_name}] Migrating credentials: Found {len([v for v in credentials.values() if v])} non-empty keys.")
         cls.save_credentials(credentials, obfuscate=True)
