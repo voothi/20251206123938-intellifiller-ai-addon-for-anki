@@ -25,6 +25,8 @@ addon_dir = os.path.dirname(os.path.realpath(__file__))
 vendor_dir = os.path.join(addon_dir, "vendor", get_platform_specific_vendor())
 sys.path.append(vendor_dir)
 
+from .config_manager import ConfigManager
+
 import openai
 from .anthropic_client import SimpleAnthropicClient
 from .gemini_client import GeminiClient
@@ -47,8 +49,17 @@ def create_prompt(note, prompt_config):
 
 
 def send_prompt_to_llm(prompt):
-    config = mw.addonManager.getConfig(__name__)
-    if config['emulate'] == 'yes':
+    # Load settings first to get encryption key and API selector
+    settings = ConfigManager.load_settings()
+    encryption_key = settings.get("encryptionKey", "")
+    
+    # Load credentials using the key
+    credentials = ConfigManager.load_credentials(key=encryption_key)
+    
+    # Merge for easier access
+    config = {**settings, **credentials}
+
+    if config.get('emulate') == 'yes':
         print("Fake request: ", prompt)
         return f"This is a fake response for emulation mode for the prompt {prompt}."
 

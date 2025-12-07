@@ -75,6 +75,7 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
         self.maxFavorites.setValue(config.get("maxFavorites", 3))
         # Default to True (Security by Default)
         self.obfuscateCreds.setChecked(config.get("obfuscateCreds", True))
+        self.encryptionKey.setText(config.get("encryptionKey", ""))
         
         self.pipelinesList.currentRowChanged.connect(self.display_pipeline_details)
         self.addPipelineButton.clicked.connect(self.add_new_pipeline)
@@ -237,7 +238,10 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
         
         # Pull obfuscation setting directly from UI since it's part of 'settings', not 'credentials'
         should_obfuscate = self.obfuscateCreds.isChecked()
-        ConfigManager.save_credentials(credentials, obfuscate=should_obfuscate)
+        custom_key = self.encryptionKey.text()
+        
+        # Save credentials using the NEW key (re-encryption happens here automatically)
+        ConfigManager.save_credentials(credentials, key=custom_key, obfuscate=should_obfuscate)
 
         # 2. Prompts
         # Capture state BEFORE saving to know what to delete later
@@ -268,9 +272,23 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
         self.close()
 
     def get_current_config(self):
-        config = ConfigManager.get_full_config()
+        # We need to load settings first to get the key, then load credentials
+        # But here we want the FULL config to populate UI.
         
-        config["apiKey"] = self.apiKey.text()
+        # 1. Load Settings
+        settings = ConfigManager.load_settings()
+        encryption_key = settings.get("encryptionKey", "")
+        
+        # 2. Load Credentials using that key
+        credentials = ConfigManager.load_credentials(key=encryption_key)
+        
+        # 3. Load Prompts
+        prompts = ConfigManager.list_prompts()
+        
+        # Merge
+        full_config = {**settings, **credentials}
+        full_config["prompts"] = prompts
+        return full_config
         config["openaiModel"] = self.openaiModel.text()
         config["anthropicKey"] = self.anthropicKey.text()
         config["anthropicModel"] = self.anthropicModel.text()
@@ -287,6 +305,7 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
         config["flatMenu"] = self.flatMenu.isChecked()
         config["maxFavorites"] = self.maxFavorites.value()
         config["obfuscateCreds"] = self.obfuscateCreds.isChecked()
+        config["encryptionKey"] = self.encryptionKey.text()
         
         config["prompts"] = []
         for promptWidget in self.promptWidgets:

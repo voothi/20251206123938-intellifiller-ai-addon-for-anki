@@ -5,6 +5,7 @@ from aqt.utils import showWarning
 
 from .data_request import create_prompt, send_prompt_to_llm
 from .modify_notes import fill_field_for_note_in_editor, fill_field_for_note_not_in_editor
+from .config_manager import ConfigManager
 from anki.notes import Note, NoteId
 
 
@@ -189,8 +190,9 @@ def process_notes(browser, prompt_config, pipeline_name=None):
         return
 
     # Inject global overwrite setting into prompt_config(s)
-    config = mw.addonManager.getConfig(__name__)
-    overwrite_global = config.get('overwriteField', False)
+    # Inject global overwrite setting into prompt_config(s)
+    settings = ConfigManager.load_settings()
+    overwrite_global = settings.get('overwriteField', False)
     
     if isinstance(prompt_config, list):
         for p in prompt_config:
@@ -212,8 +214,8 @@ def process_notes(browser, prompt_config, pipeline_name=None):
         progress_dialog.run_task(selected_notes, prompt_config)
 
 def update_history_config(item_name):
-    config = mw.addonManager.getConfig(__name__)
-    history = config.get('history', [])
+    settings = ConfigManager.load_settings()
+    history = settings.get('history', [])
     # max_img = 10 
     
     # Move to front if exists, else add to front
@@ -224,5 +226,5 @@ def update_history_config(item_name):
     # Limit size (arbitrary limit to keep config clean, e.g. 20)
     history = history[:20]
     
-    config['history'] = history
-    mw.addonManager.writeConfig(__name__, config)
+    settings['history'] = history
+    ConfigManager.save_settings(settings)

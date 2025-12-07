@@ -11,8 +11,8 @@ class ConfigManager:
     CREDENTIALS_FILE = os.path.join(USER_FILES_DIR, "credentials.json")
     PROMPTS_DIR = os.path.join(USER_FILES_DIR, "prompts")
     
-    # Portable hardcoded key (Security against casual observation, not crypto-analysis)
-    _SECRET_KEY = "IntelliFiller_Portable_Key_2025"
+    # Portable hardcoded key (Fallback if user doesn't provide custom salt)
+    _DEFAULT_KEY = "IntelliFiller_Portable_Key_2025"
 
     @classmethod
     def _write_file_safely(cls, path, content_str):
@@ -65,11 +65,14 @@ class ConfigManager:
         cls._write_file_safely(cls.SETTINGS_FILE, content)
 
     @classmethod
-    def load_credentials(cls):
+    def load_credentials(cls, key=None):
         cls._ensure_directories()
         if not os.path.exists(cls.CREDENTIALS_FILE):
              return {}
         
+        # Use provided key or default
+        cipher_key = key if key else cls._DEFAULT_KEY
+
         with open(cls.CREDENTIALS_FILE, "r", encoding="utf-8") as f:
             content = f.read().strip()
             
@@ -79,7 +82,7 @@ class ConfigManager:
             decoded_bytes = base64.b64decode(content)
             xor_text = decoded_bytes.decode('utf-8')
             # 2. XOR Decrypt
-            json_text = cls._xor_cipher(xor_text, cls._SECRET_KEY)
+            json_text = cls._xor_cipher(xor_text, cipher_key)
             return json.load(json_text)
         except:
             # Fallback: Plain JSON (Migration or user disabled obfuscation)
@@ -89,13 +92,16 @@ class ConfigManager:
                 return {}
     
     @classmethod
-    def save_credentials(cls, data, obfuscate=True):
+    def save_credentials(cls, data, key=None, obfuscate=True):
         cls._ensure_directories()
         json_text = json.dumps(data, indent=2, sort_keys=True)
         
+        # Use provided key or default
+        cipher_key = key if key else cls._DEFAULT_KEY
+
         if obfuscate:
             # 1. XOR Encrypt
-            xor_text = cls._xor_cipher(json_text, cls._SECRET_KEY)
+            xor_text = cls._xor_cipher(json_text, cipher_key)
             # 2. Base64 Encode (to make it safe text string)
             encoded_bytes = base64.b64encode(xor_text.encode('utf-8'))
             final_content = encoded_bytes.decode('utf-8')
