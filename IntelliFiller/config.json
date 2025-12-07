@@ -4,6 +4,7 @@
   "emulate": "no",
   "overwriteField": false,
   "maxFavorites": 3,
+  "pipelines": [],
   "history": [],
   "prompts": [
     {

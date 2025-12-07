@@ -140,6 +140,25 @@ def add_context_menu_items(browser, menu):
         action.triggered.connect(lambda _, br=browser, pc=prompt_config: create_run_prompt_dialog_from_browser(br, pc))
         submenu.addAction(action)
 
+    # Pipelines Submenu
+    pipelines = config.get("pipelines", [])
+    if pipelines:
+        submenu.addSeparator()
+        pipeline_menu = QMenu("Pipelines", submenu)
+        submenu.addMenu(pipeline_menu)
+        for pipeline in pipelines:
+            action = QAction(pipeline["pipelineName"], browser)
+            # Resolve prompts for pipeline
+            resolved_prompts = []
+            for prompt_name in pipeline["prompts"]:
+                match = next((p for p in prompts if p['promptName'] == prompt_name), None)
+                if match:
+                    resolved_prompts.append(match)
+            
+            if resolved_prompts:
+                action.triggered.connect(lambda _, br=browser, pl=resolved_prompts: process_notes(br, pl))
+                pipeline_menu.addAction(action)
+
 
 def run_prompt_directly(browser, prompt_config):
     """Directly run the prompt without showing the dialog."""

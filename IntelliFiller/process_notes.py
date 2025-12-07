@@ -22,7 +22,12 @@ class MultipleNotesThreadWorker(QThread):
             if self.isInterruptionRequested():
                 break
             else:
-                enrich_without_editor(nid, self.prompt_config)
+                # prompt_config can be a dict (single prompt) or list (pipeline)
+                if isinstance(self.prompt_config, list):
+                    for p_config in self.prompt_config:
+                        enrich_without_editor(nid, p_config)
+                else:
+                    enrich_without_editor(nid, self.prompt_config)
             self.progress_made.emit(i + 1)
 
 
@@ -72,16 +77,30 @@ class ProgressDialog(QDialog):
 
 def generate_for_single_note(editor, prompt_config):
     """Generate text for a single note (editor note)."""
-    prompt = create_prompt(editor.note, prompt_config)
-    response = send_prompt_to_llm(prompt)
+    # handle pipeline (list of prompts)
+    prompts = prompt_config if isinstance(prompt_config, list) else [prompt_config]
+    
+    for p_config in prompts:
+        prompt = create_prompt(editor.note, p_config)
+        response = send_prompt_to_llm(prompt)
 
-    target_field = prompt_config['targetField']
-    overwrite = prompt_config.get('overwriteField', False)
-    fill_field_for_note_in_editor(response, target_field, editor, overwrite)
+        target_field = p_config['targetField']
+        overwrite = p_config.get('overwriteField', False)
+        # Note: In EditorMode, intermediate updates might not reflect immediately for the next prompt 
+        # if the next prompt relies on the field updated by the previous one, unless we flush/reload.
+        # But for now, we assume simple sequential execution.
+        fill_field_for_note_in_editor(response, target_field, editor, overwrite)
 
 
 def enrich_without_editor(nid: NoteId, prompt_config):
     """generate"""
+    # Note: caller (thread worker) handles list iteration for pipelines now, 
+    # but for safety/consistency we can check here too if called directly.
+    # However, to avoid double loops if worker loops too, let's keep this simple.
+    # The worker calls this function once per prompt per note if it's a list?
+    # No, the logic above in worker.run iterates the list and calls this function for each prompt.
+    # So this function expects a SINGLE prompt config.
+    
     note = mw.col.get_note(nid)
     prompt = create_prompt(note, prompt_config)
     response = send_prompt_to_llm(prompt)
@@ -95,12 +114,19 @@ def process_notes(browser, prompt_config):
         showWarning("No notes selected.")
         return
 
-    # Inject global overwrite setting into prompt_config
+    # Inject global overwrite setting into prompt_config(s)
     config = mw.addonManager.getConfig(__name__)
-    prompt_config['overwriteField'] = config.get('overwriteField', False)
+    overwrite_global = config.get('overwriteField', False)
+    
+    if isinstance(prompt_config, list):
+        for p in prompt_config:
+            p['overwriteField'] = overwrite_global
+    else:
+        prompt_config['overwriteField'] = overwrite_global
 
-    # Update history
-    update_history_config(prompt_config['promptName'])
+    # Update history (if single prompt) - pipelines don't go into history for now
+    if not isinstance(prompt_config, list):
+        update_history_config(prompt_config['promptName'])
 
     if len(selected_notes) == 1 and browser.editor and browser.editor.note:
         generate_for_single_note(browser.editor, prompt_config)

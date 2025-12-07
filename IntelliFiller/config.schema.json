@@ -65,6 +65,27 @@
         ]
       }
     },
+    "pipelines": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "pipelineName": {
+            "type": "string"
+          },
+          "prompts": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "pipelineName",
+          "prompts"
+        ]
+      }
+    },
     "maxFavorites": {
       "type": "integer",
       "description": "Maximum number of favorite/history items to show in the context menu.",

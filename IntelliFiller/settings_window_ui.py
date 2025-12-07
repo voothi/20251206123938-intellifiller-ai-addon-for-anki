@@ -135,6 +135,53 @@ class Ui_SettingsWindow(object):
         self.tabPromptsLayout.addWidget(self.scrollArea)
 
         self.tabWidget.addTab(self.tabPrompts, "")
+
+        # --- Pipelines Tab ---
+        self.tabPipelines = QtWidgets.QWidget()
+        self.tabPipelines.setObjectName("tabPipelines")
+        self.tabPipelinesLayout = QtWidgets.QHBoxLayout(self.tabPipelines)
+        
+        # Left: List of Pipelines
+        self.pipelinesListLayout = QtWidgets.QVBoxLayout()
+        self.pipelinesList = QtWidgets.QListWidget(self.tabPipelines)
+        self.pipelinesListLayout.addWidget(self.pipelinesList)
+        
+        self.addPipelineButton = QtWidgets.QPushButton("Add Pipeline", self.tabPipelines)
+        self.pipelinesListLayout.addWidget(self.addPipelineButton)
+        self.removePipelineButton = QtWidgets.QPushButton("Remove Pipeline", self.tabPipelines)
+        self.pipelinesListLayout.addWidget(self.removePipelineButton)
+        
+        self.tabPipelinesLayout.addLayout(self.pipelinesListLayout, 1) # Stretch factor 1
+        
+        # Right: Pipeline Details
+        self.pipelineDetailsGroup = QtWidgets.QGroupBox("Pipeline Details", self.tabPipelines)
+        self.pipelineDetailsGroup.setEnabled(False) # Disabled initially
+        self.pipelineDetailsLayout = QtWidgets.QVBoxLayout(self.pipelineDetailsGroup)
+        
+        self.pipelineNameLayout = QtWidgets.QHBoxLayout()
+        self.labelPipelineName = QtWidgets.QLabel("Name:", self.pipelineDetailsGroup)
+        self.pipelineName = QtWidgets.QLineEdit(self.pipelineDetailsGroup)
+        self.pipelineNameLayout.addWidget(self.labelPipelineName)
+        self.pipelineNameLayout.addWidget(self.pipelineName)
+        self.pipelineDetailsLayout.addLayout(self.pipelineNameLayout)
+        
+        self.labelPipelinePrompts = QtWidgets.QLabel("Prompts in Pipeline (Sequential):", self.pipelineDetailsGroup)
+        self.pipelineDetailsLayout.addWidget(self.labelPipelinePrompts)
+        
+        self.pipelinePromptsList = QtWidgets.QListWidget(self.pipelineDetailsGroup)
+        self.pipelinePromptsList.setDragDropMode(QtWidgets.QAbstractItemView.DragDropMode.InternalMove)
+        self.pipelineDetailsLayout.addWidget(self.pipelinePromptsList)
+        
+        self.pipelinePromptsControlsLayout = QtWidgets.QHBoxLayout()
+        self.addPromptToPipelineButton = QtWidgets.QPushButton("Add Prompt", self.pipelineDetailsGroup)
+        self.removePromptFromPipelineButton = QtWidgets.QPushButton("Remove Prompt", self.pipelineDetailsGroup)
+        self.pipelinePromptsControlsLayout.addWidget(self.addPromptToPipelineButton)
+        self.pipelinePromptsControlsLayout.addWidget(self.removePromptFromPipelineButton)
+        self.pipelineDetailsLayout.addLayout(self.pipelinePromptsControlsLayout)
+        
+        self.tabPipelinesLayout.addWidget(self.pipelineDetailsGroup, 2) # Stretch factor 2
+
+        self.tabWidget.addTab(self.tabPipelines, "")
         
         self.verticalLayout.addWidget(self.tabWidget)
 
@@ -191,5 +238,7 @@ class Ui_SettingsWindow(object):
         
         self.addPromptButton.setText(_translate("SettingsWindow", "Add Prompt"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabPrompts), _translate("SettingsWindow", "Prompts"))
+        
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabPipelines), _translate("SettingsWindow", "Pipelines"))
         
         self.saveButton.setText(_translate("SettingsWindow", "Save"))
