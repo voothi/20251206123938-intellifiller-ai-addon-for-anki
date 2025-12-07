@@ -78,6 +78,63 @@
       "type": "string",
       "description": "Custom salt for credentials encryption."
     },
+    "backup": {
+      "type": "object",
+      "description": "Configuration for periodic backups.",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable periodic backups."
+        },
+        "localPath": {
+          "type": "string",
+          "description": "Local directory to store backups."
+        },
+        "externalPath": {
+          "type": "string",
+          "description": "Optional secondary directory to copy backups (e.g. Google Drive)."
+        },
+        "zipPassword": {
+          "type": "string",
+          "description": "Password for the backup archive."
+        },
+        "intervalMinutes": {
+          "type": "integer",
+          "default": 60,
+          "description": "Interval in minutes between backup checks."
+        },
+        "backupOnSettingsOpen": {
+          "type": "boolean",
+          "default": true
+        },
+        "keepTenMin": {
+          "type": "integer",
+          "default": 6,
+          "description": "Number of 10-minute interval backups to keep (covering last hour)."
+        },
+        "keepHourly": {
+          "type": "integer",
+          "default": 24,
+          "description": "Number of hourly backups to keep (covering last day)."
+        },
+        "keepDaily": {
+          "type": "integer",
+          "default": 30,
+          "description": "Number of daily backups to keep (covering last month)."
+        },
+        "keepMonthly": {
+          "type": "integer",
+          "default": 12,
+          "description": "Number of monthly backups to keep (covering last year)."
+        },
+        "keepYearly": {
+          "type": "integer",
+          "default": 5,
+          "description": "Number of yearly backups to keep."
+        }
+      }
+    },
     "prompts": {
       "type": "array",
       "description": "Array of prompt configurations.",

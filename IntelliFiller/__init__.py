@@ -22,8 +22,14 @@ from .settings_editor import SettingsWindow
 from .process_notes import process_notes, generate_for_single_note
 from .run_prompt_dialog import RunPromptDialog
 from .config_manager import ConfigManager
+from .backup_manager import BackupManager
 
 ADDON_NAME = 'IntelliFiller'
+
+# Initialize Backup Manager
+addon_dir = os.path.dirname(__file__)
+backup_manager = BackupManager(ConfigManager, addon_dir)
+
 
 
 
@@ -205,6 +211,11 @@ def run_prompt_directly(browser, prompt_config):
 
 
 def open_settings():
+    # Trigger backup check on settings open if configured
+    settings = ConfigManager.load_settings()
+    if settings.get('backup', {}).get('backupOnSettingsOpen', True):
+        backup_manager.perform_backup()
+        
     window = SettingsWindow(mw)
     window.exec()
 
@@ -279,3 +290,29 @@ def check_security_cleanup():
             ConfigManager.save_settings(settings)
 
 profile_will_close.append(check_security_cleanup)
+
+# Setup Backup Timer
+def setup_backup_timer():
+    settings = ConfigManager.load_settings()
+    backup_config = settings.get('backup', {})
+    
+    if backup_config.get('enabled', False):
+        interval_minutes = backup_config.get('intervalMinutes', 60)
+        # Minimum interval 1 minute
+        if interval_minutes < 1: interval_minutes = 1
+        
+        # QTimer takes milliseconds
+        interval_ms = interval_minutes * 60 * 1000
+        
+        timer = QTimer(mw)
+        timer.timeout.connect(backup_manager.perform_backup)
+        timer.start(interval_ms)
+        
+        # Keep reference to timer to prevent garbage collection
+        mw.intellifiller_backup_timer = timer
+        
+# Initialize timer when profile loads (or strictly now if already loaded, 
+# but for Anki addons, we usually hook into profile loaded or just run at init if imported).
+# Since this __init__.py runs at Anki startup:
+setup_backup_timer()
+

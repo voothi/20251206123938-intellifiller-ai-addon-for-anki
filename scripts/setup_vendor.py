@@ -37,7 +37,8 @@ def setup_vendor():
         'openai>=1.0.0',
         'httpx>=0.24.0',
         'typing_extensions>=4.7.0',
-        'pydantic'
+        'pydantic',
+        'pyzipper'
     ])
 
     try:
@@ -46,7 +47,7 @@ def setup_vendor():
         print(f"Error installing packages: {e}")
         print("Attempting fallback installation without platform specification...")
         # Fallback to simple install without platform specification
-        fallback_args = [sys.executable, '-m', 'pip', 'install', '--no-user', '--target', vendor_dir, 'openai>=1.0.0', 'httpx>=0.24.0']
+        fallback_args = [sys.executable, '-m', 'pip', 'install', '--no-user', '--target', vendor_dir, 'openai>=1.0.0', 'httpx>=0.24.0', 'pyzipper']
         subprocess.check_call(fallback_args)
 
     # Remove unnecessary files to keep vendor directory slim

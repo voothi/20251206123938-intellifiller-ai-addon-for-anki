@@ -34,7 +34,8 @@ def build_all_platforms():
             'openai>=1.0.0',
             'httpx>=0.24.0',
             'typing_extensions>=4.7.0',
-            'pydantic'
+            'pydantic',
+            'pyzipper'
         ])
 
 if __name__ == '__main__':

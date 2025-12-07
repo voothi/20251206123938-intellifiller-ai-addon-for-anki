@@ -198,8 +198,83 @@ class Ui_SettingsWindow(object):
         self.tabPipelinesLayout.addWidget(self.pipelineDetailsGroup, 2) # Stretch factor 2
 
         self.tabWidget.addTab(self.tabPipelines, "")
+
+        # --- Backup Tab ---
+        self.tabBackups = QtWidgets.QWidget()
+        self.tabBackups.setObjectName("tabBackups")
+        self.tabBackupsLayout = QtWidgets.QVBoxLayout(self.tabBackups)
         
-        self.verticalLayout.addWidget(self.tabWidget)
+        # General Settings Group
+        self.backupGeneralGroup = QtWidgets.QGroupBox("General Settings", self.tabBackups)
+        self.backupGeneralLayout = QtWidgets.QFormLayout(self.backupGeneralGroup)
+        
+        self.backupEnabled = QtWidgets.QCheckBox(self.backupGeneralGroup)
+        self.backupGeneralLayout.addRow(QtWidgets.QLabel("Enable Backups:", self.backupGeneralGroup), self.backupEnabled)
+        
+        self.backupInterval = QtWidgets.QSpinBox(self.backupGeneralGroup)
+        self.backupInterval.setRange(1, 14400) # 1 min to 10 days
+        self.backupInterval.setSuffix(" min")
+        self.backupGeneralLayout.addRow(QtWidgets.QLabel("Check Interval:", self.backupGeneralGroup), self.backupInterval)
+        
+        self.backupOnSettingsOpen = QtWidgets.QCheckBox(self.backupGeneralGroup)
+        self.backupGeneralLayout.addRow(QtWidgets.QLabel("Backup on Settings Open:", self.backupGeneralGroup), self.backupOnSettingsOpen)
+        
+        self.backupPassword = QtWidgets.QLineEdit(self.backupGeneralGroup)
+        self.backupPassword.setEchoMode(QtWidgets.QLineEdit.EchoMode.Password)
+        self.backupGeneralLayout.addRow(QtWidgets.QLabel("ZIP Password (Optional):", self.backupGeneralGroup), self.backupPassword)
+
+        self.tabBackupsLayout.addWidget(self.backupGeneralGroup)
+        
+        # Paths Group
+        self.backupPathsGroup = QtWidgets.QGroupBox("Storage Locations", self.tabBackups)
+        self.backupPathsLayout = QtWidgets.QGridLayout(self.backupPathsGroup)
+        
+        self.labelLocalPath = QtWidgets.QLabel("Local Backup Path:", self.backupPathsGroup)
+        self.backupLocalPath = QtWidgets.QLineEdit(self.backupPathsGroup)
+        self.browseLocalPathBtn = QtWidgets.QPushButton("Browse...", self.backupPathsGroup)
+        
+        self.backupPathsLayout.addWidget(self.labelLocalPath, 0, 0)
+        self.backupPathsLayout.addWidget(self.backupLocalPath, 0, 1)
+        self.backupPathsLayout.addWidget(self.browseLocalPathBtn, 0, 2)
+        
+        self.labelExternalPath = QtWidgets.QLabel("External Path (e.g. Cloud):", self.backupPathsGroup)
+        self.backupExternalPath = QtWidgets.QLineEdit(self.backupPathsGroup)
+        self.browseExternalPathBtn = QtWidgets.QPushButton("Browse...", self.backupPathsGroup)
+        
+        self.backupPathsLayout.addWidget(self.labelExternalPath, 1, 0)
+        self.backupPathsLayout.addWidget(self.backupExternalPath, 1, 1)
+        self.backupPathsLayout.addWidget(self.browseExternalPathBtn, 1, 2)
+        
+        self.tabBackupsLayout.addWidget(self.backupPathsGroup)
+        
+        # Rotation Policy Group
+        self.backupRotationGroup = QtWidgets.QGroupBox("Retention Policy (GFS Rotation)", self.tabBackups)
+        self.backupRotationLayout = QtWidgets.QFormLayout(self.backupRotationGroup)
+        
+        self.keepTenMin = QtWidgets.QSpinBox(self.backupRotationGroup)
+        self.keepTenMin.setRange(0, 1000)
+        self.backupRotationLayout.addRow(QtWidgets.QLabel("Keep 10-Min Snapshots (Last Hour):", self.backupRotationGroup), self.keepTenMin)
+        
+        self.keepHourly = QtWidgets.QSpinBox(self.backupRotationGroup)
+        self.keepHourly.setRange(0, 1000)
+        self.backupRotationLayout.addRow(QtWidgets.QLabel("Keep Hourly Snapshots (Last Day):", self.backupRotationGroup), self.keepHourly)
+        
+        self.keepDaily = QtWidgets.QSpinBox(self.backupRotationGroup)
+        self.keepDaily.setRange(0, 36500)
+        self.backupRotationLayout.addRow(QtWidgets.QLabel("Keep Daily Snapshots:", self.backupRotationGroup), self.keepDaily)
+        
+        self.keepMonthly = QtWidgets.QSpinBox(self.backupRotationGroup)
+        self.keepMonthly.setRange(0, 1200)
+        self.backupRotationLayout.addRow(QtWidgets.QLabel("Keep Monthly Snapshots:", self.backupRotationGroup), self.keepMonthly)
+        
+        self.keepYearly = QtWidgets.QSpinBox(self.backupRotationGroup)
+        self.keepYearly.setRange(0, 100)
+        self.backupRotationLayout.addRow(QtWidgets.QLabel("Keep Yearly Snapshots:", self.backupRotationGroup), self.keepYearly)
+
+        self.tabBackupsLayout.addWidget(self.backupRotationGroup)
+        self.tabBackupsLayout.addStretch()
+
+        self.tabWidget.addTab(self.tabBackups, "")
 
         # Save Button
         self.saveButton = QtWidgets.QPushButton(SettingsWindow)

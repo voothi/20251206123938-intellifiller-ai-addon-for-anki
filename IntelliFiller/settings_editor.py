@@ -1,5 +1,5 @@
 from PyQt6.QtGui import QGuiApplication, QIcon
-from PyQt6.QtWidgets import QWidget, QDialog, QInputDialog, QMessageBox, QLineEdit
+from PyQt6.QtWidgets import QWidget, QDialog, QInputDialog, QMessageBox, QLineEdit, QFileDialog
 from PyQt6.QtCore import QSize, Qt, QTimer
 from aqt import mw
 from aqt.qt import *
@@ -45,6 +45,10 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
         self.original_config = json.dumps(config, sort_keys=True)
 
         self.setup_password_fields()
+        
+        # Connect Backup Browse Buttons
+        self.browseLocalPathBtn.clicked.connect(self.browse_local_path)
+        self.browseExternalPathBtn.clicked.connect(self.browse_external_path)
 
     def setup_password_fields(self):
         """Configures API key fields to be masked with a toggle button."""
@@ -54,7 +58,9 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
             self.geminiKey, 
             self.openrouterKey, 
             self.customKey, 
-            self.encryptionKey
+            self.customKey, 
+            self.encryptionKey,
+            self.backupPassword
         ]
         
         addon_dir = os.path.dirname(os.path.abspath(__file__))
@@ -127,6 +133,22 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
         self.promptWidgets = []
         for prompt in config.get("prompts", []):
             self.add_prompt(prompt)
+
+        # Backup Settings
+        backup = config.get("backup", {})
+        self.backupEnabled.setChecked(backup.get("enabled", False))
+        self.backupInterval.setValue(backup.get("intervalMinutes", 60))
+        self.backupOnSettingsOpen.setChecked(backup.get("backupOnSettingsOpen", True))
+        self.backupPassword.setText(backup.get("zipPassword", ""))
+        self.backupLocalPath.setText(backup.get("localPath", ""))
+        self.backupExternalPath.setText(backup.get("externalPath", ""))
+        
+        self.keepTenMin.setValue(backup.get("keepTenMin", 6))
+        self.keepHourly.setValue(backup.get("keepHourly", 24))
+        self.keepDaily.setValue(backup.get("keepDaily", 30))
+        self.keepMonthly.setValue(backup.get("keepMonthly", 12))
+        self.keepYearly.setValue(backup.get("keepYearly", 5))
+
 
     def refresh_pipelines_list(self):
         self.pipelinesList.clear()
@@ -359,7 +381,35 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
             })
         
         config["pipelines"] = self.pipelines
+        config["pipelines"] = self.pipelines
+        
+        # Backup Settings
+        config["backup"] = {
+            "enabled": self.backupEnabled.isChecked(),
+            "intervalMinutes": self.backupInterval.value(),
+            "backupOnSettingsOpen": self.backupOnSettingsOpen.isChecked(),
+            "zipPassword": self.backupPassword.text(),
+            "localPath": self.backupLocalPath.text(),
+            "externalPath": self.backupExternalPath.text(),
+            "keepTenMin": self.keepTenMin.value(),
+            "keepHourly": self.keepHourly.value(),
+            "keepDaily": self.keepDaily.value(),
+            "keepMonthly": self.keepMonthly.value(),
+            "keepYearly": self.keepYearly.value()
+        }
+        
         return config
+
+    def browse_local_path(self):
+        directory = QFileDialog.getExistingDirectory(self, "Select Local Backup Directory", self.backupLocalPath.text())
+        if directory:
+            self.backupLocalPath.setText(directory)
+
+    def browse_external_path(self):
+        directory = QFileDialog.getExistingDirectory(self, "Select External Backup Directory", self.backupExternalPath.text())
+        if directory:
+            self.backupExternalPath.setText(directory)
+
 
     def keyPressEvent(self, event):
         if event.key() == Qt.Key.Key_S and (event.modifiers() & Qt.KeyboardModifier.ControlModifier):
