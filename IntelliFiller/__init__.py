@@ -106,7 +106,8 @@ def add_context_menu_items(browser, menu):
     if smart_prompts:
         for prompt_config in smart_prompts:
             action = QAction(prompt_config["promptName"], browser)
-            action.triggered.connect(lambda _, br=browser, pc=prompt_config: create_run_prompt_dialog_from_browser(br, pc))
+            # Use run_prompt_directly for smart menu items
+            action.triggered.connect(lambda _, br=browser, pc=prompt_config: run_prompt_directly(br, pc))
             menu.addAction(action)
         
         menu.addSeparator()
@@ -116,6 +117,11 @@ def add_context_menu_items(browser, menu):
         action = QAction(prompt_config["promptName"], browser)
         action.triggered.connect(lambda _, br=browser, pc=prompt_config: create_run_prompt_dialog_from_browser(br, pc))
         submenu.addAction(action)
+
+
+def run_prompt_directly(browser, prompt_config):
+    """Directly run the prompt without showing the dialog."""
+    process_notes(browser, prompt_config)
 
 
 def open_settings():
