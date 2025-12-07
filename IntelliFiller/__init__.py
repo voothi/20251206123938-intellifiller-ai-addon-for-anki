@@ -37,7 +37,10 @@ def handle_edit_current_mode(editor: Editor, prompt_config):
     common_fields = get_common_fields([editor.note.id])
     dialog = RunPromptDialog(editCurrentWindow, common_fields, prompt_config)
     if dialog.exec() == QDialog.DialogCode.Accepted:
-        updated_prompt_config = dialog.get_result()
+        result = dialog.get_result()
+        updated_prompt_config = result["config"]
+        if result["save"]:
+            save_prompt_config(updated_prompt_config)
         generate_for_single_note(editor, updated_prompt_config)
 
 def get_common_fields(selected_nodes_ids):
@@ -52,7 +55,10 @@ def create_run_prompt_dialog_from_browser(browser, prompt_config):
     common_fields = get_common_fields(browser.selectedNotes())
     dialog = RunPromptDialog(browser, common_fields, prompt_config)
     if dialog.exec() == QDialog.DialogCode.Accepted:
-        updated_prompt_config = dialog.get_result()
+        result = dialog.get_result()
+        updated_prompt_config = result["config"]
+        if result["save"]:
+            save_prompt_config(updated_prompt_config)
         process_notes(browser, updated_prompt_config)
 
 def handle_browser_mode(editor: Editor, prompt_config):
@@ -60,7 +66,10 @@ def handle_browser_mode(editor: Editor, prompt_config):
     common_fields = get_common_fields(browser.selectedNotes())
     dialog = RunPromptDialog(browser, common_fields, prompt_config)
     if dialog.exec() == QDialog.DialogCode.Accepted:
-        updated_prompt_config = dialog.get_result()
+        result = dialog.get_result()
+        updated_prompt_config = result["config"]
+        if result["save"]:
+            save_prompt_config(updated_prompt_config)
         process_notes(browser, updated_prompt_config)
 
 def handle_add_cards_mode(editor: Editor, prompt_config):
@@ -68,8 +77,21 @@ def handle_add_cards_mode(editor: Editor, prompt_config):
     keys = editor.note.keys()
     dialog = RunPromptDialog(addCardsWindow, keys, prompt_config)
     if dialog.exec() == QDialog.DialogCode.Accepted:
-        updated_prompt_config = dialog.get_result()
+        result = dialog.get_result()
+        updated_prompt_config = result["config"]
+        if result["save"]:
+            save_prompt_config(updated_prompt_config)
         generate_for_single_note(editor, updated_prompt_config)
+
+def save_prompt_config(updated_prompt_config):
+    config = mw.addonManager.getConfig(__name__)
+    prompts = config.get("prompts", [])
+    for i, p in enumerate(prompts):
+        if p["promptName"] == updated_prompt_config["promptName"]:
+            prompts[i] = updated_prompt_config
+            break
+    config["prompts"] = prompts
+    mw.addonManager.writeConfig(__name__, config)
 
 def create_run_prompt_dialog_from_editor(editor: Editor, prompt_config):
     if editor.editorMode == EditorMode.BROWSER:

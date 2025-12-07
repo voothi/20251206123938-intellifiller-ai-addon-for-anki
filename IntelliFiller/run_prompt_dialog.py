@@ -1,6 +1,6 @@
 import re
 
-from PyQt6.QtWidgets import QDialog, QVBoxLayout, QLabel, QPushButton, QTextEdit, QComboBox
+from PyQt6.QtWidgets import QDialog, QVBoxLayout, QLabel, QPushButton, QTextEdit, QComboBox, QCheckBox
 from aqt import mw
 from aqt.utils import showWarning
 
@@ -31,6 +31,10 @@ class RunPromptDialog(QDialog):
         layout.addWidget(QLabel("Target Field:"))
         layout.addWidget(self.target_field_editor)
 
+        # Add Save Changes Checkbox
+        self.save_changes_checkbox = QCheckBox("Save changes to prompt configuration")
+        layout.addWidget(self.save_changes_checkbox)
+
         run_button = QPushButton("Run")
         run_button.clicked.connect(self.try_to_accept)
         # Make it the default button and give it focus
@@ -51,8 +55,12 @@ class RunPromptDialog(QDialog):
                         + "\nMake sure that you only use these fields " + ", ".join(self.possible_fields)
                         + "\nDouble-check the capital letters.")
             return
-
-        self.result = self.prompt_config
+        
+        # Include save flag in result
+        self.result = {
+            "config": self.prompt_config,
+            "save": self.save_changes_checkbox.isChecked()
+        }
         self.accept()
 
     def get_result(self):
