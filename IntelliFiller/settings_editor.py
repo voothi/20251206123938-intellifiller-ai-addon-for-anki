@@ -44,6 +44,42 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
         # But wait, config object passed to setup_config IS the source of truth initially.
         self.original_config = json.dumps(config, sort_keys=True)
 
+        self.setup_password_fields()
+
+    def setup_password_fields(self):
+        """Configures API key fields to be masked with a toggle button."""
+        fields = [
+            self.apiKey, 
+            self.anthropicKey, 
+            self.geminiKey, 
+            self.openrouterKey, 
+            self.customKey, 
+            self.encryptionKey
+        ]
+        
+        addon_dir = os.path.dirname(os.path.abspath(__file__))
+        self.icon_eye = QIcon(os.path.join(addon_dir, 'eye.svg'))
+        self.icon_eye_off = QIcon(os.path.join(addon_dir, 'eye-off.svg'))
+
+        for field in fields:
+            self._add_eye_toggle(field)
+
+    def _add_eye_toggle(self, line_edit):
+        line_edit.setEchoMode(QtWidgets.QLineEdit.EchoMode.Password)
+        
+        # Action to toggle visibility
+        action = line_edit.addAction(self.icon_eye, QtWidgets.QLineEdit.ActionPosition.TrailingPosition)
+        
+        def toggle():
+            if line_edit.echoMode() == QtWidgets.QLineEdit.EchoMode.Password:
+                line_edit.setEchoMode(QtWidgets.QLineEdit.EchoMode.Normal)
+                action.setIcon(self.icon_eye_off)
+            else:
+                line_edit.setEchoMode(QtWidgets.QLineEdit.EchoMode.Password)
+                action.setIcon(self.icon_eye)
+        
+        action.triggered.connect(toggle)
+
     def setWindowSize(self):
         screen_size = QGuiApplication.primaryScreen().geometry()
         self.resize(screen_size.width() * 0.8, screen_size.height() * 0.8)
