@@ -26,10 +26,16 @@ class RunPromptDialog(QDialog):
         if self.prompt_config["targetField"] in self.possible_fields:
             self.target_field_editor.setCurrentText(self.prompt_config["targetField"])
 
+        self.label_target_field = QLabel("Target Field:")
         layout.addWidget(QLabel("Prompt:"))
         layout.addWidget(self.prompt_editor)
-        layout.addWidget(QLabel("Target Field:"))
+        layout.addWidget(self.label_target_field)
         layout.addWidget(self.target_field_editor)
+
+        # Hide target field selection if response format is JSON
+        if self.prompt_config.get("responseFormat") == "json":
+            self.label_target_field.setVisible(False)
+            self.target_field_editor.setVisible(False)
 
         # Add Save Changes Checkbox
         self.save_changes_checkbox = QCheckBox("Save changes to prompt configuration")
