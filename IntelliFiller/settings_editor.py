@@ -35,6 +35,13 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
         self.selectedApi.currentIndexChanged.connect(self.stackedWidget.setCurrentIndex)
         # Set initial page based on config
         self.stackedWidget.setCurrentIndex(self.selectedApi.currentIndex())
+        
+        # Track initial state for unsaved changes detection
+        self.config_saved = False
+        # We need to capture the state *after* setup_config is called, but that uses the raw config object.
+        # It's safer to call get_current_config() immediately after setup to establish baseline.
+        # But wait, config object passed to setup_config IS the source of truth initially.
+        self.original_config = json.dumps(config, sort_keys=True)
 
     def setWindowSize(self):
         screen_size = QGuiApplication.primaryScreen().geometry()
@@ -94,6 +101,14 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
         promptWidgetToRemove.deleteLater()
 
     def saveConfig(self):
+        config = self.get_current_config()
+        mw.addonManager.writeConfig(__name__, config)
+        showInfo("Configuration saved.")
+        self.config_saved = True
+        self.original_config = json.dumps(config, sort_keys=True) # Update original config
+        self.close()
+
+    def get_current_config(self):
         config = mw.addonManager.getConfig(__name__)
         
         config["apiKey"] = self.apiKey.text()
@@ -124,7 +139,36 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
                 "promptName": promptNameInput.text(),
                 "pinned": promptWidget.pinnedCheckbox.isChecked()
             })
+        return config
+
+    def keyPressEvent(self, event):
+        if event.key() == Qt.Key.Key_S and (event.modifiers() & Qt.KeyboardModifier.ControlModifier):
+            self.saveConfig()
+        else:
+            super().keyPressEvent(event)
+
+    def closeEvent(self, event):
+        if self.config_saved:
+            event.accept()
+            return
+
+        current_config = self.get_current_config()
+        current_config_str = json.dumps(current_config, sort_keys=True)
         
-        mw.addonManager.writeConfig(__name__, config)
-        showInfo("Configuration saved.")
-        self.close()
+        if current_config_str != self.original_config:
+            reply = QMessageBox.question(
+                self, 
+                "Unsaved Changes",
+                "You have unsaved changes. Do you want to save them before closing?",
+                QMessageBox.StandardButton.Save | QMessageBox.StandardButton.Discard | QMessageBox.StandardButton.Cancel
+            )
+
+            if reply == QMessageBox.StandardButton.Save:
+                self.saveConfig()
+                event.accept()
+            elif reply == QMessageBox.StandardButton.Discard:
+                event.accept()
+            else:
+                event.ignore()
+        else:
+            event.accept()
