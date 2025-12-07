@@ -226,7 +226,8 @@ class ConfigManager:
         Useful for modifying existing code with minimal changes.
         """
         settings = cls.load_settings()
-        credentials = cls.load_credentials()
+        encryption_key = settings.get("encryptionKey", "")
+        credentials = cls.load_credentials(key=encryption_key)
         prompts = cls.list_prompts()
         
         full_config = settings.copy()
