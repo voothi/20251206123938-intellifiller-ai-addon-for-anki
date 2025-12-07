@@ -233,3 +233,86 @@ class ConfigManager:
         full_config.update(credentials)
         full_config["prompts"] = prompts
         return full_config
+
+    @classmethod
+    def has_legacy_secrets(cls, addon_name):
+        """Checks if legacy files (meta.json/config.json) still contain plain-text secrets."""
+        cred_keys = [
+            "apiKey", "anthropicKey", "geminiKey", "openrouterKey", "customKey"
+        ]
+        
+        # Check meta.json
+        meta_path = os.path.join(cls.ADDON_DIR, "meta.json")
+        if os.path.exists(meta_path):
+            try:
+                with open(meta_path, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                    config = data.get("config", {})
+                    for k in cred_keys:
+                        if config.get(k):
+                            return True
+            except:
+                pass
+
+        # Check config.json (via Anki, or direct read?)
+        # Direct read is safer to detect physical file content
+        config_path = os.path.join(cls.ADDON_DIR, "config.json")
+        if os.path.exists(config_path):
+            try:
+                with open(config_path, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                    for k in cred_keys:
+                        if data.get(k):
+                            return True
+            except:
+                pass
+                
+        return False
+
+    @classmethod
+    def sanitize_legacy_files(cls, addon_name):
+        """Removes secrets from meta.json and config.json."""
+        cred_keys = [
+            "apiKey", "anthropicKey", "geminiKey", "openrouterKey", "customKey"
+        ]
+        
+        # 1. Sanitize meta.json
+        meta_path = os.path.join(cls.ADDON_DIR, "meta.json")
+        if os.path.exists(meta_path):
+            try:
+                with open(meta_path, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                
+                changed = False
+                if "config" in data:
+                    for k in cred_keys:
+                        if data["config"].get(k):
+                            data["config"][k] = ""
+                            changed = True
+                
+                if changed:
+                    with open(meta_path, "w", encoding="utf-8") as f:
+                        json.dump(data, f, indent=2)
+                    print(f"[{addon_name}] Sanitized meta.json")
+            except Exception as e:
+                print(f"[{addon_name}] Failed to sanitize meta.json: {e}")
+
+        # 2. Sanitize config.json
+        config_path = os.path.join(cls.ADDON_DIR, "config.json")
+        if os.path.exists(config_path):
+            try:
+                with open(config_path, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                
+                changed = False
+                for k in cred_keys:
+                    if data.get(k):
+                        data[k] = ""
+                        changed = True
+                
+                if changed:
+                    with open(config_path, "w", encoding="utf-8") as f:
+                        json.dump(data, f, indent=2)
+                    print(f"[{addon_name}] Sanitized config.json")
+            except Exception as e:
+                print(f"[{addon_name}] Failed to sanitize config.json: {e}")
