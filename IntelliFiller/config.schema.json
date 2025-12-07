@@ -14,12 +14,41 @@
       "type": "string",
       "description": "API key to access Google Gemini API."
     },
+    "openrouterKey": {
+      "type": "string",
+      "description": "API key to access OpenRouter API."
+    },
+    "customUrl": {
+      "type": "string",
+      "description": "Base URL for Custom OpenAI-compatible provider."
+    },
+    "customKey": {
+      "type": "string",
+      "description": "API Key for Custom provider."
+    },
+    "openaiModel": {
+      "type": "string"
+    },
+    "anthropicModel": {
+      "type": "string"
+    },
+    "geminiModel": {
+      "type": "string"
+    },
+    "openrouterModel": {
+      "type": "string"
+    },
+    "customModel": {
+      "type": "string"
+    },
     "selectedApi": {
       "type": "string",
       "enum": [
         "openai",
         "anthropic",
-        "gemini"
+        "gemini",
+        "openrouter",
+        "custom"
       ],
       "description": "Which API to use"
     },
@@ -39,6 +68,15 @@
       "type": "boolean",
       "description": "If true, show items directly in the root context menu.",
       "default": false
+    },
+    "obfuscateCreds": {
+      "type": "boolean",
+      "default": true,
+      "description": "If true, obfuscate the credentials.json file."
+    },
+    "encryptionKey": {
+      "type": "string",
+      "description": "Custom salt for credentials encryption."
     },
     "prompts": {
       "type": "array",
