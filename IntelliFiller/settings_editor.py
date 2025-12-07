@@ -272,24 +272,9 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
         self.close()
 
     def get_current_config(self):
-        # We need to load settings first to get the key, then load credentials
-        # But here we want the FULL config to populate UI.
-        
-        # 1. Load Settings
-        settings = ConfigManager.load_settings()
-        encryption_key = settings.get("encryptionKey", "")
-        
-        # 2. Load Credentials using that key
-        credentials = ConfigManager.load_credentials(key=encryption_key)
-        
-        # 3. Load Prompts
-        prompts = ConfigManager.list_prompts()
-        
-        # Merge
-        full_config = {**settings, **credentials}
-        full_config["prompts"] = prompts
-        return full_config
+        config = {}
         config["openaiModel"] = self.openaiModel.text()
+        config["apiKey"] = self.apiKey.text()
         config["anthropicKey"] = self.anthropicKey.text()
         config["anthropicModel"] = self.anthropicModel.text()
         config["geminiKey"] = self.geminiKey.text()
