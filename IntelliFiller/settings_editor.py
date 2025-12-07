@@ -84,6 +84,8 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
         self.refresh_pipelines_list()
 
         self.promptWidgets = []
+        for prompt in config.get("prompts", []):
+            self.add_prompt(prompt)
 
     def refresh_pipelines_list(self):
         self.pipelinesList.clear()
