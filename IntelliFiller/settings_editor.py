@@ -77,11 +77,20 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
             self.add_prompt(prompt)
 
     def add_new_prompt(self):
-        self.add_prompt({
+        promptWidget = self.add_prompt({
             "prompt": "",
             "targetField": "",
             "promptName": ""
         })
+        
+        # Scroll to bottom to ensure the new widget is visible
+        # We use a single shot timer to allow layout to settle
+        QTimer.singleShot(10, lambda: self.scrollArea.verticalScrollBar().setValue(
+            self.scrollArea.verticalScrollBar().maximum()
+        ))
+        
+        # Set focus to the prompt name
+        promptWidget.promptNameInput.setFocus()
 
     def add_prompt(self, prompt):
         promptWidget = PromptWidget()
@@ -94,6 +103,7 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
         
         self.promptsLayout.addWidget(promptWidget)
         self.promptWidgets.append(promptWidget)
+        return promptWidget
 
     def remove_prompt(self, promptWidgetToRemove):
         self.promptWidgets.remove(promptWidgetToRemove)
