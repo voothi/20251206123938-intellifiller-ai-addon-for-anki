@@ -177,25 +177,29 @@ class ConfigManager:
             "openrouterKey", "openrouterModel", 
             "customUrl", "customKey", "customModel"
         ]
-        credentials = {k: legacy_config.get(k, "") for k in cred_keys}
-        
-        # [ROBUSTNESS] Fallback to meta.json if keys are missing/empty in legacy_config
-        # This handles the case where config.json is stale but meta.json has new keys
+        credentials = {}
+
+        # 1. Try to load authoritative config from meta.json first
         meta_path = os.path.join(cls.ADDON_DIR, "meta.json")
         if os.path.exists(meta_path):
             try:
                 with open(meta_path, "r", encoding="utf-8") as f:
                     meta_data = json.load(f)
                     meta_config = meta_data.get("config", {})
-                    
+                    # Load credentials from meta.json
                     for k in cred_keys:
-                        # If value is empty in current credentials, try to fetch from meta.json
-                        if not credentials.get(k):
-                            credentials[k] = meta_config.get(k, "")
-                    
-                    print(f"[{addon_name}] Merged configuration from meta.json.")
+                        if k in meta_config:
+                            credentials[k] = meta_config[k]
+                    print(f"[{addon_name}] Loaded configuration from meta.json (Priority Source).")
             except Exception as e:
                 print(f"[{addon_name}] Failed to read meta.json: {e}")
+
+        # 2. Fill missing keys from Anki's current config (fallback/legacy)
+        for k in cred_keys:
+            if k not in credentials or not credentials[k]:
+                 val = legacy_config.get(k, "")
+                 if val:
+                     credentials[k] = val
 
         # Default to obfuscated on migration
         print(f"[{addon_name}] Migrating credentials: Found {len([v for v in credentials.values() if v])} non-empty keys.")
