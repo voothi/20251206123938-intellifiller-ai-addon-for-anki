@@ -22,12 +22,21 @@ class MultipleNotesThreadWorker(QThread):
             if self.isInterruptionRequested():
                 break
             else:
+                # Fetch note once per note-processing loop to ensure pipeline steps share the same object
+                # and see each other's updates immediately (before flush/reload).
+                try:
+                    note = mw.col.get_note(nid)
+                except Exception:
+                    # If note deleted or not found, skip
+                    self.progress_made.emit(i + 1)
+                    continue
+
                 # prompt_config can be a dict (single prompt) or list (pipeline)
                 if isinstance(self.prompt_config, list):
                     for p_config in self.prompt_config:
-                        enrich_without_editor(nid, p_config)
+                        enrich_without_editor(note, p_config)
                 else:
-                    enrich_without_editor(nid, self.prompt_config)
+                    enrich_without_editor(note, self.prompt_config)
             self.progress_made.emit(i + 1)
 
 
@@ -92,16 +101,13 @@ def generate_for_single_note(editor, prompt_config):
         fill_field_for_note_in_editor(response, target_field, editor, overwrite)
 
 
-def enrich_without_editor(nid: NoteId, prompt_config):
+def enrich_without_editor(nid_or_note, prompt_config):
     """generate"""
-    # Note: caller (thread worker) handles list iteration for pipelines now, 
-    # but for safety/consistency we can check here too if called directly.
-    # However, to avoid double loops if worker loops too, let's keep this simple.
-    # The worker calls this function once per prompt per note if it's a list?
-    # No, the logic above in worker.run iterates the list and calls this function for each prompt.
-    # So this function expects a SINGLE prompt config.
-    
-    note = mw.col.get_note(nid)
+    if isinstance(nid_or_note, Note):
+        note = nid_or_note
+    else:
+        note = mw.col.get_note(nid_or_note)
+        
     prompt = create_prompt(note, prompt_config)
     response = send_prompt_to_llm(prompt)
     overwrite = prompt_config.get('overwriteField', False)
