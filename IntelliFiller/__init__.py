@@ -1,6 +1,7 @@
 from aqt import mw
 from aqt.qt import *
-from aqt.gui_hooks import editor_did_init_buttons, profile_did_open
+from aqt.qt import *
+from aqt.gui_hooks import editor_did_init_buttons, profile_will_close
 from aqt.editor import EditorMode, Editor
 from aqt.browser import Browser
 from aqt.addcards import AddCards
@@ -241,32 +242,38 @@ mw.addonManager.setConfigAction(__name__, open_settings)
 editor_did_init_buttons.append(on_setup_editor_buttons)
 
 def check_security_cleanup():
-    """Checks if legacy secrets exist and asks user to clean them up."""
+    """Checks if legacy secrets exist and asks user to clean them up on close."""
     settings = ConfigManager.load_settings()
     if settings.get("ignoreCleanup", False):
         return
 
     if ConfigManager.has_legacy_secrets(__name__):
         msg = QMessageBox(mw)
-        msg.setWindowTitle("IntelliFiller Security")
-        msg.setText("Your API keys are now securely encrypted in 'user_files'.\n\nHowever, copies of your keys still exist in the old 'meta.json' or 'config.json' files in plain text.\n\nDo you want to clear these old files now?")
-        msg.setIcon(QMessageBox.Icon.Warning)
+        msg.setWindowTitle("IntelliFiller Update Verification")
+        msg.setText(
+            "<h3>Update Complete</h3>"
+            "<p>IntelliFiller has moved to a new secure storage system.</p>"
+            "<p>Your keys and settings should have been migrated automatically.</p>"
+            "<p><b>Please verify that your Keys, Prompts, and Pipelines are working correctly.</b></p>"
+            "<hr>"
+            "<p>If everything looks good, we can clean up the old configuration files to avoid data duplication.</p>"
+            "<p>Process clean up?</p>"
+        )
+        msg.setIcon(QMessageBox.Icon.Information)
         
         btn_clean = msg.addButton("Yes, Clean Up", QMessageBox.ButtonRole.YesRole)
-        btn_later = msg.addButton("Remind Later", QMessageBox.ButtonRole.NoRole)
+        btn_later = msg.addButton("Not Now", QMessageBox.ButtonRole.NoRole)
         btn_ignore = msg.addButton("Don't Ask Again", QMessageBox.ButtonRole.RejectRole)
         
         msg.exec()
         
         if msg.clickedButton() == btn_clean:
             ConfigManager.sanitize_legacy_files(__name__)
-            # Also set flag so we don't scan empty files forever (optional, but good)
             settings["ignoreCleanup"] = True 
             ConfigManager.save_settings(settings)
-            QMessageBox.information(mw, "IntelliFiller", "Legacy files cleaned successfully.")
             
         elif msg.clickedButton() == btn_ignore:
             settings["ignoreCleanup"] = True
             ConfigManager.save_settings(settings)
 
-profile_did_open.append(check_security_cleanup)
+profile_will_close.append(check_security_cleanup)
