@@ -1,5 +1,4 @@
-from PyQt6.QtCore import QThread, pyqtSignal
-from PyQt6.QtWidgets import QDialog, QVBoxLayout, QProgressBar, QPushButton, QLabel
+from aqt.qt import QThread, pyqtSignal, QDialog, QVBoxLayout, QProgressBar, QPushButton, QLabel
 from aqt import mw
 from aqt.utils import showWarning
 

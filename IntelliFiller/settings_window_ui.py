@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 
-from PyQt6 import QtCore, QtGui, QtWidgets
+from aqt import qt
+QtCore = qt
+QtGui = qt
+QtWidgets = qt
 
 class Ui_SettingsWindow(object):
     def setupUi(self, SettingsWindow):

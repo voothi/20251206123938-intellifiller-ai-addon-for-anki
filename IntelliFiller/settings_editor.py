@@ -1,6 +1,3 @@
-from PyQt6.QtGui import QGuiApplication, QIcon
-from PyQt6.QtWidgets import QWidget, QDialog, QInputDialog, QMessageBox, QLineEdit, QFileDialog
-from PyQt6.QtCore import QSize, Qt, QTimer
 from aqt import mw
 from aqt.qt import *
 from aqt.utils import showInfo
