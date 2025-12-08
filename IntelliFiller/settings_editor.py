@@ -422,7 +422,7 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
         addon_dir = os.path.dirname(os.path.abspath(__file__))
         bm = BackupManager(ConfigManager, addon_dir)
         try:
-            bm.perform_backup(force=True)
+            bm.perform_backup(force=True, backup_type='manual')
             showInfo("Backup completed successfully.\n\nCheck your configured local/external folders.")
         except Exception as e:
             showInfo(f"Backup failed: {str(e)}")

@@ -107,9 +107,10 @@ class BackupManager:
 
         return has_changes, new_manifest
 
-    def perform_backup(self, force=False):
+    def perform_backup(self, force=False, backup_type='auto'):
         """
         Orchestrates the backup process.
+        backup_type: 'auto' (default) or 'manual'
         """
         settings = self.config_manager.load_settings()
         backup_config = settings.get('backup', {})
@@ -119,6 +120,8 @@ class BackupManager:
 
         has_changes, new_manifest = self.scan_changes()
         
+        # If manual, we proceed even if no changes, unless explicit check wanted.
+        # Usually manual means "I want a backup NOW of current state".
         if not force and not has_changes:
             return 
 
@@ -133,7 +136,13 @@ class BackupManager:
                 return 
 
         timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
-        filename = f"{timestamp}-intellifiller-backup.zip"
+        
+        # New Naming Scheme
+        if backup_type == 'manual':
+            filename = f"{timestamp}-intellifiller-manual.zip"
+        else:
+            filename = f"{timestamp}-intellifiller.zip"
+            
         target_file = os.path.join(local_path, filename)
         
         password = backup_config.get('zipPassword')
@@ -197,9 +206,24 @@ class BackupManager:
     def prune_backups(self, directory, config):
         """
         Implements GFS rotation.
+        Ignores manual backups.
+        matches: *-intellifiller.zip OR OLD *-intellifiller-backup.zip
+        But strictly excludes *-manual.zip
         """
-        pattern = os.path.join(directory, "*-intellifiller-backup.zip")
-        files = glob.glob(pattern)
+        # Match broader pattern to catch old and new, but filter manual
+        pattern = os.path.join(directory, "*.zip")
+        all_zips = glob.glob(pattern)
+        
+        files = []
+        for f in all_zips:
+            fname = os.path.basename(f)
+            # Filter for our files
+            is_our_file = ('-intellifiller.zip' in fname) or ('-intellifiller-backup.zip' in fname)
+            is_manual = '-manual.zip' in fname
+            
+            if is_our_file and not is_manual:
+                files.append(f)
+                
         files.sort() # Sorted by name (timestamp)
         
         if not files:
