@@ -116,9 +116,14 @@ This creates a `vendor` directory with subfolders for each platform, ensuring th
 
 To create an `.ankiaddon` package for distribution:
 
-1.  Run `python scripts/build_release.py`.
-2.  Zip the contents of the `IntelliFiller` folder.
-3.  Rename the `.zip` file to `.ankiaddon`.
+1.  Run `python scripts/build_release.py` to prepare dependencies.
+2.  Run `python scripts/package_addon.py` to create the artifact.
+
+This will generate a timestamped `.ankiaddon` file in the project root, safely excluding sensitive user files.
+You can optionally specify an output directory:
+```bash
+python scripts/package_addon.py --out "C:/My/Builds"
+```
 
 [Return to Top](#table-of-contents)
 

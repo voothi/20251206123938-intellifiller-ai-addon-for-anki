@@ -13,7 +13,23 @@
    - darwin_x86_64 (Intel Macs)
    - win32 (Windows)
    - linux (Linux)
-3. The add-on is now ready to be packaged and uploaded to AnkiWeb
+3. The add-on is now ready to be packaged.
+
+## Packaging for Distribution
+Use the included `package_addon.py` script to create a safe `.ankiaddon` artifact that excludes sensitive files (like `user_files`, `meta.json`, `settings.json`, `credentials.json`, `__pycache__`).
+
+```bash
+# Default: Creates timestamped .ankiaddon in project root
+python scripts/package_addon.py
+
+# Optional: Specify output directory
+python scripts/package_addon.py --out "C:/Releases"
+```
+
+**Safety Features:**
+- Automatically excludes `user_files` directory.
+- Excludes root-level sensitive files (`meta.json`, `credentials.json`, `settings.json`).
+- Prints a `⚠️ NOTICE` if potentially sensitive files are included from deep subdirectories (e.g. inside `vendor`), allowing you to verify them.
 
 ## Troubleshooting
 If you encounter architecture-related errors during development:
