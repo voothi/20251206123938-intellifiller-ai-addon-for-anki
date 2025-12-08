@@ -5,12 +5,61 @@ from aqt.gui_hooks import editor_did_init_buttons, profile_will_close
 from aqt.editor import EditorMode, Editor
 from aqt.browser import Browser
 from aqt.addcards import AddCards
+from aqt.addons import AddonManager
 from anki.hooks import addHook
-import os
-import sys
+
+# --- Atomic Rename Strategy Implementation ---
+
+def _gc_cleanup_trash():
+    """Cleans up leftover _trash folders from previous updates on startup."""
+    addon_dir = Path(__file__).parent
+    addons_root = addon_dir.parent
+    # Pattern: intellifiller_trash_*
+    # We use the actual directory name to be safe
+    trash_pattern = str(addons_root / f"{addon_dir.name}_trash_*")
+    
+    for trash_path in glob.glob(trash_pattern):
+        try:
+            if os.path.isdir(trash_path):
+                shutil.rmtree(trash_path)
+                print(f"[IntelliFiller] GC cleaned: {trash_path}")
+        except OSError:
+            pass # Still locked? Ignore until next boot.
+
+# Run GC immediately
+_gc_cleanup_trash()
+
+# Monkeypatch Anki's deleteAddon to use atomic rename for this addon
+# This prevents PermissionError when updating on Windows
+original_deleteAddon = AddonManager.deleteAddon
+
+def patched_deleteAddon(self, dir_name):
+    # Check if the deletion target matches our addon
+    my_dir_name = os.path.basename(os.path.dirname(__file__))
+    
+    if dir_name == my_dir_name:
+        try:
+            from .atomic_installer import atomic_replace
+            addon_path = Path(self.addonsFolder()) / dir_name
+            # We treat "delete" as moving to trash without replacement
+            # atomic_replace handles the "move to trash" part
+            if atomic_replace(addon_path, new_content_dir=None):
+                print(f"[IntelliFiller] Atomic delete/rename successful for {dir_name}")
+                return
+        except Exception as e:
+            print(f"[IntelliFiller] Atomic delete failed: {e}. Falling back to standard delete.")
+    
+    # Fallback to original for successful atomic delete (handled internally?) 
+    # Or for other addons
+    return original_deleteAddon(self, dir_name)
+
+AddonManager.deleteAddon = patched_deleteAddon
+
+# --- End Atomic Rename Implementation ---
 
 # Ensure our addon’s vendor folder is the first thing in sys.path
-vendor_path = os.path.join(os.path.dirname(__file__), 'vendor')
+addon_dir = os.path.dirname(os.path.realpath(__file__))
+vendor_path = os.path.join(addon_dir, "vendor")
 sys.path.insert(0, vendor_path)
 
 # Platform-specific vendor support (for build_release.py structure)
