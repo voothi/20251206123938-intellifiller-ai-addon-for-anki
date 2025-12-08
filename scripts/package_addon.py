@@ -51,6 +51,11 @@ def create_addon_package(output_dir: str = None):
     try:
         with zipfile.ZipFile(output_path, 'w', zipfile.ZIP_DEFLATED) as zf:
             for root, dirs, files in os.walk(addon_source_dir):
+                # Warn if 'user_files' appears in subdirectories (e.g. vendor) before we exclude it
+                if "user_files" in dirs and Path(root) != addon_source_dir:
+                    rel_path = Path(root).relative_to(addon_source_dir) / "user_files"
+                    print(f"⚠️  NOTICE: Found and SKIPPED 'user_files' directory in subfolder: {rel_path}")
+
                 # 1. Directory Exclusion (In-place modification)
                 # This prevents descending into user_files, __pycache__, etc.
                 dirs[:] = [d for d in dirs if d not in EXCLUDED_DIR_NAMES]
