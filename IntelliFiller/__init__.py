@@ -13,9 +13,31 @@ import sys
 vendor_path = os.path.join(os.path.dirname(__file__), 'vendor')
 sys.path.insert(0, vendor_path)
 
+# Platform-specific vendor support (for build_release.py structure)
+import platform
+system = platform.system().lower()
+machine = platform.machine().lower()
+sub_vendor = None
+
+if system == 'windows':
+    sub_vendor = 'win32'
+elif system == 'linux':
+    sub_vendor = 'linux'
+elif system == 'darwin':
+    if 'arm' in machine:
+        sub_vendor = 'darwin_arm64'
+    else:
+        sub_vendor = 'darwin_x86_64'
+
+if sub_vendor:
+    sub_vendor_path = os.path.join(vendor_path, sub_vendor)
+    if os.path.exists(sub_vendor_path):
+        sys.path.insert(0, sub_vendor_path)
+        print(f"🔍 Added platform vendor path: {sub_vendor}")
+
 # Debugging information
 print("🔍 Anki Addon Loading Dependencies From:", vendor_path)
-print("🔍 sys.path:", sys.path)
+print("🔍 sys.path includes:", sys.path[:3])
 
 
 from .settings_editor import SettingsWindow
