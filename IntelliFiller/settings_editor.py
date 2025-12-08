@@ -310,7 +310,7 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
         
         # Add Backup Password to credentials (mapped)
         backup_pass = full_config.get('backup', {}).get('zipPassword', "")
-        credentials["backup_zipPassword"] = backup_pass
+        credentials["backupZipPassword"] = backup_pass
         
         # Pull obfuscation setting directly from UI since it's part of 'settings', not 'credentials'
         should_obfuscate = self.obfuscateCreds.isChecked()
