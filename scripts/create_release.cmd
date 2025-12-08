@@ -7,7 +7,7 @@ setlocal
 
 :: Configuration
 :: ----------------------------------------------------------------------------
-set "OUTPUT_DIR=C:\Users\voothi\Documents\20251206191819-intellifilter-publication\"
+set "OUTPUT_DIR=C:\Users\voothi\Documents\20251206191819-intellifilter-publication"
 
 :: Execution
 :: ----------------------------------------------------------------------------
