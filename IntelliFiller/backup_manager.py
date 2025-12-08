@@ -107,19 +107,19 @@ class BackupManager:
 
         return has_changes, new_manifest
 
-    def perform_backup(self):
+    def perform_backup(self, force=False):
         """
         Orchestrates the backup process.
         """
         settings = self.config_manager.load_settings()
         backup_config = settings.get('backup', {})
         
-        if not backup_config.get('enabled', False):
+        if not force and not backup_config.get('enabled', False):
             return
 
         has_changes, new_manifest = self.scan_changes()
         
-        if not has_changes:
+        if not force and not has_changes:
             return 
 
         local_path = backup_config.get('localPath')

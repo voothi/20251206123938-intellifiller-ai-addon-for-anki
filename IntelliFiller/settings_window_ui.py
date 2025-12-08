@@ -222,6 +222,9 @@ class Ui_SettingsWindow(object):
         self.backupPassword = QtWidgets.QLineEdit(self.backupGeneralGroup)
         self.backupPassword.setEchoMode(QtWidgets.QLineEdit.EchoMode.Password)
         self.backupGeneralLayout.addRow(QtWidgets.QLabel("ZIP Password (Optional):", self.backupGeneralGroup), self.backupPassword)
+        
+        self.backupNowBtn = QtWidgets.QPushButton(self.backupGeneralGroup)
+        self.backupGeneralLayout.addRow(QtWidgets.QLabel("Manual Backup:", self.backupGeneralGroup), self.backupNowBtn)
 
         self.tabBackupsLayout.addWidget(self.backupGeneralGroup)
         
@@ -334,6 +337,8 @@ class Ui_SettingsWindow(object):
         self.labelEncryptionKey.setText(_translate("SettingsWindow", "Custom Encryption Salt:"))
         self.encryptionKey.setPlaceholderText(_translate("SettingsWindow", "Leave empty for default portable key"))
         self.encryptionKey.setToolTip(_translate("SettingsWindow", "Custom string used to encrypt the credentials file. If changed, the file will be re-encrypted."))
+        
+        self.backupNowBtn.setText(_translate("SettingsWindow", "Backup Now"))
         
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabApi), _translate("SettingsWindow", "API Settings"))
         

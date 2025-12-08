@@ -8,7 +8,9 @@ from aqt.utils import showInfo
 from .prompt_ui import Ui_Form
 from .settings_window_ui import Ui_SettingsWindow
 from .config_manager import ConfigManager
+from .backup_manager import BackupManager
 import json
+import os
 
 class PromptWidget(QWidget, Ui_Form):
     def __init__(self, parent=None):
@@ -31,6 +33,7 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
         self.setup_config(config)
         self.saveButton.clicked.connect(self.saveConfig)
         self.addPromptButton.clicked.connect(self.add_new_prompt)
+        self.backupNowBtn.clicked.connect(self.trigger_manual_backup)
         
         # Connect API selection to stacked widget page
         self.selectedApi.currentIndexChanged.connect(self.stackedWidget.setCurrentIndex)
@@ -409,6 +412,20 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
         if directory:
             self.backupExternalPath.setText(directory)
 
+
+    def trigger_manual_backup(self):
+        # Save current settings to memory
+        temp_config = self.get_current_config()
+        # Persist to disk so BackupManager sees them
+        ConfigManager.save_settings(temp_config)
+        
+        addon_dir = os.path.dirname(os.path.abspath(__file__))
+        bm = BackupManager(ConfigManager, addon_dir)
+        try:
+            bm.perform_backup(force=True)
+            showInfo("Backup completed successfully.\n\nCheck your configured local/external folders.")
+        except Exception as e:
+            showInfo(f"Backup failed: {str(e)}")
 
     def keyPressEvent(self, event):
         if event.key() == Qt.Key.Key_S and (event.modifiers() & Qt.KeyboardModifier.ControlModifier):
