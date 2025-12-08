@@ -195,10 +195,15 @@ class BackupManager:
                 except:
                     pass
 
-        if password and HAS_PYZIPPER:
-             with pyzipper.AESZipFile(target_file, 'w', compression=compression, encryption=pyzipper.WZ_AES) as zf:
-                zf.setpassword(password.encode('utf-8'))
-                write_to_zip(zf)
+        if password:
+            if HAS_PYZIPPER:
+                with pyzipper.AESZipFile(target_file, 'w', compression=compression, encryption=pyzipper.WZ_AES) as zf:
+                    zf.setpassword(password.encode('utf-8'))
+                    write_to_zip(zf)
+            else:
+                # Security Failure: Standard zipfile cannot encrypt on write (reliably).
+                # We must abort to avoid creating an insecure backup when one was requested.
+                raise RuntimeError("Cannot create encrypted backup: 'pyzipper' module is missing. Please run scripts/setup_vendor.py")
         else:
             with zipfile.ZipFile(target_file, 'w', compression=compression) as zf:
                  write_to_zip(zf)
