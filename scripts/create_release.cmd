@@ -8,7 +8,7 @@ setlocal
 :: Configuration
 :: ----------------------------------------------------------------------------
 :: You can update this path, trailing slash is supported/handled automatically
-set "OUTPUT_DIR=C:\Users\voothi\Documents\20251206191819-intellifilter-publication\"
+set "OUTPUT_DIR=C:\Users\voothi\Documents\20251206191819-intellifilter-publication"
 
 :: Logic to strip trailing backslash if present (prevents quote escaping issues)
 if "%OUTPUT_DIR:~-1%"=="\" set "OUTPUT_DIR=%OUTPUT_DIR:~0,-1%"
