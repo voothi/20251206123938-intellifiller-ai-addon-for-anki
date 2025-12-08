@@ -341,4 +341,6 @@ class Ui_SettingsWindow(object):
         
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabPipelines), _translate("SettingsWindow", "Pipelines"))
         
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabBackups), _translate("SettingsWindow", "Backups"))
+        
         self.saveButton.setText(_translate("SettingsWindow", "Save"))

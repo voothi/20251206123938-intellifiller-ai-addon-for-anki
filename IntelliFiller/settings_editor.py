@@ -58,7 +58,6 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
             self.geminiKey, 
             self.openrouterKey, 
             self.customKey, 
-            self.customKey, 
             self.encryptionKey,
             self.backupPassword
         ]
