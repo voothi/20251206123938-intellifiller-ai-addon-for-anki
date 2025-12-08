@@ -141,7 +141,19 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
         self.backupEnabled.setChecked(backup.get("enabled", False))
         self.backupInterval.setValue(backup.get("intervalMinutes", 10))
         self.backupOnSettingsOpen.setChecked(backup.get("backupOnSettingsOpen", True))
+        try:
+            import pyzipper
+            has_pyzipper = True
+        except ImportError:
+            has_pyzipper = False
+
         self.backupPassword.setText(backup.get("zipPassword", ""))
+        if has_pyzipper:
+            self.backupPassword.setPlaceholderText("Enter password for AES-256 encryption")
+            self.backupPassword.setToolTip("Backups will be encrypted with strong AES-256.")
+        else:
+             self.backupPassword.setPlaceholderText("Encryption unavailable (missing pyzipper)")
+             self.backupPassword.setToolTip("WARNING: 'pyzipper' module is missing. Password protection is disabled.\nRun scripts/setup_vendor.py to enable.")
         self.backupLocalPath.setText(backup.get("localPath", ""))
         self.backupExternalPath.setText(backup.get("externalPath", ""))
         

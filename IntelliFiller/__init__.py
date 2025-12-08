@@ -28,7 +28,7 @@ ADDON_NAME = 'IntelliFiller'
 
 # Initialize Backup Manager
 addon_dir = os.path.dirname(__file__)
-backup_manager = BackupManager(ConfigManager, addon_dir)
+backup_service = BackupManager(ConfigManager, addon_dir)
 
 
 
@@ -214,7 +214,7 @@ def open_settings():
     # Trigger backup check on settings open if configured
     settings = ConfigManager.load_settings()
     if settings.get('backup', {}).get('backupOnSettingsOpen', True):
-        backup_manager.perform_backup()
+        backup_service.perform_backup()
         
     window = SettingsWindow(mw)
     window.exec()
@@ -305,7 +305,7 @@ def setup_backup_timer():
         interval_ms = interval_minutes * 60 * 1000
         
         timer = QTimer(mw)
-        timer.timeout.connect(backup_manager.perform_backup)
+        timer.timeout.connect(backup_service.perform_backup)
         timer.start(interval_ms)
         
         # Keep reference to timer to prevent garbage collection
