@@ -76,6 +76,10 @@ def create_addon_package(output_dir: str = None):
                     if file.endswith(".pyc") or file.endswith(".pyo"):
                         continue
 
+                    # 5. WARN about sensitive-looking files that are being INCLUDED (e.g. inside vendor)
+                    if file in {"credentials.json", "settings.json", "meta.json"}:
+                        print(f"⚠️  NOTICE: Including potentially sensitive file (found in subfolder): {relative_path}")
+
                     zf.write(full_path, arcname=relative_path)
                     
         print(f"✅ Package created successfully!")
