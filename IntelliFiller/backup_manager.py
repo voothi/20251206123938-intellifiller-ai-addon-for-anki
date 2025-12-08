@@ -112,7 +112,7 @@ class BackupManager:
         Orchestrates the backup process.
         backup_type: 'auto' (default) or 'manual'
         """
-        settings = self.config_manager.load_settings()
+        settings = self.config_manager.get_full_config()
         backup_config = settings.get('backup', {})
         
         if not force and not backup_config.get('enabled', False):

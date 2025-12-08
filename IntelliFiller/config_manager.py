@@ -233,6 +233,14 @@ class ConfigManager:
         full_config = settings.copy()
         full_config.update(credentials)
         full_config["prompts"] = prompts
+        
+        # Map backup password if present in credentials
+        if "backup_zipPassword" in credentials:
+             if "backup" not in full_config:
+                 full_config["backup"] = {}
+             # Overwrite any plain text password that might accidentally be in settings with the secure one
+             full_config["backup"]["zipPassword"] = credentials["backup_zipPassword"]
+             
         return full_config
 
     @classmethod

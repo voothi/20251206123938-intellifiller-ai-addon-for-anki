@@ -308,6 +308,10 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
         ]
         credentials = {k: full_config.get(k, "") for k in cred_keys}
         
+        # Add Backup Password to credentials (mapped)
+        backup_pass = full_config.get('backup', {}).get('zipPassword', "")
+        credentials["backup_zipPassword"] = backup_pass
+        
         # Pull obfuscation setting directly from UI since it's part of 'settings', not 'credentials'
         should_obfuscate = self.obfuscateCreds.isChecked()
         custom_key = self.encryptionKey.text()
@@ -336,6 +340,10 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
             if k not in cred_keys and k != "prompts":
                 settings[k] = v
         
+        # SECURITY STRIP: Remove password from backup settings before saving to plain text
+        if 'backup' in settings and 'zipPassword' in settings['backup']:
+            settings['backup']['zipPassword'] = ""
+            
         ConfigManager.save_settings(settings)
 
         showInfo("Configuration saved.")
