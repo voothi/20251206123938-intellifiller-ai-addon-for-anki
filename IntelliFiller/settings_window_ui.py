@@ -279,6 +279,7 @@ class Ui_SettingsWindow(object):
         # Save Button
         self.saveButton = QtWidgets.QPushButton(SettingsWindow)
         self.saveButton.setObjectName("saveButton")
+        self.verticalLayout.addWidget(self.tabWidget)
         self.verticalLayout.addWidget(self.saveButton, 0, QtCore.Qt.AlignmentFlag.AlignRight)
 
         self.retranslateUi(SettingsWindow)
