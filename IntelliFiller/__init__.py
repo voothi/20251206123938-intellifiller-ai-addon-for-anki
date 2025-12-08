@@ -19,9 +19,9 @@ def _gc_cleanup_trash():
     """Cleans up leftover _trash folders from previous updates on startup."""
     addon_dir = Path(__file__).parent
     addons_root = addon_dir.parent
-    # Pattern: intellifiller_trash_*
-    # We use the actual directory name to be safe
-    trash_pattern = str(addons_root / f"{addon_dir.name}_trash_*")
+    # Pattern: _intellifiller_trash_* (or _ID_trash_*)
+    # We use the actual directory name to be safe, prefixed with _
+    trash_pattern = str(addons_root / f"_{addon_dir.name}_trash_*")
     
     for trash_path in glob.glob(trash_pattern):
         try:

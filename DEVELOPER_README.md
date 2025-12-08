@@ -28,5 +28,5 @@ If you encounter architecture-related errors during development:
   - **Recovery:** If update failed and addon is named by ID, simply Check for Updates again on that ID -> Update -> Restart Anki.
 
 ## Atomic Updates (Technical Details)
-The addon works around Windows file locking by hooking into Anki's update process. Instead of deleting the old folder (which fails due to locked `.pyd` files), it **renames** the folder to `IntelliFiller_trash_TIMESTAMP`. These trash folders are automatically cleaned up on the next Anki startup.
+The addon works around Windows file locking by hooking into Anki's update process. Instead of deleting the old folder (which fails due to locked `.pyd` files), it **renames** the folder to `_IntelliFiller_trash_TIMESTAMP` (prefixed with `_` so Anki ignores it). These trash folders are automaticall cleaned up on the next Anki startup.
 **Do not manually modify `atomic_installer.py` or the update hook in `__init__.py`.**

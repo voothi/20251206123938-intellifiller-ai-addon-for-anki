@@ -26,8 +26,8 @@ def atomic_replace(target_dir: Path, new_content_dir: Path = None) -> bool:
             shutil.move(str(new_content_dir), str(target_dir))
         return True
 
-    # Generate unique trash name
-    trash_name = f"{target_dir.name}_trash_{int(time.time())}_{uuid.uuid4().hex[:8]}"
+    # Generate unique trash name starting with _ (Anki ignores these)
+    trash_name = f"_{target_dir.name}_trash_{int(time.time())}_{uuid.uuid4().hex[:8]}"
     trash_path = target_dir.parent / trash_name
 
     # STEP 1: Rename current to trash
