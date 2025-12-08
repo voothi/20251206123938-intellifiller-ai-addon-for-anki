@@ -19,6 +19,7 @@ This is an enhanced version of the [IntelliFiller](https://github.com/ganqqwerty
 - [Features](#features)
 - [Prerequisites](#prerequisites)
 - [Installation from Source](#installation-from-source)
+- [Updating](#updating)
 - [Build Instructions](#build-instructions)
   - [For Local Development (Windows 11 / Current OS)](#for-local-development-windows-11--current-os)
   - [For Cross-Platform Release](#for-cross-platform-release)
@@ -59,6 +60,31 @@ To install this addon from the source code, follow these steps:
 4.  Restart Anki.
 
 ![Installation](installation.png)
+
+[Return to Top](#table-of-contents)
+
+## Updating
+
+It is recommended to **backup your data** using the addon's backup feature (Backup tab in settings) before updating.
+
+### Windows Update Instructions
+
+Due to Windows file locking mechanics, updates can fail if the addon is active.
+
+**Method 1: Smooth Update (Recommended)**
+1.  Go to **Tools** -> **Add-ons**.
+2.  Select `IntelliFiller` and toggle it to **Disabled**.
+3.  **Restart Anki**.
+4.  Check for updates and install the update.
+5.  Enable the addon and **Restart Anki**.
+
+**Method 2: Recovering from a Failed Update**
+If you tried to update without disabling and received an error (and the addon now appears as a number like `1149226090`):
+1.  Select the numbered addon entry (e.g. `1149226090`).
+2.  Click **Check for Updates** again and confirm the update.
+3.  Once finished, **Restart Anki**. The addon should work correctly and the name will be restored.
+
+Your persistent settings and prompts (in `user_files`) will be preserved.
 
 [Return to Top](#table-of-contents)
 

@@ -22,5 +22,6 @@ If you encounter architecture-related errors during development:
 
 ## Known conflicts
 - the extension can conflict with HyperTTS because of  typing_extensions.py . Disable HyperTTS if you see typing_extensions.py error
-- **Windows Update Error:** When updating the addon on Windows, you may encounter `PermissionError: [WinError 5] Access is denied`. This is because Anki locks the `.pyd` binary files used by the addon.
-  - **Solution:** Close Anki -> Manually delete the addon folder `addons21/1149226090` -> Restart Anki -> Install new version.
+- **Windows Update Error:** When updating on Windows, you may encounter `PermissionError`.
+  - **Prevention:** Disable the addon -> Restart Anki -> Update.
+  - **Recovery:** If update failed and addon is named by ID, simply Check for Updates again on that ID -> Update -> Restart Anki.
