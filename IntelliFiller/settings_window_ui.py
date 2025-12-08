@@ -214,6 +214,7 @@ class Ui_SettingsWindow(object):
         self.backupInterval = QtWidgets.QSpinBox(self.backupGeneralGroup)
         self.backupInterval.setRange(1, 14400) # 1 min to 10 days
         self.backupInterval.setSuffix(" min")
+        self.backupInterval.setToolTip("Recommended: 10 min. Defines how often to check for changes.\nLower values create more granular history (e.g. 10-minute snapshots).")
         self.backupGeneralLayout.addRow(QtWidgets.QLabel("Check Interval:", self.backupGeneralGroup), self.backupInterval)
         
         self.backupOnSettingsOpen = QtWidgets.QCheckBox(self.backupGeneralGroup)

@@ -297,7 +297,7 @@ def setup_backup_timer():
     backup_config = settings.get('backup', {})
     
     if backup_config.get('enabled', False):
-        interval_minutes = backup_config.get('intervalMinutes', 60)
+        interval_minutes = backup_config.get('intervalMinutes', 10)
         # Minimum interval 1 minute
         if interval_minutes < 1: interval_minutes = 1
         

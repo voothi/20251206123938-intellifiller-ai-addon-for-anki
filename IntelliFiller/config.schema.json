@@ -101,8 +101,8 @@
         },
         "intervalMinutes": {
           "type": "integer",
-          "default": 60,
-          "description": "Interval in minutes between backup checks."
+          "default": 10,
+          "description": "Backup check interval in minutes."
         },
         "backupOnSettingsOpen": {
           "type": "boolean",

@@ -139,7 +139,7 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
         # Backup Settings
         backup = config.get("backup", {})
         self.backupEnabled.setChecked(backup.get("enabled", False))
-        self.backupInterval.setValue(backup.get("intervalMinutes", 60))
+        self.backupInterval.setValue(backup.get("intervalMinutes", 10))
         self.backupOnSettingsOpen.setChecked(backup.get("backupOnSettingsOpen", True))
         self.backupPassword.setText(backup.get("zipPassword", ""))
         self.backupLocalPath.setText(backup.get("localPath", ""))
