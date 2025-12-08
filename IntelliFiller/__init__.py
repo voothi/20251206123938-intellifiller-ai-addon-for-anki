@@ -1,3 +1,8 @@
+import os
+import sys
+import shutil
+import glob
+from pathlib import Path
 from aqt import mw
 from aqt.qt import *
 from aqt.qt import *
