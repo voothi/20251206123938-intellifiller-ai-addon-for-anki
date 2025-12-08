@@ -5,17 +5,24 @@ import argparse
 from datetime import datetime
 from pathlib import Path
 
-# Configuration
-EXCLUDED_FILES = {
-    "meta.json",
-    "credentials.json",
-    "settings.json"
+# Exclusions configuration
+EXCLUDED_ROOT_FILES = {
+    "meta.json"
 }
 
-EXCLUDED_DIRS = {
+EXCLUDED_DIR_NAMES = {
     "user_files",
-    "__pycache__"
+    "__pycache__",
+    ".git",
+    ".vscode",
+    ".idea"
 }
+
+# Recursively sensitive files that should essentially never be in a package 
+# regardless of location, unless deep in vendor? 
+# Actually, the user's concern is specifically that "settings.json" in vendor MIGHT be needed.
+# So we should rely on directory exclusions for sensitive user data.
+# The user_files directory is where our sensitive settings.json live.
 
 def create_addon_package(output_dir: str = None):
     # Determine paths
@@ -44,20 +51,29 @@ def create_addon_package(output_dir: str = None):
     try:
         with zipfile.ZipFile(output_path, 'w', zipfile.ZIP_DEFLATED) as zf:
             for root, dirs, files in os.walk(addon_source_dir):
-                # Filter exclusions in-place to prevent walking into them
-                dirs[:] = [d for d in dirs if d not in EXCLUDED_DIRS]
+                # 1. Directory Exclusion (In-place modification)
+                # This prevents descending into user_files, __pycache__, etc.
+                dirs[:] = [d for d in dirs if d not in EXCLUDED_DIR_NAMES]
                 
                 for file in files:
-                    if file in EXCLUDED_FILES:
-                        continue
-                        
-                    # Calculate relative path for zip structure
-                    # We want the content of IntelliFiller to be at root of zip
                     full_path = Path(root) / file
                     relative_path = full_path.relative_to(addon_source_dir)
                     
-                    # Double check exclusion for safety (if partial match logic needed in future)
-                    if any(part in EXCLUDED_DIRS for part in relative_path.parts):
+                    # 2. Specific Root File Exclusions
+                    # e.g. meta.json is only excluded if it's in the root
+                    if str(relative_path) in EXCLUDED_ROOT_FILES:
+                        print(f"   Skipping root file: {relative_path}")
+                        continue
+                    
+                    # 3. Block sensitive files if they somehow appear in root (safety net)
+                    # We rely on 'user_files' directory exclusion for the main config files.
+                    # But if credentials.json is accidentally at root, exclude it.
+                    if len(relative_path.parts) == 1 and file in {"credentials.json", "settings.json"}:
+                         print(f"   Skipping sensitive file at root: {relative_path}")
+                         continue
+
+                    # 4. General Safety: Skip .pyc files everywhere
+                    if file.endswith(".pyc") or file.endswith(".pyo"):
                         continue
 
                     zf.write(full_path, arcname=relative_path)
@@ -70,12 +86,19 @@ def create_addon_package(output_dir: str = None):
             file_list = zf.namelist()
             issues_found = False
             for f in file_list:
-                if any(ex in f for ex in EXCLUDED_FILES) or any(ex in f for ex in EXCLUDED_DIRS):
-                     print(f"❌ WARNING: Excluded file found in zip: {f}")
+                # Check strict forbidden dirs
+                for forbidden_dir in EXCLUDED_DIR_NAMES:
+                    if f.startswith(f"{forbidden_dir}/") or f == forbidden_dir:
+                        print(f"❌ WARNING: Forbidden directory found in zip: {f}")
+                        issues_found = True
+                
+                # Check root files
+                if f in EXCLUDED_ROOT_FILES:
+                     print(f"❌ WARNING: Excluded root file found: {f}")
                      issues_found = True
-            
+
             if not issues_found:
-                print("✅ Verification passed: No sensitive files found.")
+                print("✅ Verification passed: Sensitive paths excluded.")
             else:
                 print("⚠️  Verification failed! Check the output.")
 
