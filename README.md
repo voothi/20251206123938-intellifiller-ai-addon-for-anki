@@ -33,7 +33,7 @@ This is an enhanced version of the [IntelliFiller](https://github.com/ganqqwerty
 
 ## Features
 
-* **Multi-Provider Support**: Use models from **OpenAI**, **Anthropic**, **Google Gemini**, and **OpenRouter**.
+* **Multi-Provider Support**: Use models from **OpenAI**, **Anthropic**, **Google Gemini**, **OpenRouter**, and **Ollama**.
 * **Custom Endpoints**: Support for any OpenAI-compatible API (local LLMs, etc.).
 * **Configurable Models**: Easily switch between models (e.g., GPT-4o, Claude 3.5 Sonnet, Gemini 1.5 Pro).
 * **Batch Processing**: Select multiple cards in the browser and fill them in bulk.
@@ -68,8 +68,9 @@ To install this addon from the source code, follow these steps:
 It is recommended to **backup your data** using the addon's backup feature (Backup tab in settings) before updating.
 
 ### Windows Update Instructions
+**Note:** Versions **v2.14.8+** include an automatic "Atomic Update" mechanism to prevent file locking errors. Future updates should proceed smoothly.
 
-Due to Windows file locking mechanics, updates can fail if the addon is active.
+If you are updating **from** an older version (< v2.14.8), or if you encounter a `PermissionError`:
 
 **Method 1: Smooth Update (Recommended)**
 1.  Go to **Tools** -> **Add-ons**.
