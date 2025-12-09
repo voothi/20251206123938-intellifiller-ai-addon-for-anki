@@ -1,4 +1,4 @@
-# IntelliFiller - AI Addon for Anki
+# IntelliFiller AI -  Addon for Anki
 
 This is an enhanced version of the [IntelliFiller](https://github.com/ganqqwerty/intellifiller-ai-addon-for-anki) addon for Anki, allowing you to automatically fill note fields using various Large Language Models (LLMs).
 
