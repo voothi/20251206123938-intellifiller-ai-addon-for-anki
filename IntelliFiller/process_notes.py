@@ -10,6 +10,7 @@ from anki.notes import Note, NoteId
 
 class MultipleNotesThreadWorker(QThread):
     progress_made = pyqtSignal(int)
+    error_occurred = pyqtSignal(str)
 
     def __init__(self, notes, browser, prompt_config):
         super().__init__()
@@ -25,18 +26,22 @@ class MultipleNotesThreadWorker(QThread):
                 # Fetch note once per note-processing loop to ensure pipeline steps share the same object
                 # and see each other's updates immediately (before flush/reload).
                 try:
-                    note = mw.col.get_note(nid)
-                except Exception:
-                    # If note deleted or not found, skip
-                    self.progress_made.emit(i + 1)
-                    continue
+                    try:
+                        note = mw.col.get_note(nid)
+                    except Exception:
+                        # If note deleted or not found, skip
+                        self.progress_made.emit(i + 1)
+                        continue
 
-                # prompt_config can be a dict (single prompt) or list (pipeline)
-                if isinstance(self.prompt_config, list):
-                    for p_config in self.prompt_config:
-                        enrich_without_editor(note, p_config)
-                else:
-                    enrich_without_editor(note, self.prompt_config)
+                    # prompt_config can be a dict (single prompt) or list (pipeline)
+                    if isinstance(self.prompt_config, list):
+                        for p_config in self.prompt_config:
+                            enrich_without_editor(note, p_config)
+                    else:
+                        enrich_without_editor(note, self.prompt_config)
+                except Exception as e:
+                    self.error_occurred.emit(str(e))
+
             self.progress_made.emit(i + 1)
 
 
@@ -44,6 +49,7 @@ class ProgressDialog(QDialog):
     def __init__(self, parent=None):
         super(ProgressDialog, self).__init__(parent)
         self.worker = None
+        self.errors = []
         layout = QVBoxLayout()
 
         self.progress_bar = QProgressBar()
@@ -63,11 +69,16 @@ class ProgressDialog(QDialog):
         self.progress_bar.setValue(value)
         self.counter_label.setText(f"{value} of {self.progress_bar.maximum()} processed")
 
+    def handle_error(self, error_msg):
+        self.errors.append(error_msg)
+
     def run_task(self, notes, prompt_config):
         self.progress_bar.setMaximum(len(notes))
         self.progress_bar.setValue(0)
+        self.errors = []
         self.worker = MultipleNotesThreadWorker(notes, mw.col, prompt_config)  # pass the notes and prompt_config
         self.worker.progress_made.connect(self.update_progress)
+        self.worker.error_occurred.connect(self.handle_error)
         self.worker.finished.connect(self.on_worker_finished)  # connect the finish signal to a slot
         self.worker.start()
         self.show()
@@ -77,11 +88,22 @@ class ProgressDialog(QDialog):
             self.progress_bar.maximum())  # when the worker is finished, set the progress bar to maximum
         mw.reset() # Refresh Anki UI (including browser)
         self.close()  # close the dialog when the worker finishes
+        
+        if self.errors:
+            msg = f"Completed with {len(self.errors)} errors.\n\nFirst error: {self.errors[0]}"
+            if len(self.errors) > 1:
+                msg += f"\n\n(+ {len(self.errors) - 1} more errors)"
+            showWarning(msg)
 
     def cancel(self):
         if self.worker:
             self.worker.requestInterruption()
-        self.close()
+        # Do not close immediately, wait for thread to check interruption and finish
+        # But for UX, we can just close and let the thread die or finish silently
+        # self.close() 
+        # Better: Disable cancel button to show we are cancelling
+        self.cancel_button.setEnabled(False)
+        self.counter_label.setText("Cancelling...")
 
 
 import json
@@ -127,8 +149,8 @@ def apply_response_to_note(note_or_editor, prompt_config, response, is_editor=Fa
     if fmt == "json":
         data = parse_llm_json(response)
         if not data:
-            showWarning(f"Failed to parse JSON response for prompt '{prompt_config.get('promptName', '?')}'")
-            return
+            # We raise here so the worker catches it
+            raise ValueError(f"Failed to parse JSON response for prompt '{prompt_config.get('promptName', '?')}'")
 
         mapping = prompt_config.get("fieldMapping", {})
         for json_key, target_field in mapping.items():
@@ -156,18 +178,6 @@ def apply_response_to_note(note_or_editor, prompt_config, response, is_editor=Fa
             fill_field_for_note_not_in_editor(response, note_or_editor, target_field, overwrite)
 
 
-def generate_for_single_note(editor, prompt_config):
-    """Generate text for a single note (editor note)."""
-    # handle pipeline (list of prompts)
-    prompts = prompt_config if isinstance(prompt_config, list) else [prompt_config]
-    
-    for p_config in prompts:
-        prompt = create_prompt(editor.note, p_config)
-        response = send_prompt_to_llm(prompt)
-        # Delegate application logic
-        apply_response_to_note(editor, p_config, response, is_editor=True)
-
-
 def enrich_without_editor(nid_or_note, prompt_config):
     """generate"""
     if isinstance(nid_or_note, Note):
@@ -188,7 +198,10 @@ def process_notes(browser, prompt_config, pipeline_name=None):
         showWarning("No notes selected.")
         return
 
-    # Inject global overwrite setting into prompt_config(s)
+    # If the editor is active and contains changes, save them first!
+    if browser.editor:
+        browser.editor.saveNow()
+
     # Inject global overwrite setting into prompt_config(s)
     settings = ConfigManager.load_settings()
     overwrite_global = settings.get('overwriteField', False)
@@ -206,11 +219,9 @@ def process_notes(browser, prompt_config, pipeline_name=None):
     if item_name:
         update_history_config(item_name)
 
-    if len(selected_notes) == 1 and browser.editor and browser.editor.note:
-        generate_for_single_note(browser.editor, prompt_config)
-    else:
-        progress_dialog = ProgressDialog(browser)
-        progress_dialog.run_task(selected_notes, prompt_config)
+    # Use Threaded Worker for ALL cases to prevent UI freezing
+    progress_dialog = ProgressDialog(browser)
+    progress_dialog.run_task(selected_notes, prompt_config)
 
 def update_history_config(item_name):
     settings = ConfigManager.load_settings()

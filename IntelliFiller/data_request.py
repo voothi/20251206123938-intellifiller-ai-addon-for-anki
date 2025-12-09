@@ -1,7 +1,7 @@
 import re
 import sys
 import os
-from aqt.utils import showWarning
+
 from aqt import mw
 
 
@@ -138,16 +138,10 @@ def send_prompt_to_llm(prompt):
                 return try_custom_call()
             else:  # openai
                 return try_openai_call()
-        except openai.APIConnectionError as e:
-            showWarning(f"The server could not be reached {str(e.__cause__)}")  # an underlying Exception, likely raised within httpx.
-        except openai.RateLimitError as e:
-            showWarning("A 429 status code was received; we should back off a bit.")
-        except openai.APIStatusError as e:
-            showWarning(f"Another non-200-range status code was received:  {str(e.status_code)}, {str(e.response)}")
         except Exception as e:
-            # For other exceptions, we don't want to retry
+            # Re-raise exceptions so they can be caught by the worker thread
             raise e
     except Exception as e:
         print(f"An error occurred while processing the note: {str(e)}", file=sys.stderr)
-        showWarning(f"An error occurred while processing the note: {str(e)}")
-        return None
+        # Re-raise to be handled by the caller (worker thread)
+        raise e
