@@ -33,6 +33,18 @@ def atomic_replace(target_dir: Path, new_content_dir: Path = None) -> bool:
     # STEP 1: Rename current to trash
     try:
         os.rename(target_dir, trash_path)
+        
+        # NEUTRALIZE: Immediately remove __init__.py and manifest.json from trash
+        # so Anki doesn't try to load this folder as an addon on next boot.
+        # The locked .pyd files will remain, but the addon definition is gone.
+        for crit_file in ["__init__.py", "manifest.json"]:
+            crit_path = trash_path / crit_file
+            if crit_path.exists():
+                try:
+                    os.remove(crit_path)
+                except OSError:
+                    pass # Best effort
+                    
     except OSError as e:
         # Retry logic for AV scanners
         try:
