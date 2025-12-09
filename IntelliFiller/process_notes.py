@@ -207,30 +207,34 @@ def process_notes(browser, prompt_config, pipeline_name=None):
         showWarning("No notes selected.")
         return
 
+    def on_save_completed():
+        # Inject global overwrite setting into prompt_config(s)
+        settings = ConfigManager.load_settings()
+        overwrite_global = settings.get('overwriteField', False)
+        
+        if isinstance(prompt_config, list):
+            for p in prompt_config:
+                p['overwriteField'] = overwrite_global
+        else:
+            prompt_config['overwriteField'] = overwrite_global
+
+        # Update history
+        # If it's a pipeline, use pipeline_name. If single prompt, use promptName.
+        item_name = pipeline_name if pipeline_name else (prompt_config['promptName'] if not isinstance(prompt_config, list) else None)
+        
+        if item_name:
+            update_history_config(item_name)
+
+        # Use Threaded Worker for ALL cases to prevent UI freezing
+        progress_dialog = ProgressDialog(browser)
+        progress_dialog.run_task(selected_notes, prompt_config)
+
     # If the editor is active and contains changes, save them first!
     if browser.editor:
-        browser.editor.saveNow()
-
-    # Inject global overwrite setting into prompt_config(s)
-    settings = ConfigManager.load_settings()
-    overwrite_global = settings.get('overwriteField', False)
-    
-    if isinstance(prompt_config, list):
-        for p in prompt_config:
-            p['overwriteField'] = overwrite_global
+        browser.editor.saveNow(on_save_completed)
     else:
-        prompt_config['overwriteField'] = overwrite_global
+        on_save_completed()
 
-    # Update history
-    # If it's a pipeline, use pipeline_name. If single prompt, use promptName.
-    item_name = pipeline_name if pipeline_name else (prompt_config['promptName'] if not isinstance(prompt_config, list) else None)
-    
-    if item_name:
-        update_history_config(item_name)
-
-    # Use Threaded Worker for ALL cases to prevent UI freezing
-    progress_dialog = ProgressDialog(browser)
-    progress_dialog.run_task(selected_notes, prompt_config)
 
 def process_single_note(editor, prompt_config):
     """
@@ -240,58 +244,18 @@ def process_single_note(editor, prompt_config):
     if not editor or not editor.note:
         return
 
-    # 1. Save changes in editor to note
-    editor.saveNow()
-    
-    # 2. Extract note ID
-    # For AddCards, the note might not be in the database yet?
-    # Actually, for AddCards, the note is in editor.note but nid might be 0 or new.
-    # The worker logic tries: mw.col.get_note(nid).
-    # If the note is not in DB (AddCards), get_note(nid) will fail if nid is 0.
-    # So we need to handle AddCards separately? 
-    # AddCards mode usually generates content INTO the fields before adding.
-    # The worker logic:
-    #   note = mw.col.get_note(nid)
-    #   enrich_without_editor(note, ...)
-    #     -> apply_response_to_note(note, ...) -> updates note object
-    # This works great for existing notes.
-    
-    # For AddCards:
-    # We should probably run the generation in background but apply it to the OPEN editor instance directly
-    # instead of fetching from DB.
-    
-    # Let's adapt the Worker to accept a LIST of OBJECTS (Notes) or IDs?
-    # Current Worker takes IDs: `for i, nid in enumerate(self.notes):` -> `mw.col.get_note(nid)`
-    
-    # We should define a helper worker that takes a Note object directly?
-    # Or make the worker smart enough to handle Note objects.
-    
-    # Let's try to update MultipleNotesThreadWorker to accept (id) or (note).
-    # But passing Note objects across threads (QThread) is generally okay if we are careful not to touch GUI from it.
-    # Note objects in Anki are data objects.
-    
-    # However, Anki's new backend objects might be tricky.
-    # Safest: Use IDs for DB notes.
-    # For AddCards (unsaved note), we MUST pass the note object.
-    
-    # Let's just spawn a worker that knows how to handle the specific single note case?
-    # Or generalize MultipleNotesThreadWorker.
-    
-    # Generalizing Worker:
-    pass # Placeholder for decision logic
+    def on_save_completed():
+        target_note = editor.note
+        
+        # We need a parent for the dialog. Use the window containing the editor.
+        parent_window = editor.parentWindow
+        
+        progress_dialog = ProgressDialog(parent_window)
+        # We pass a list containing the Note object itself to avoid DB fetch issues for AddCards
+        progress_dialog.run_task([target_note], prompt_config)
 
-    # Implementation:
-    # We will instantiate a generic worker that takes a list of notes.
-    # If we pass the note object directly, we skip `mw.col.get_note`.
-    
-    target_note = editor.note
-    
-    # We need a parent for the dialog. Use the window containing the editor.
-    parent_window = editor.parentWindow
-    
-    progress_dialog = ProgressDialog(parent_window)
-    # We pass a list containing the Note object itself to avoid DB fetch issues for AddCards
-    progress_dialog.run_task([target_note], prompt_config)
+    # 1. Save changes in editor to note
+    editor.saveNow(on_save_completed)
 
 
 def update_history_config(item_name):
