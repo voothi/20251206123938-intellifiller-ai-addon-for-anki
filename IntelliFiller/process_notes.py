@@ -6,17 +6,18 @@ from .data_request import create_prompt, send_prompt_to_llm
 from .modify_notes import fill_field_for_note_in_editor, fill_field_for_note_not_in_editor
 from .config_manager import ConfigManager
 from anki.notes import Note, NoteId
-
+import sys
 
 class MultipleNotesThreadWorker(QThread):
     progress_made = pyqtSignal(int)
-    error_occurred = pyqtSignal(str)
+    # error_occurred = pyqtSignal(str) # No longer needed for UI, we use stderr directly
 
     def __init__(self, notes, browser, prompt_config):
         super().__init__()
         self.notes = notes
         self.browser = browser
         self.prompt_config = prompt_config
+        self.has_shown_error = False
 
     def run(self):
         for i, item in enumerate(self.notes):
@@ -44,7 +45,13 @@ class MultipleNotesThreadWorker(QThread):
                     else:
                         enrich_without_editor(note, self.prompt_config)
                 except Exception as e:
-                    self.error_occurred.emit(str(e))
+                    # Logic: Immediate feedback, "Original Window", One time only.
+                    if not self.has_shown_error:
+                        sys.stderr.write(f"IntelliFiller Error: {str(e)}")
+                        self.has_shown_error = True
+                    
+                    # Store internally if needed, but we aren't showing a summary anymore
+                    pass
 
             self.progress_made.emit(i + 1)
 
@@ -73,16 +80,12 @@ class ProgressDialog(QDialog):
         self.progress_bar.setValue(value)
         self.counter_label.setText(f"{value} of {self.progress_bar.maximum()} processed")
 
-    def handle_error(self, error_msg):
-        self.errors.append(error_msg)
-
     def run_task(self, notes, prompt_config):
         self.progress_bar.setMaximum(len(notes))
         self.progress_bar.setValue(0)
         self.errors = []
         self.worker = MultipleNotesThreadWorker(notes, mw.col, prompt_config)  # pass the notes and prompt_config
         self.worker.progress_made.connect(self.update_progress)
-        self.worker.error_occurred.connect(self.handle_error)
         self.worker.finished.connect(self.on_worker_finished)  # connect the finish signal to a slot
         self.worker.start()
         self.show()
@@ -97,12 +100,6 @@ class ProgressDialog(QDialog):
         # For AddCards/EditCurrent, we might need to trigger a reload of the note in the editor?
         mw.reset() 
         self.close()  # close the dialog when the worker finishes
-        
-        if self.errors:
-            msg = f"Completed with {len(self.errors)} errors.\n\nFirst error: {self.errors[0]}"
-            if len(self.errors) > 1:
-                msg += f"\n\n(+ {len(self.errors) - 1} more errors)"
-            showWarning(msg)
 
     def cancel(self):
         if self.worker:

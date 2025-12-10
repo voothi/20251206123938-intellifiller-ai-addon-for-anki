@@ -142,6 +142,5 @@ def send_prompt_to_llm(prompt):
             # Re-raise exceptions so they can be caught by the worker thread
             raise e
     except Exception as e:
-        print(f"An error occurred while processing the note: {str(e)}", file=sys.stderr)
         # Re-raise to be handled by the caller (worker thread)
         raise e
