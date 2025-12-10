@@ -19,7 +19,7 @@ class BackupManager:
     def __init__(self, config_manager, addon_dir):
         self.config_manager = config_manager
         self.addon_dir = addon_dir
-        self.manifest_file = os.path.join(addon_dir, 'user_files', 'backup_manifest.json')
+        self.manifest_file = os.path.join(addon_dir, 'user_files', 'manifest.json')
         # Ensure user_files exists
         self.user_files_dir = os.path.join(addon_dir, 'user_files')
         if not os.path.exists(self.user_files_dir):
@@ -55,7 +55,7 @@ class BackupManager:
         has_changes = False
         
         # Files to exclude
-        excludes_names = ['backup_manifest.json']
+        excludes_names = ['manifest.json']
 
         all_items = []
 
@@ -165,7 +165,7 @@ class BackupManager:
         """
         Creates a zip file containing user_files (subfolder) and root json files.
         """
-        excludes_names = ['backup_manifest.json']
+        excludes_names = ['manifest.json']
         compression = zipfile.ZIP_DEFLATED
         
         # Collect files to zip mapping: {full_path: arcname}
