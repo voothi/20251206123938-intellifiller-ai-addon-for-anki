@@ -1,5 +1,5 @@
 {
-  "name": "IntelliFiller AI - OpenAI, Anthropic, Gemini, OpenRouter, Ollama",
+  "name": "IntelliFiller AI - Multi-Provider Prompt Orchestrator",
   "package": "1149226090",
-  "human_version": "2.14.8"
+  "human_version": "2.16.2"
 }
