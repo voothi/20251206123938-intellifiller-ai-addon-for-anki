@@ -184,6 +184,11 @@ class ProgressDialog(QDialog):
         # Close immediately so the user isn't stuck
         self.close()
 
+    def reject(self):
+        # Override reject (Esc/CloseButton) to trigger cancellation cleanup
+        self.cancel()
+        super().reject()
+
 
 import json
 import re
