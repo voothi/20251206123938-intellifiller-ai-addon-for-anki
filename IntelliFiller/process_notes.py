@@ -104,12 +104,10 @@ class ProgressDialog(QDialog):
     def cancel(self):
         if self.worker:
             self.worker.requestInterruption()
-        # Do not close immediately, wait for thread to check interruption and finish
-        # But for UX, we can just close and let the thread die or finish silently
-        # self.close() 
-        # Better: Disable cancel button to show we are cancelling
-        self.cancel_button.setEnabled(False)
-        self.counter_label.setText("Cancelling...")
+            self.worker.wait(100) # Optional: give it a tiny moment to check flag
+        
+        # Close immediately so the user isn't stuck
+        self.close()
 
 
 import json
