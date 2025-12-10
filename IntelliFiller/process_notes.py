@@ -7,6 +7,7 @@ from .modify_notes import fill_field_for_note_in_editor, fill_field_for_note_not
 from .config_manager import ConfigManager
 from anki.notes import Note, NoteId
 import sys
+import time
 
 class MultipleNotesThreadWorker(QThread):
     progress_made = pyqtSignal(int)
@@ -21,9 +22,11 @@ class MultipleNotesThreadWorker(QThread):
 
     def run(self):
         for i, item in enumerate(self.notes):
-            if self.isInterruptionRequested():
-                break
-            else:
+            # Retry loop for the distinct note
+            while True:
+                if self.isInterruptionRequested():
+                    break
+                
                 # Fetch note once per note-processing loop to ensure pipeline steps share the same object
                 # and see each other's updates immediately (before flush/reload).
                 try:
@@ -35,23 +38,45 @@ class MultipleNotesThreadWorker(QThread):
                             note = mw.col.get_note(item)
                     except Exception:
                         # If note deleted or not found, skip
-                        self.progress_made.emit(i + 1)
-                        continue
-
+                        break # Break retry loop, effectively skipping this note
+                    
                     # prompt_config can be a dict (single prompt) or list (pipeline)
                     if isinstance(self.prompt_config, list):
                         for p_config in self.prompt_config:
                             enrich_without_editor(note, p_config)
                     else:
                         enrich_without_editor(note, self.prompt_config)
+                    
+                    # If we reached here, success!
+                    break 
+
                 except Exception as e:
+                    err_str = str(e).lower()
+                    # Check for common network/timeout keywords
+                    is_net_error = any(x in err_str for x in ["connect", "time", "network", "socket", "proxy", "50", "429"])
+                    
                     # Logic: Immediate feedback, "Original Window", One time only.
                     if not self.has_shown_error:
                         sys.stderr.write(f"IntelliFiller Error: {str(e)}")
                         self.has_shown_error = True
                     
+                    if is_net_error:
+                        # If filter matches network error, wait and retry
+                        # Check cancel again before sleeping
+                        if self.isInterruptionRequested():
+                            break
+                        time.sleep(3)
+                        continue
+                    else:
+                        # Logic/Template error -> Skip note
+                        pass
+                    
                     # Store internally if needed, but we aren't showing a summary anymore
-                    pass
+                    break
+
+            # If external loop was broken due to cancel
+            if self.isInterruptionRequested():
+                break
 
             self.progress_made.emit(i + 1)
 
