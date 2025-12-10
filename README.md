@@ -15,7 +15,12 @@ For a detailed history of changes, please view the [Releases Page](https://githu
 > *   **This Enhanced Version**: [Source Code](https://github.com/voothi/20251206123938-intellifiller-ai-addon-for-anki) | [AnkiWeb (1149226090)](https://ankiweb.net/shared/info/1149226090)
 
 > [!NOTE]
-> **Tested on Windows 11**
+> **Cross-Platform Ready (Linux & macOS)**
+>
+> **Developed & Validated Environment:**
+> *   **OS**: Windows 11 (Python 3.9.13 via Microsoft Store)
+> *   **Anki**: Version 24.06.3 (d678e393)
+> *   **Qt/PyQt**: Python 3.9.18 / Qt 6.6.2 / PyQt 6.6.1
 
 [![AnkiWeb](https://img.shields.io/badge/AnkiWeb-1149226090-blue)](https://ankiweb.net/shared/info/1149226090)
 
