@@ -11,6 +11,7 @@ import time
 
 class MultipleNotesThreadWorker(QThread):
     progress_made = pyqtSignal(int)
+    status_update = pyqtSignal(str)
     # error_occurred = pyqtSignal(str) # No longer needed for UI, we use stderr directly
 
     def __init__(self, notes, browser, prompt_config):
@@ -19,9 +20,39 @@ class MultipleNotesThreadWorker(QThread):
         self.browser = browser
         self.prompt_config = prompt_config
         self.has_shown_error = False
+        
+        # Load Batch Settings
+        settings = ConfigManager.load_settings()
+        batch_cfg = settings.get("batchProcessing", {})
+        self.batch_enabled = batch_cfg.get("enabled", True)
+        self.batch_size = batch_cfg.get("batchSize", 20)
+        self.batch_delay = batch_cfg.get("batchDelay", 10)
 
     def run(self):
+        total_notes = len(self.notes)
+        
         for i, item in enumerate(self.notes):
+            # Batch Processing Delay
+            # Check if enabled, if we hit the batch limit, and if it's NOT the last item
+            if self.batch_enabled and i > 0 and (i % self.batch_size == 0):
+                # We are about to process usage number 'i+1'. i is 0-indexed. 
+                # e.g. batch=5. i=0,1,2,3,4 (5 items done). Loop i=5 triggers check?
+                # Actually, standard is check after N items. 
+                # i starts at 0. processing item i. 
+                # We want to pause BEFORE item i if i is a multiple of batch_size.
+                
+                remaining = self.batch_delay
+                while remaining > 0:
+                    if self.isInterruptionRequested():
+                        return # Exit run immediately
+                    
+                    self.status_update.emit(f"Paused for batch limit... continuing in {remaining}s")
+                    time.sleep(1)
+                    remaining -= 1
+                
+                # Restore status text
+                self.status_update.emit(f"Resuming processing...")
+
             # Retry loop for the distinct note
             while True:
                 if self.isInterruptionRequested():
@@ -111,8 +142,12 @@ class ProgressDialog(QDialog):
         self.errors = []
         self.worker = MultipleNotesThreadWorker(notes, mw.col, prompt_config)  # pass the notes and prompt_config
         self.worker.progress_made.connect(self.update_progress)
+        self.worker.status_update.connect(self.update_status)
         self.worker.finished.connect(self.on_worker_finished)  # connect the finish signal to a slot
         self.worker.start()
+
+    def update_status(self, text):
+        self.counter_label.setText(text)
         self.show()
 
     def on_worker_finished(self):

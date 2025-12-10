@@ -129,6 +129,24 @@ class Ui_SettingsWindow(object):
         
         self.tabApiLayout.addLayout(self.emulationLayout)
         
+        # Batch Processing
+        self.batchGroup = QtWidgets.QGroupBox("Batch Processing", self.tabApi)
+        self.batchLayout = QtWidgets.QFormLayout(self.batchGroup)
+        
+        self.batchEnabled = QtWidgets.QCheckBox(self.batchGroup)
+        self.batchLayout.addRow(QtWidgets.QLabel("Enable Batch Processing:", self.batchGroup), self.batchEnabled)
+        
+        self.batchSize = QtWidgets.QSpinBox(self.batchGroup)
+        self.batchSize.setRange(1, 1000)
+        self.batchLayout.addRow(QtWidgets.QLabel("Batch Size (Notes):", self.batchGroup), self.batchSize)
+        
+        self.batchDelay = QtWidgets.QSpinBox(self.batchGroup)
+        self.batchDelay.setRange(0, 3600)
+        self.batchDelay.setSuffix(" sec")
+        self.batchLayout.addRow(QtWidgets.QLabel("Delay between batches:", self.batchGroup), self.batchDelay)
+        
+        self.tabApiLayout.addWidget(self.batchGroup)
+        
         # Spacer to push everything up
         self.tabApiLayout.addStretch()
 
@@ -392,6 +410,14 @@ class Ui_SettingsWindow(object):
         self.labelEncryptionKey.setText(_translate("SettingsWindow", "Custom Encryption Salt:"))
         self.encryptionKey.setPlaceholderText(_translate("SettingsWindow", "Leave empty for default portable key"))
         self.encryptionKey.setToolTip(_translate("SettingsWindow", "Custom string used to encrypt the credentials file. If changed, the file will be re-encrypted."))
+        
+        self.encryptionKey.setToolTip(_translate("SettingsWindow", "Custom string used to encrypt the credentials file. If changed, the file will be re-encrypted."))
+        
+        self.batchGroup.setTitle(_translate("SettingsWindow", "Batch Processing"))
+        self.batchEnabled.setText(_translate("SettingsWindow", ""))
+        self.batchEnabled.setToolTip(_translate("SettingsWindow", "If enabled, processing will pause periodically to avoid rate limits."))
+        self.batchSize.setToolTip(_translate("SettingsWindow", "Number of notes to process before taking a break."))
+        self.batchDelay.setToolTip(_translate("SettingsWindow", "Duration of the break in seconds."))
         
         self.backupNowBtn.setText(_translate("SettingsWindow", "Backup Now"))
         

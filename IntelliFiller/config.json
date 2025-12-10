@@ -4,6 +4,11 @@
   "emulate": "no",
   "overwriteField": false,
   "maxFavorites": 3,
+  "batchProcessing": {
+    "enabled": true,
+    "batchSize": 20,
+    "batchDelay": 10
+  },
   "pipelines": [],
   "history": [],
   "prompts": [

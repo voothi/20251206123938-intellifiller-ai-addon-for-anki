@@ -60,6 +60,12 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
         # IMPORTANT: We capture this AFTER all UI setup is done, so get_current_config returns the true initial state
         self.original_config = json.dumps(self.get_current_config(), sort_keys=True)
         self.config_saved = False
+        
+        self.batchEnabled.toggled.connect(self.update_batch_ui_state)
+
+    def update_batch_ui_state(self, checked):
+        self.batchSize.setEnabled(checked)
+        self.batchDelay.setEnabled(checked)
 
     def setup_password_fields(self):
         """Configures API key fields to be masked with a toggle button."""
@@ -128,6 +134,13 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
         # Default to True (Security by Default)
         self.obfuscateCreds.setChecked(config.get("obfuscateCreds", True))
         self.encryptionKey.setText(config.get("encryptionKey", ""))
+        
+        # Batch Processing
+        batch_config = config.get("batchProcessing", {})
+        self.batchEnabled.setChecked(batch_config.get("enabled", True))
+        self.batchSize.setValue(batch_config.get("batchSize", 20))
+        self.batchDelay.setValue(batch_config.get("batchDelay", 10))
+        self.update_batch_ui_state(self.batchEnabled.isChecked())
         
         self.pipelinesList.currentRowChanged.connect(self.display_pipeline_details)
         self.addPipelineButton.clicked.connect(self.add_new_pipeline)
@@ -468,6 +481,12 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
         config["maxFavorites"] = self.maxFavorites.value()
         config["obfuscateCreds"] = self.obfuscateCreds.isChecked()
         config["encryptionKey"] = self.encryptionKey.text()
+        
+        config["batchProcessing"] = {
+            "enabled": self.batchEnabled.isChecked(),
+            "batchSize": self.batchSize.value(),
+            "batchDelay": self.batchDelay.value()
+        }
         
         config["prompts"] = self.prompts
         
