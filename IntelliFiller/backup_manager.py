@@ -65,7 +65,7 @@ class BackupManager:
                 if file in excludes_names: continue
                 full_path = os.path.join(root, file)
                 # Rel path should start with user_files/ to distinguish
-                rel_from_addon = os.path.relpath(full_path, self.addon_dir)
+                rel_from_addon = os.path.relpath(full_path, self.addon_dir).replace("\\", "/")
                 all_items.append((full_path, rel_from_addon))
 
         # 2. Root JSON files (Non-recursive, just the specific files)
@@ -99,6 +99,7 @@ class BackupManager:
                 new_manifest[rel_path] = {'mtime': mtime, 'md5': md5}
 
         # Check for deleted files
+        # Normalize old keys to current platform style just in case, or safer: rely on forward slash convention
         old_files_set = set(manifest.keys())
         current_rel_paths = set(new_manifest.keys())
         
