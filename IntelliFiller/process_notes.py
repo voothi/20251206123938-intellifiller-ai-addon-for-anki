@@ -12,6 +12,7 @@ import time
 class MultipleNotesThreadWorker(QThread):
     progress_made = pyqtSignal(int)
     status_update = pyqtSignal(str)
+    refresh_browser = pyqtSignal()
     # error_occurred = pyqtSignal(str) # No longer needed for UI, we use stderr directly
 
     def __init__(self, notes, browser, prompt_config):
@@ -40,6 +41,9 @@ class MultipleNotesThreadWorker(QThread):
                 # Actually, standard is check after N items. 
                 # i starts at 0. processing item i. 
                 # We want to pause BEFORE item i if i is a multiple of batch_size.
+                
+                # Signal the UI to refresh the browser list so user sees progress
+                self.refresh_browser.emit()
                 
                 remaining = self.batch_delay
                 while remaining > 0:
@@ -143,12 +147,16 @@ class ProgressDialog(QDialog):
         self.worker = MultipleNotesThreadWorker(notes, mw.col, prompt_config)  # pass the notes and prompt_config
         self.worker.progress_made.connect(self.update_progress)
         self.worker.status_update.connect(self.update_status)
+        self.worker.refresh_browser.connect(self.on_refresh_browser)
         self.worker.finished.connect(self.on_worker_finished)  # connect the finish signal to a slot
         self.worker.start()
+        self.show()
+
+    def on_refresh_browser(self):
+        mw.reset()
 
     def update_status(self, text):
         self.counter_label.setText(text)
-        self.show()
 
     def on_worker_finished(self):
         self.update_progress(
