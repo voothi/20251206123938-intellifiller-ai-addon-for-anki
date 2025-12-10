@@ -131,6 +131,8 @@ class ProgressDialog(QDialog):
 
         self.cancel_button = QPushButton('Cancel')
         self.cancel_button.clicked.connect(self.cancel)
+        self.cancel_button.setAutoDefault(False)
+        self.cancel_button.setDefault(False)
         layout.addWidget(self.cancel_button)
 
         self.setLayout(layout)
@@ -151,6 +153,8 @@ class ProgressDialog(QDialog):
         self.worker.finished.connect(self.on_worker_finished)  # connect the finish signal to a slot
         self.worker.start()
         self.show()
+        self.cancel_button.clearFocus()
+        self.setFocus()
 
     def on_refresh_browser(self):
         mw.reset()
@@ -179,6 +183,10 @@ class ProgressDialog(QDialog):
         
         # Close immediately so the user isn't stuck
         self.close()
+
+    def reject(self):
+        # Override escape key behavior directly
+        pass
 
 
 import json
