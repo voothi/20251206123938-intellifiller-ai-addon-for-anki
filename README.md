@@ -2,6 +2,7 @@
 
 [![Version](https://img.shields.io/badge/version-v2.16.2-blue)](https://github.com/voothi/20251206123938-intellifiller-ai-addon-for-anki/releases) 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) 
+[![AnkiWeb](https://img.shields.io/badge/AnkiWeb-1149226090-blue)](https://ankiweb.net/shared/info/1149226090)
 
 This is an enhanced version of the [IntelliFiller](https://github.com/ganqqwerty/intellifiller-ai-addon-for-anki) addon for Anki, allowing you to automatically fill note fields using various Large Language Models (LLMs).
 
@@ -11,7 +12,7 @@ For a detailed history of changes, please view the [Releases Page](https://githu
 >
 > This add-on is a modified fork of **IntelliFiller** by ganqqwerty.
 >
-> *   **Original Project**: [Source Code](https://github.com/ganqqwerty/intellifiller-ai-addon-for-anki) | [AnkiWeb (9559994708)](https://ankiweb.net/shared/info/9559994708) or [AnkiWeb (1416178071)](https://ankiweb.net/shared/info/1416178071) | [Anki Forums (31618)](https://forums.ankiweb.net/t/intellifiller-chatgpt-addon/31618)
+> *   **Original Project**: [Source Code](https://github.com/ganqqwerty/intellifiller-ai-addon-for-anki) | [AnkiWeb (9559994708)](https://ankiweb.net/shared/info/9559994708) | [AnkiWeb (1416178071)](https://ankiweb.net/shared/info/1416178071) | [Anki Forums (31618)](https://forums.ankiweb.net/t/intellifiller-chatgpt-addon/31618)
 > *   **This Enhanced Version**: [Source Code](https://github.com/voothi/20251206123938-intellifiller-ai-addon-for-anki) | [AnkiWeb (1149226090)](https://ankiweb.net/shared/info/1149226090)
 
 > [!NOTE]
@@ -19,10 +20,8 @@ For a detailed history of changes, please view the [Releases Page](https://githu
 >
 > **Developed & Validated Environment:**
 > *   **OS**: Windows 11 (Python 3.9.13 via Microsoft Store)
-> *   **Anki**: Version 24.06.3 (d678e393)
-> *   **Qt/PyQt**: Python 3.9.18 / Qt 6.6.2 / PyQt 6.6.1
+> *   **Anki**: Version 24.06.3 (d678e393) - (Python 3.9.18 / Qt 6.6.2 / PyQt 6.6.1)
 
-[![AnkiWeb](https://img.shields.io/badge/AnkiWeb-1149226090-blue)](https://ankiweb.net/shared/info/1149226090)
 
 ## Table of Contents
 
