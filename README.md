@@ -27,8 +27,9 @@ For a detailed history of changes, please view the [Releases Page](https://githu
 
 - [Features](#features)
 - [Prerequisites](#prerequisites)
-- [Installation from Source](#installation-from-source)
+- [Installation](#installation)
 - [Updating](#updating)
+- [Advanced / Developer Installation](#advanced--developer-installation)
 - [Build Instructions](#build-instructions)
   - [For Local Development (Windows 11 / Current OS)](#for-local-development-windows-11--current-os)
   - [For Cross-Platform Release](#for-cross-platform-release)
@@ -66,9 +67,30 @@ For a detailed history of changes, please view the [Releases Page](https://githu
 
 [Return to Top](#table-of-contents)
 
-## Installation from Source
+## Installation
 
-To install this addon from the source code, follow these steps:
+### Method 1: AnkiWeb (Recommended)
+
+1.  Open Anki.
+2.  Go to **Tools** -> **Add-ons**.
+3.  Click **Get Add-ons...**
+4.  Enter the code: `1149226090`
+5.  Restart Anki.
+
+### Method 2: Manual Installation (Release File)
+
+1.  Download the latest `.ankiaddon` file from the [Releases Page](https://github.com/voothi/20251206123938-intellifiller-ai-addon-for-anki/releases).
+2.  Open Anki.
+3.  Go to **Tools** -> **Add-ons**.
+4.  Click **Install from file...**
+5.  Select the downloaded `.ankiaddon` file.
+6.  Restart Anki.
+
+[Return to Top](#table-of-contents)
+
+## Advanced / Developer Installation
+
+To install this addon from the source code (for development purposes), follow these steps:
 
 1.  Clone this repository.
 2.  Copy the `IntelliFiller` folder into your Anki `addons21` directory.
@@ -81,6 +103,11 @@ To install this addon from the source code, follow these steps:
 ## Updating
 
 It is recommended to **backup your data** using the addon's backup feature (Backup tab in settings) before updating.
+**If the "Backups" tab is not available in your current version**, please manually copy the entire addon folder from your `addons21` directory to a safe location before proceeding.
+
+### Updating via .ankiaddon File
+1.  Download the new `.ankiaddon` file from Releases.
+2.  Install it using **Install from file...** in Anki's Add-on menu. This will overwrite the old version while preserving your user files.
 
 ### Windows Update Instructions
 **Note:** Versions **v2.14.8+** include an automatic "Atomic Update" mechanism to prevent file locking errors. Future updates should proceed smoothly.
@@ -178,4 +205,6 @@ This project is part of the [Kardenwort](https://github.com/kardenwort) environm
 
 ## License
 
-Please refer to the original repository for license information.
+This project is licensed under the **MIT License**.
+
+See the [LICENSE](LICENSE) file for details.
