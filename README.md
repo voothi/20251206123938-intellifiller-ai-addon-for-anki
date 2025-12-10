@@ -1,12 +1,17 @@
-# IntelliFiller AI -  Addon for Anki
+# IntelliFiller AI - Multi-Provider Prompt Orchestrator
+
+[![Version](https://img.shields.io/badge/version-v2.16.2-blue)](https://github.com/voothi/20251206123938-intellifiller-ai-addon-for-anki/releases) 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) 
 
 This is an enhanced version of the [IntelliFiller](https://github.com/ganqqwerty/intellifiller-ai-addon-for-anki) addon for Anki, allowing you to automatically fill note fields using various Large Language Models (LLMs).
+
+For a detailed history of changes, please view the [Releases Page](https://github.com/voothi/20251206123938-intellifiller-ai-addon-for-anki/releases).
 
 > **Attribution & Source**
 >
 > This add-on is a modified fork of **IntelliFiller** by ganqqwerty.
 >
-> *   **Original Project**: [Source Code](https://github.com/ganqqwerty/intellifiller-ai-addon-for-anki) | [AnkiWeb (9559994708)](https://ankiweb.net/shared/info/9559994708)
+> *   **Original Project**: [Source Code](https://github.com/ganqqwerty/intellifiller-ai-addon-for-anki) | [AnkiWeb (9559994708)](https://ankiweb.net/shared/info/9559994708) or [AnkiWeb (1416178071)](https://ankiweb.net/shared/info/1416178071) | [Anki Forums (31618)](https://forums.ankiweb.net/t/intellifiller-chatgpt-addon/31618)
 > *   **This Enhanced Version**: [Source Code](https://github.com/voothi/20251206123938-intellifiller-ai-addon-for-anki) | [AnkiWeb (1149226090)](https://ankiweb.net/shared/info/1149226090)
 
 > [!NOTE]
@@ -36,9 +41,17 @@ This is an enhanced version of the [IntelliFiller](https://github.com/ganqqwerty
 * **Multi-Provider Support**: Use models from **OpenAI**, **Anthropic**, **Google Gemini**, **OpenRouter**, and **Ollama**.
 * **Custom Endpoints**: Support for any OpenAI-compatible API (local LLMs, etc.).
 * **Configurable Models**: Easily switch between models (e.g., GPT-4o, Claude 3.5 Sonnet, Gemini 1.5 Pro).
-* **Batch Processing**: Select multiple cards in the browser and fill them in bulk.
-* **Flexible Prompting**: Design prompts that use existing field data (e.g., `{{{Sentence}}}`) to generate new content.
-* **Prompt Management**: Save and reuse your favorite prompts.
+* **Smart Batch Processing**: 
+    *   **Batch Processing**: Select multiple cards in the browser and fill them in bulk.
+    *   **Configurable Delays**: Set delays between requests to avoid rate limits.
+    *   **Progress Tracking**: Real-time progress dialog with pause/resume capabilities.
+* **Flexible Prompting**: 
+    *   Design prompts that use existing field data (e.g., `{{{Sentence}}}`) to generate new content.
+    *   **Multi-Field Updates**: Support for JSON responses to update multiple fields from a single prompt.
+* **Advanced Prompt Management**: 
+    *   **Master-Detail Interface**: Manage your prompts with an intuitive split-view editor.
+    *   **Save & Reuse**: Store your favorite prompts for quick access.
+* **Secure Backups**: Automatic, encrypted backups of your settings and prompts.
 
 [Return to Top](#table-of-contents)
 
@@ -58,8 +71,6 @@ To install this addon from the source code, follow these steps:
     *   To find this directory, open Anki, go to **Tools** -> **Add-ons**, click **View Files**.
 3.  Install dependencies (see [Build Instructions](#build-instructions)).
 4.  Restart Anki.
-
-![Installation](installation.png)
 
 [Return to Top](#table-of-contents)
 
@@ -132,9 +143,6 @@ python scripts/package_addon.py --out "C:/My/Builds"
 
 1.  **Open Anki Browser**: Go to the card browser.
 2.  **Select Cards**: Select one or more cards you want to fill.
-
-    ![Select Multiple Cards](multiple-cards.png)
-
 3.  **Right-Click**: Choose **IntelliFiller** from the context menu.
 4.  **Configure**:
     *   Select your **Provider** (OpenAI, Anthropic, Gemini, etc.).
@@ -142,20 +150,12 @@ python scripts/package_addon.py --out "C:/My/Builds"
     *   Choose or type the **Model Name**.
     *   Write your prompt using field placeholders like `{{{Front}}}`.
     *   Select the **Destination Field** for the result.
-
-    ![Run Configuration](run-request.png)
-
-    > **Tip**: You can save prompts to reuse them later!
-    >
-    > ![Save Prompts](save-prompts.png)
-
+    *   *(Optional)* Use the **Prompts** tab to save or load existing prompt configurations.
 5.  **Run**: Click **Run** to process the cards.
 
 ### Editor Integration
 
-You can also launch IntelliFiller directly from the note editor:
-
-![Editor Button](editor-button.png)
+You can also launch IntelliFiller directly from the note editor using the dedicated button in the editor toolbar.
 
 [Return to Top](#table-of-contents)
 
