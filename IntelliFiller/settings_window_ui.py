@@ -137,18 +137,69 @@ class Ui_SettingsWindow(object):
         # --- Prompts Tab ---
         self.tabPrompts = QtWidgets.QWidget()
         self.tabPrompts.setObjectName("tabPrompts")
-        self.tabPromptsLayout = QtWidgets.QVBoxLayout(self.tabPrompts)
-
+        self.tabPromptsLayout = QtWidgets.QHBoxLayout(self.tabPrompts)
+        
+        # Left: List of Prompts
+        self.promptsListLayout = QtWidgets.QVBoxLayout()
+        self.promptsList = QtWidgets.QListWidget(self.tabPrompts)
+        self.promptsListLayout.addWidget(self.promptsList)
+        
         self.addPromptButton = QtWidgets.QPushButton(self.tabPrompts)
-        self.tabPromptsLayout.addWidget(self.addPromptButton)
+        self.promptsListLayout.addWidget(self.addPromptButton)
+        self.removePromptButton = QtWidgets.QPushButton(self.tabPrompts)
+        self.promptsListLayout.addWidget(self.removePromptButton)
+        
+        self.tabPromptsLayout.addLayout(self.promptsListLayout, 1)
 
-        self.scrollArea = QtWidgets.QScrollArea(self.tabPrompts)
-        self.scrollArea.setWidgetResizable(True)
-        self.scrollAreaWidgetContents = QtWidgets.QWidget()
-        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 500, 300))
-        self.promptsLayout = QtWidgets.QVBoxLayout(self.scrollAreaWidgetContents)
-        self.scrollArea.setWidget(self.scrollAreaWidgetContents)
-        self.tabPromptsLayout.addWidget(self.scrollArea)
+        # Right: Prompt Details
+        self.promptDetailsGroup = QtWidgets.QGroupBox("Prompt Details", self.tabPrompts)
+        self.promptDetailsGroup.setEnabled(False)
+        self.promptDetailsLayout = QtWidgets.QVBoxLayout(self.promptDetailsGroup)
+
+        # Prompt Name
+        self.promptNameLayout = QtWidgets.QHBoxLayout()
+        self.labelPromptName = QtWidgets.QLabel("Name:", self.promptDetailsGroup)
+        self.promptName = QtWidgets.QLineEdit(self.promptDetailsGroup)
+        self.promptNameLayout.addWidget(self.labelPromptName)
+        self.promptNameLayout.addWidget(self.promptName)
+        self.promptDetailsLayout.addLayout(self.promptNameLayout)
+
+        self.promptPinnedCheckbox = QtWidgets.QCheckBox("Pin to Menu", self.promptDetailsGroup)
+        self.promptDetailsLayout.addWidget(self.promptPinnedCheckbox)
+        
+        # Response Format
+        self.promptFormatLayout = QtWidgets.QHBoxLayout()
+        self.labelPromptFormat = QtWidgets.QLabel("Response Format:", self.promptDetailsGroup)
+        self.promptResponseFormat = QtWidgets.QComboBox(self.promptDetailsGroup)
+        self.promptResponseFormat.addItems(["Text", "JSON"])
+        self.promptFormatLayout.addWidget(self.labelPromptFormat)
+        self.promptFormatLayout.addWidget(self.promptResponseFormat)
+        self.promptFormatLayout.addStretch()
+        self.promptDetailsLayout.addLayout(self.promptFormatLayout)
+
+        # Target Field (Text Mode)
+        self.promptTargetLayout = QtWidgets.QHBoxLayout()
+        self.labelPromptTarget = QtWidgets.QLabel("Target Field:", self.promptDetailsGroup)
+        self.promptTargetField = QtWidgets.QLineEdit(self.promptDetailsGroup)
+        self.promptTargetLayout.addWidget(self.labelPromptTarget)
+        self.promptTargetLayout.addWidget(self.promptTargetField)
+        self.promptDetailsLayout.addLayout(self.promptTargetLayout)
+
+        # Field Mapping (JSON Mode)
+        self.labelPromptMapping = QtWidgets.QLabel("JSON Mapping (Key: Field Name):", self.promptDetailsGroup)
+        self.promptDetailsLayout.addWidget(self.labelPromptMapping)
+        self.promptFieldMapping = QtWidgets.QPlainTextEdit(self.promptDetailsGroup)
+        self.promptFieldMapping.setPlaceholderText("translation: Word Translation\nipa: IPA Field")
+        self.promptFieldMapping.setMaximumHeight(100)
+        self.promptDetailsLayout.addWidget(self.promptFieldMapping)
+
+        # Prompt Text
+        self.labelPromptText = QtWidgets.QLabel("Prompt Template:", self.promptDetailsGroup)
+        self.promptDetailsLayout.addWidget(self.labelPromptText)
+        self.promptText = QtWidgets.QPlainTextEdit(self.promptDetailsGroup)
+        self.promptDetailsLayout.addWidget(self.promptText)
+
+        self.tabPromptsLayout.addWidget(self.promptDetailsGroup, 2)
 
         self.tabWidget.addTab(self.tabPrompts, "")
 
@@ -347,7 +398,17 @@ class Ui_SettingsWindow(object):
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabApi), _translate("SettingsWindow", "API Settings"))
         
         self.addPromptButton.setText(_translate("SettingsWindow", "Add Prompt"))
+        self.removePromptButton.setText(_translate("SettingsWindow", "Remove Prompt"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabPrompts), _translate("SettingsWindow", "Prompts"))
+        
+        self.labelPromptName.setText(_translate("SettingsWindow", "Name:"))
+        self.promptName.setPlaceholderText(_translate("SettingsWindow", "Prompt Name"))
+        self.promptPinnedCheckbox.setText(_translate("SettingsWindow", "Pin to Context Menu"))
+        self.labelPromptFormat.setText(_translate("SettingsWindow", "Response Format:"))
+        self.labelPromptTarget.setText(_translate("SettingsWindow", "Target Field:"))
+        self.promptTargetField.setPlaceholderText(_translate("SettingsWindow", "Target Field"))
+        self.labelPromptMapping.setText(_translate("SettingsWindow", "JSON Mapping (Key: Field Name):"))
+        self.labelPromptText.setText(_translate("SettingsWindow", "Prompt Template:"))
         
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabPipelines), _translate("SettingsWindow", "Pipelines"))
         

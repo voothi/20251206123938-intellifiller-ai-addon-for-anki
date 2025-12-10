@@ -2,22 +2,14 @@ from aqt import mw
 from aqt.qt import *
 from aqt.utils import showInfo
 
-from .prompt_ui import Ui_Form
+
 from .settings_window_ui import Ui_SettingsWindow
 from .config_manager import ConfigManager
 from .backup_manager import BackupManager
 import json
 import os
 
-class PromptWidget(QWidget, Ui_Form):
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self.setupUi(self)
-        
-        addon_dir = os.path.dirname(os.path.abspath(__file__))
-        icon_path = os.path.join(addon_dir, 'remove.svg')
-        self.removePromptButton.setIcon(QIcon(icon_path))
-        self.removePromptButton.setIconSize(QSize(24, 24))
+
 
 
 class SettingsWindow(QDialog, Ui_SettingsWindow):
@@ -50,7 +42,7 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
         self.buttonBox.rejected.connect(self.on_cancel_clicked)
         self.applyButton.clicked.connect(self.on_apply_clicked)
         
-        self.addPromptButton.clicked.connect(self.add_new_prompt)
+
         self.backupNowBtn.clicked.connect(self.trigger_manual_backup)
         
         # Connect API selection to stacked widget page
@@ -148,9 +140,21 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
         self.pipelines = config.get("pipelines", [])
         self.refresh_pipelines_list()
 
-        self.promptWidgets = []
-        for prompt in config.get("prompts", []):
-            self.add_prompt(prompt)
+        # Prompts Setup
+        self.promptsList.currentRowChanged.connect(self.display_prompt_details)
+        self.addPromptButton.clicked.connect(self.add_new_prompt)
+        self.removePromptButton.clicked.connect(self.remove_selected_prompt)
+        
+        # Connect Prompt Detail Change Signals
+        self.promptName.textChanged.connect(self.update_current_prompt_name)
+        self.promptPinnedCheckbox.clicked.connect(self.update_current_prompt_pinned)
+        self.promptResponseFormat.currentTextChanged.connect(self.update_current_prompt_format)
+        self.promptTargetField.textChanged.connect(self.update_current_prompt_target)
+        self.promptFieldMapping.textChanged.connect(self.update_current_prompt_mapping)
+        self.promptText.textChanged.connect(self.update_current_prompt_text)
+
+        self.prompts = config.get("prompts", [])
+        self.refresh_prompts_list()
 
         # Backup Settings
         backup = config.get("backup", {})
@@ -232,7 +236,7 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
             return
 
         # Get list of all available prompts
-        available_prompts = [p.promptNameInput.text() for p in self.promptWidgets]
+        available_prompts = [p.get("promptName", "Unnamed") for p in self.prompts]
         if not available_prompts:
             showInfo("No prompts available to add.")
             return
@@ -252,64 +256,127 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
             self.pipelinePromptsList.takeItem(prompt_row)
 
 
+    def refresh_prompts_list(self):
+        current_row = self.promptsList.currentRow()
+        self.promptsList.clear()
+        for prompt in self.prompts:
+            self.promptsList.addItem(prompt.get("promptName", "Unnamed Prompt"))
+        
+        if current_row >= 0 and current_row < len(self.prompts):
+            self.promptsList.setCurrentRow(current_row)
+
+    def display_prompt_details(self, row):
+        # Block signals to prevent update feedback loops when populating fields
+        self.promptName.blockSignals(True)
+        self.promptPinnedCheckbox.blockSignals(True)
+        self.promptResponseFormat.blockSignals(True)
+        self.promptTargetField.blockSignals(True)
+        self.promptFieldMapping.blockSignals(True)
+        self.promptText.blockSignals(True)
+
+        if row < 0 or row >= len(self.prompts):
+            self.promptDetailsGroup.setEnabled(False)
+            self.promptName.clear()
+            self.promptPinnedCheckbox.setChecked(False)
+            self.promptResponseFormat.setCurrentIndex(0) # Text
+            self.promptTargetField.clear()
+            self.promptFieldMapping.clear()
+            self.promptText.clear()
+        else:
+            self.promptDetailsGroup.setEnabled(True)
+            prompt = self.prompts[row]
+            
+            self.promptName.setText(prompt.get("promptName", ""))
+            self.promptPinnedCheckbox.setChecked(prompt.get("pinned", False))
+            
+            fmt = prompt.get("responseFormat", "text")
+            self.promptResponseFormat.setCurrentText("JSON" if fmt == "json" else "Text")
+            self.update_prompt_ui_visibility(fmt)
+
+            self.promptTargetField.setText(prompt.get("targetField", ""))
+            
+            mapping = prompt.get("fieldMapping", {})
+            mapping_text = ""
+            for k, v in mapping.items():
+                mapping_text += f"{k}: {v}\n"
+            self.promptFieldMapping.setPlainText(mapping_text.strip())
+            
+            self.promptText.setPlainText(prompt.get("prompt", ""))
+
+        self.promptName.blockSignals(False)
+        self.promptPinnedCheckbox.blockSignals(False)
+        self.promptResponseFormat.blockSignals(False)
+        self.promptTargetField.blockSignals(False)
+        self.promptFieldMapping.blockSignals(False)
+        self.promptText.blockSignals(False)
+
+    def update_prompt_ui_visibility(self, fmt):
+        is_json = (fmt == "json")
+        self.labelPromptTarget.setVisible(not is_json)
+        self.promptTargetField.setVisible(not is_json)
+        self.labelPromptMapping.setVisible(is_json)
+        self.promptFieldMapping.setVisible(is_json)
+
     def add_new_prompt(self):
-        promptWidget = self.add_prompt({
+        new_prompt = {
+            "promptName": "New Prompt",
             "prompt": "",
             "targetField": "",
-            "promptName": ""
-        })
-        
-        # Scroll to ensure the new widget is fully visible
-        # Use ensureWidgetVisible which handles scrolling logic better than setting value to maximum
-        # Increase delay to 50ms to ensure layout has fully recalculated size
-        QTimer.singleShot(50, lambda: self.scrollArea.ensureWidgetVisible(promptWidget))
-        
-        # Set focus to the prompt name
-        promptWidget.promptNameInput.setFocus()
+            "pinned": False,
+            "responseFormat": "text",
+            "fieldMapping": {}
+        }
+        self.prompts.append(new_prompt)
+        self.refresh_prompts_list()
+        self.promptsList.setCurrentRow(len(self.prompts) - 1)
+        self.promptName.setFocus()
+        self.promptName.selectAll()
 
-    def add_prompt(self, prompt):
-        promptWidget = PromptWidget()
-        promptWidget.promptInput.setPlainText(prompt["prompt"])
-        promptWidget.targetFieldInput.setText(prompt["targetField"])
-        promptWidget.promptNameInput.setText(prompt["promptName"])
-        promptWidget.pinnedCheckbox.setChecked(prompt.get("pinned", False))
-        
-        # JSON / Multi-field setup
-        fmt = prompt.get("responseFormat", "text")
-        promptWidget.responseFormat.setCurrentText("JSON" if fmt == "json" else "Text")
-        
-        mapping = prompt.get("fieldMapping", {})
-        mapping_text = ""
-        for k, v in mapping.items():
-            mapping_text += f"{k}: {v}\n"
-        promptWidget.fieldMappingInput.setPlainText(mapping_text.strip())
-        
-        # Connect visibility toggle
-        promptWidget.responseFormat.currentTextChanged.connect(
-            lambda text, w=promptWidget: self.toggle_prompt_format(w, text))
-        
-        # Initial state
-        self.toggle_prompt_format(promptWidget, promptWidget.responseFormat.currentText())
+    def remove_selected_prompt(self):
+        row = self.promptsList.currentRow()
+        if row >= 0:
+            del self.prompts[row]
+            self.refresh_prompts_list()
 
-        promptWidget.removePromptButton.clicked.connect(
-            lambda: self.remove_prompt(promptWidget))
-        
-        self.promptsLayout.addWidget(promptWidget)
-        self.promptWidgets.append(promptWidget)
-        return promptWidget
+    def update_current_prompt_name(self, text):
+        row = self.promptsList.currentRow()
+        if row >= 0:
+            self.prompts[row]["promptName"] = text
+            self.promptsList.item(row).setText(text or "Unnamed Prompt")
 
-    def toggle_prompt_format(self, widget, text):
-        is_json = (text == "JSON")
-        widget.targetFieldInput.setVisible(not is_json)
-        widget.fieldMappingInput.setVisible(is_json)
-        # Updates placeholder based on mode
-        if is_json:
-             widget.targetFieldInput.clear() # Clear it? Or keep it? Maybe keep it.
+    def update_current_prompt_pinned(self):
+        row = self.promptsList.currentRow()
+        if row >= 0:
+            self.prompts[row]["pinned"] = self.promptPinnedCheckbox.isChecked()
 
-    def remove_prompt(self, promptWidgetToRemove):
-        self.promptWidgets.remove(promptWidgetToRemove)
-        self.promptsLayout.removeWidget(promptWidgetToRemove)
-        promptWidgetToRemove.deleteLater()
+    def update_current_prompt_format(self, text):
+        row = self.promptsList.currentRow()
+        if row >= 0:
+            fmt = "json" if text == "JSON" else "text"
+            self.prompts[row]["responseFormat"] = fmt
+            self.update_prompt_ui_visibility(fmt)
+
+    def update_current_prompt_target(self, text):
+        row = self.promptsList.currentRow()
+        if row >= 0:
+            self.prompts[row]["targetField"] = text
+
+    def update_current_prompt_mapping(self):
+        row = self.promptsList.currentRow()
+        if row >= 0:
+            text = self.promptFieldMapping.toPlainText()
+            mapping = {}
+            lines = text.split('\n')
+            for line in lines:
+                if ':' in line:
+                    k, v = line.split(':', 1)
+                    mapping[k.strip()] = v.strip()
+            self.prompts[row]["fieldMapping"] = mapping
+
+    def update_current_prompt_text(self):
+        row = self.promptsList.currentRow()
+        if row >= 0:
+            self.prompts[row]["prompt"] = self.promptText.toPlainText()
 
     def _save_settings_logic(self):
         """Internal logic to save settings without closing."""
@@ -402,32 +469,7 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
         config["obfuscateCreds"] = self.obfuscateCreds.isChecked()
         config["encryptionKey"] = self.encryptionKey.text()
         
-        config["prompts"] = []
-        for promptWidget in self.promptWidgets:
-            promptInput = promptWidget.promptInput
-            targetFieldInput = promptWidget.targetFieldInput
-            promptNameInput = promptWidget.promptNameInput
-            
-            # Helper to parse mapping
-            fmt_text = promptWidget.responseFormat.currentText()
-            fmt = "json" if fmt_text == "JSON" else "text"
-            
-            mapping = {}
-            if fmt == "json":
-                lines = promptWidget.fieldMappingInput.toPlainText().split('\n')
-                for line in lines:
-                    if ':' in line:
-                        k, v = line.split(':', 1)
-                        mapping[k.strip()] = v.strip()
-            
-            config["prompts"].append({
-                "prompt": promptInput.toPlainText(),
-                "targetField": targetFieldInput.text(),
-                "promptName": promptNameInput.text(),
-                "pinned": promptWidget.pinnedCheckbox.isChecked(),
-                "responseFormat": fmt,
-                "fieldMapping": mapping
-            })
+        config["prompts"] = self.prompts
         
         config["pipelines"] = self.pipelines
         
