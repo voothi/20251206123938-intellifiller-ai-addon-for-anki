@@ -131,6 +131,9 @@ class ProgressDialog(QDialog):
             self.worker.requestInterruption()
             self.worker.wait(100) # Optional: give it a tiny moment to check flag
         
+        # Reset UI (e.g. Browser list) so partially processed changes are visible
+        mw.reset()
+        
         # Close immediately so the user isn't stuck
         self.close()
 
