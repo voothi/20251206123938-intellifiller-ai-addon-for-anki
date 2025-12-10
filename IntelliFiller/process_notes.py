@@ -121,6 +121,7 @@ class ProgressDialog(QDialog):
         super(ProgressDialog, self).__init__(parent)
         self.worker = None
         self.errors = []
+        self._can_close = False
         layout = QVBoxLayout()
 
         self.progress_bar = QProgressBar()
@@ -171,6 +172,7 @@ class ProgressDialog(QDialog):
         # mw.reset() is good for browser.
         # For AddCards/EditCurrent, we might need to trigger a reload of the note in the editor?
         mw.reset() 
+        self._can_close = True
         self.close()  # close the dialog when the worker finishes
 
     def cancel(self):
@@ -182,11 +184,13 @@ class ProgressDialog(QDialog):
         mw.reset()
         
         # Close immediately so the user isn't stuck
+        self._can_close = True
         self.close()
 
     def reject(self):
         # Override escape key behavior directly
-        pass
+        if self._can_close:
+            super().reject()
 
 
 import json
