@@ -127,6 +127,9 @@ If you tried to update without disabling and received an error (and the addon no
 2.  Click **Check for Updates** again and confirm the update.
 3.  Once finished, **Restart Anki**. The addon should work correctly and the name will be restored.
 
+### Technical Note: Atomic Updates
+The addon works around Windows file locking by hooking into Anki's update process. Instead of deleting the old folder, it **renames** it to `_IntelliFiller_trash_TIMESTAMP` and **immediately deletes** `__init__.py` and `manifest.json` from it. This prevents Anki from loading the trash folder on startup while ensuring the locked binary files can be cleaned up later.
+
 Your persistent settings and prompts (in `user_files`) will be preserved.
 
 [Return to Top](#table-of-contents)
@@ -142,6 +145,8 @@ If you are running the addon locally on your machine, run the setup script to in
 ```bash
 python scripts/setup_vendor.py
 ```
+*   **Mac M1/M2 Users**: Ensure you are running the ARM64 version of Python.
+*   **Windows/Intel Mac**: The script automatically handles your architecture.
 
 This will populate the `IntelliFiller/vendor` directory with the necessary libraries.
 
@@ -168,6 +173,11 @@ You can optionally specify an output directory:
 python scripts/package_addon.py --out "C:/My/Builds"
 ```
 
+**Packaging Safety Features:**
+*   Automatically excludes sensitive user files (`user_files` directory).
+*   Excludes root-level secrets (`meta.json`, `credentials.json`, `settings.json`).
+*   Prints a warning if potentially sensitive files are detected in deep subdirectories.
+
 [Return to Top](#table-of-contents)
 
 ## Usage
@@ -187,6 +197,17 @@ python scripts/package_addon.py --out "C:/My/Builds"
 ### Editor Integration
 
 You can also launch IntelliFiller directly from the note editor using the dedicated button in the editor toolbar.
+
+[Return to Top](#table-of-contents)
+
+## Troubleshooting & Known Issues
+
+### Known Conflicts
+*   **HyperTTS**: This extension may conflict with HyperTTS due to shared dependencies (`typing_extensions.py`). If you see errors related to this, try disabling HyperTTS temporarily.
+
+### Architecture Errors
+*   **M1/M2 Mac Users**: Ensure you are using the **ARM64** version of Python and pip when building from source.
+*   **Intel Mac Users**: Use the **x86_64** version.
 
 [Return to Top](#table-of-contents)
 
