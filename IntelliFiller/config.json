@@ -13,6 +13,118 @@
   "history": [],
   "prompts": [
     {
+      "prompt": "Are there any cultural references in the following phrase? Is there any slang or metaphor, idiom, figure of speech?  \nPhrase: {{{Sentence}}}",
+      "targetField": "ChatGPT Output",
+      "promptName": "Cultural references, idiom, slang",
+      "fieldMapping": {},
+      "pinned": false,
+      "responseFormat": "text"
+    },
+    {
+      "prompt": "Sentence: {{{Sentence}}}\nDoes this sentence indicate any regional dialect? If so, from which region?",
+      "targetField": "ChatGPT Output",
+      "promptName": "Dialects",
+      "fieldMapping": {},
+      "pinned": false,
+      "responseFormat": "text"
+    },
+    {
+      "prompt": "Is this phrase neutral or emotional? What kind of emotion does it convey? \nPhrase: {{{Sencence}}}",
+      "targetField": "ChatGPT Output",
+      "promptName": "Emotions",
+      "fieldMapping": {},
+      "pinned": false,
+      "responseFormat": "text"
+    },
+    {
+      "prompt": "Write me a little dialog with the word {{{Word}}}. Make sure to use simple grammar and vocabulary in this dialog. ",
+      "targetField": "ChatGPT Output",
+      "promptName": "Example phrases",
+      "fieldMapping": {},
+      "pinned": false,
+      "responseFormat": "text"
+    },
+    {
+      "prompt": "Explain how the word is used in context. \nWord: {{{Word}}} \nContext: {{{Sentence}}}",
+      "targetField": "ChatGPT Output",
+      "promptName": "Explain word in context",
+      "fieldMapping": {},
+      "pinned": false,
+      "responseFormat": "text"
+    },
+    {
+      "prompt": "How formal does the following sencence sounds? Please provide some example situations where it can be used. \n\n {{{Sentence}}}",
+      "targetField": "ChatGPT Output",
+      "promptName": "Formality level",
+      "fieldMapping": {},
+      "pinned": false,
+      "responseFormat": "text"
+    },
+    {
+      "prompt": "Provide me with detailed explanations of the particles, conjugations and word forms used in the sentence below.  Provide more example phrases where the same grammatic constructions are used.\n\nUse unordered list to structure your response. \n\nSentence: \n\n{{{Sentence}}}.",
+      "targetField": "Grammar explanation AI",
+      "promptName": "Grammatic explanation",
+      "fieldMapping": {},
+      "pinned": false,
+      "responseFormat": "text"
+    },
+    {
+      "prompt": "How common is the word {{{Word}}}? Do people use it often? Is it used universally or is it specific to some particular context? Is it used by everybody or is it used primarily by some group of people, e.g. women, scientists, low class people, lawyers? Is it used both in written language and spoken language? ",
+      "targetField": "ChatGPT Output",
+      "promptName": "How common is the word?",
+      "fieldMapping": {},
+      "pinned": false,
+      "responseFormat": "text"
+    },
+    {
+      "prompt": "Sentence: {{{Sentence}}}\nIs it a normal way to express the idea or does it sound odd? What would be more common way to express the same idea? ",
+      "targetField": "ChatGPT Output",
+      "promptName": "Is it normal and usual?",
+      "fieldMapping": {},
+      "pinned": false,
+      "responseFormat": "text"
+    },
+    {
+      "prompt": "on a scale from 0 (not frequent) to 9 (very frequent), what is the frequency rate of the kanji {{{Kanji}}}?",
+      "targetField": "Frequency rate from ChatGPT",
+      "promptName": "Kanji frequency",
+      "fieldMapping": {},
+      "pinned": false,
+      "responseFormat": "text"
+    },
+    {
+      "prompt": "What are the words that have the opposite meaning to the word {{{Word}}}? ",
+      "targetField": "Anthonyms",
+      "promptName": "Opposite word",
+      "fieldMapping": {},
+      "pinned": false,
+      "responseFormat": "text"
+    },
+    {
+      "prompt": "Simplify the phrase using basic vocabulary and grammar. Phrase: {{{Sentence}}}",
+      "targetField": "ChatGPT Output",
+      "promptName": "Simplify the phrase",
+      "fieldMapping": {},
+      "pinned": false,
+      "responseFormat": "text"
+    },
+    {
+      "prompt": "Translate the word to English.\nWord:  {{{Word}}} \nContext: {{{Sentence}}}",
+      "targetField": "ChatGPT Output",
+      "promptName": "Translate to English",
+      "fieldMapping": {},
+      "pinned": false,
+      "responseFormat": "text"
+    },
+    {
+      "prompt": "Sentence: {{{Sentence}}} \nGive me some variations of this sentence. For each variation, please tell me how is it different from the original phrase",
+      "targetField": "Variations",
+      "promptName": "Variations of the sentence",
+      "fieldMapping": {},
+      "pinned": false,
+      "responseFormat": "text"
+    },
+    {
       "fieldMapping": {},
       "pinned": false,
       "prompt": "### Role\nYou are an expert Russian-German lexicographer.\n\n### Task\nTranslate the \"German Lemma\" into Russian.\n1. Analyze the \"Inflected Form\" within the \"Context\" and use the \"Translations\" to determine the correct meaning.\n2. Output ONLY the Russian lemma (dictionary form).\n3. Verbs: Imperfective Infinitive (что делать?).\n4. Nouns/Adj: Nominative, Singular, Masculine.\n5. Format: Lowercase, no punctuation, no explanations.\n\n### Examples\nContext: Er schließt die Tür ab.\nLiteral: Он закрывает дверь на ключ.\nLiterary: Он запирает дверь.\nGerman Lemma: abschließen\nInflected Form: schließt ... ab\nOutput: закрывать\n\nContext: Die schönen Blumen.\nLiteral: Красивые цветы.\nLiterary: Прекрасные цветы.\nGerman Lemma: schön\nInflected Form: schönen\nOutput: красивый\n\n### Input Data\nContext: {{{SentenceSource}}}\nLiteral: {{{SentenceDestination}}}\nLiterary: {{{SentenceDestination2}}}\nGerman Lemma: {{{WordSource}}}\nInflected Form: {{{WordSourceInflectedForm}}}\n\n### Output",
@@ -45,42 +157,12 @@
       "targetField": "WordDestination"
     },
     {
-      "prompt": "Are there any cultural references in the following phrase? Is there any slang or metaphor, idiom, figure of speech?  \nPhrase: {{{Sentence}}}",
-      "targetField": "ChatGPT Output",
-      "promptName": "Cultural references, idiom, slang"
-    },
-    {
-      "prompt": "Sentence: {{{Sentence}}}\nDoes this sentence indicate any regional dialect? If so, from which region?",
-      "targetField": "ChatGPT Output",
-      "promptName": "Dialects"
-    },
-    {
-      "prompt": "Is this phrase neutral or emotional? What kind of emotion does it convey? \nPhrase: {{{Sencence}}}",
-      "targetField": "ChatGPT Output",
-      "promptName": "Emotions"
-    },
-    {
       "fieldMapping": {},
       "pinned": false,
       "prompt": "### Role\nYou are an expert lexicographer.\n\n### Task\nTranslate the English \"Word\" into Russian based on the \"Sentence\".\n1. Output ONLY the Russian lemma (dictionary form).\n2. Verbs: Imperfective Infinitive.\n3. Nouns/Adj: Nominative, Singular, Masculine.\n4. Format: Lowercase, no punctuation.\n\n### Input Data\nSentence: {{{SentenceSource}}}\nTranslation: {{{SentenceDestination}}}\nWord: {{{WordSource}}}\n\n### Output",
       "promptName": "English -> Russian (Contextual)",
       "responseFormat": "text",
       "targetField": "WordDestination"
-    },
-    {
-      "prompt": "Write me a little dialog with the word {{{Word}}}. Make sure to use simple grammar and vocabulary in this dialog. ",
-      "targetField": "ChatGPT Output",
-      "promptName": "Example phrases"
-    },
-    {
-      "prompt": "Explain how the word is used in context. \nWord: {{{Word}}} \nContext: {{{Sentence}}}",
-      "targetField": "ChatGPT Output",
-      "promptName": "Explain word in context"
-    },
-    {
-      "prompt": "How formal does the following sencence sounds? Please provide some example situations where it can be used. \n\n {{{Sentence}}}",
-      "targetField": "ChatGPT Output",
-      "promptName": "Formality level"
     },
     {
       "fieldMapping": {},
@@ -146,26 +228,6 @@
       "targetField": "WordSourceDefinitionAISentenceSource"
     },
     {
-      "prompt": "Provide me with detailed explanations of the particles, conjugations and word forms used in the sentence below.  Provide more example phrases where the same grammatic constructions are used.\n\nUse unordered list to structure your response. \n\nSentence: \n\n{{{Sentence}}}.",
-      "targetField": "Grammar explanation AI",
-      "promptName": "Grammatic explanation"
-    },
-    {
-      "prompt": "How common is the word {{{Word}}}? Do people use it often? Is it used universally or is it specific to some particular context? Is it used by everybody or is it used primarily by some group of people, e.g. women, scientists, low class people, lawyers? Is it used both in written language and spoken language? ",
-      "targetField": "ChatGPT Output",
-      "promptName": "How common is the word?"
-    },
-    {
-      "prompt": "Sentence: {{{Sentence}}}\nIs it a normal way to express the idea or does it sound odd? What would be more common way to express the same idea? ",
-      "targetField": "ChatGPT Output",
-      "promptName": "Is it normal and usual?"
-    },
-    {
-      "prompt": "on a scale from 0 (not frequent) to 9 (very frequent), what is the frequency rate of the kanji {{{Kanji}}}?",
-      "targetField": "Frequency rate from ChatGPT",
-      "promptName": "Kanji frequency"
-    },
-    {
       "fieldMapping": {},
       "pinned": false,
       "prompt": "### Role\nYou are an expert German Computational Linguist.\n\n### Task\nVerify and correct the \"Candidate Lemma\".\n1. Compare the \"Candidate Lemma\" with the \"Inflected Form\" used in the \"Context\".\n2. If the \"Candidate Lemma\" is incorrect or incomplete (e.g., missing prefix, wrong number), output the CORRECT dictionary lemma (Duden/Wiktionary standard).\n3. If the \"Candidate Lemma\" is already correct, output it exactly as is.\n4. Rules:\n   - Verbs: Combine separated prefixes (e.g., fängt...an -> anfangen).\n   - Nouns: Convert to Singular, Nominative. Capitalize.\n   - Adjectives: Convert to uninflected form.\n5. Output ONLY the corrected lemma text.\n\n### Examples\nContext: Er fängt heute mit der Arbeit an.\nInflected Form: fängt an\nCandidate Lemma: fangen\nOutput: anfangen\n\nContext: Die schönen Häuser stehen am Berg.\nInflected Form: Häuser\nCandidate Lemma: Häuser\nOutput: Haus\n\nContext: Wir gingen schnell nach Hause.\nInflected Form: gingen\nCandidate Lemma: gehen\nOutput: gehen\n\nContext: Das ist ein roter Apfel.\nInflected Form: roter\nCandidate Lemma: rot\nOutput: rot\n\n### Input Data\nContext: {{{SentenceSource}}}\nInflected Form: {{{WordSourceInflectedForm}}}\nCandidate Lemma: {{{WordSource}}}\n\n### Output",
@@ -180,11 +242,6 @@
       "promptName": "Morphology Analysis",
       "responseFormat": "text",
       "targetField": "WordSourceMorphologyAI"
-    },
-    {
-      "prompt": "What are the words that have the opposite meaning to the word {{{Word}}}? ",
-      "targetField": "Anthonyms",
-      "promptName": "Opposite word"
     },
     {
       "fieldMapping": {},
@@ -211,11 +268,6 @@
       "targetField": "SentenceSourceRewriteAISentenceSource"
     },
     {
-      "prompt": "Simplify the phrase using basic vocabulary and grammar. Phrase: {{{Sentence}}}",
-      "targetField": "ChatGPT Output",
-      "promptName": "Simplify the phrase"
-    },
-    {
       "fieldMapping": {},
       "pinned": false,
       "prompt": "### Role\nYou are an expert German Phonologist.\n\n### Task\nProvide the exact International Phonetic Alphabet (IPA) transcription for the \"German Word\".\n1. Follow standard German pronunciation (Hochdeutsch) as found in Wiktionary.\n2. Do NOT use square brackets [] or slashes //. Output ONLY the IPA characters.\n3. Mark primary stress with ˈ.\n4. Mark vowel length with ː.\n5. Output plain text without explanations.\n\n### Examples\nGerman Word: Tag\nOutput: taːk\n\nGerman Word: König\nOutput: ˈkøːnɪç\n\nGerman Word: schwimmen\nOutput: ˈʃvɪmən\n\nGerman Word: Theater\nOutput: teˈaːtɐ\n\nGerman Word: Brötchen\nOutput: ˈbʁøːtçən\n\n### Input Data\nGerman Word: {{{WordSource}}}\n\n### Output",
@@ -240,11 +292,6 @@
       "targetField": "SentenceSourceRewriteAISentenceDestination"
     },
     {
-      "prompt": "Translate the word to English.\nWord:  {{{Word}}} \nContext: {{{Sentence}}}",
-      "targetField": "ChatGPT Output",
-      "promptName": "Translate to English"
-    },
-    {
       "fieldMapping": {},
       "pinned": false,
       "prompt": "### Role\nTranslator.\n\n### Task\nTranslate the word described in \"Morphology Analysis\" into Russian.\n1. Output ONLY the Russian lemma (dictionary form).\n2. Use the analysis to find the most precise meaning.\n3. Format: Lowercase, single word.\n\n### Input Data\nMorphology Analysis: {{{WordSourceMorphologyAI}}}\n\n### Output",
@@ -259,11 +306,6 @@
       "promptName": "Translation of Definition (DE -> RU)",
       "responseFormat": "text",
       "targetField": "WordSourceDefinitionAISentenceDestination"
-    },
-    {
-      "prompt": "Sentence: {{{Sentence}}} \nGive me some variations of this sentence. For each variation, please tell me how is it different from the original phrase",
-      "targetField": "Variations",
-      "promptName": "Variations of the sentence"
     }
   ]
 }
