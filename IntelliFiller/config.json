@@ -13,79 +13,187 @@
   "history": [],
   "prompts": [
     {
-      "prompt": "Explain how the word is used in context. \nWord: {{{Word}}} \nContext: {{{Sentence}}}",
-      "targetField": "ChatGPT Output",
-      "promptName": "Explain word in context"
+      "fieldMapping": {},
+      "pinned": false,
+      "prompt": "### Role\nYou are an expert Russian-German lexicographer.\n\n### Task\nTranslate the \"German Lemma\" into Russian.\n1. Analyze the \"Inflected Form\" within the \"Context\" and use the \"Translations\" to determine the correct meaning.\n2. Output ONLY the Russian lemma (dictionary form).\n3. Verbs: Imperfective Infinitive (что делать?).\n4. Nouns/Adj: Nominative, Singular, Masculine.\n5. Format: Lowercase, no punctuation, no explanations.\n\n### Examples\nContext: Er schließt die Tür ab.\nLiteral: Он закрывает дверь на ключ.\nLiterary: Он запирает дверь.\nGerman Lemma: abschließen\nInflected Form: schließt ... ab\nOutput: закрывать\n\nContext: Die schönen Blumen.\nLiteral: Красивые цветы.\nLiterary: Прекрасные цветы.\nGerman Lemma: schön\nInflected Form: schönen\nOutput: красивый\n\n### Input Data\nContext: {{{SentenceSource}}}\nLiteral: {{{SentenceDestination}}}\nLiterary: {{{SentenceDestination2}}}\nGerman Lemma: {{{WordSource}}}\nInflected Form: {{{WordSourceInflectedForm}}}\n\n### Output",
+      "promptName": "Contextual Dictionary Translation (Full)",
+      "responseFormat": "text",
+      "targetField": "WordDestination"
     },
     {
-      "prompt": "Translate the word to English.\nWord:  {{{Word}}} \nContext: {{{Sentence}}}",
-      "targetField": "ChatGPT Output",
-      "promptName": "Translate to English"
+      "fieldMapping": {},
+      "pinned": false,
+      "prompt": "### Role\nYou are an expert Russian-German lexicographer.\n\n### Task\nTranslate the \"German Lemma\" into Russian.\n1. Analyze the \"Inflected Form\" within the \"Context\" and use the \"Literal Translation\" to determine the correct meaning.\n2. Output ONLY the Russian lemma (dictionary form).\n3. Verbs: Imperfective Infinitive (что делать?).\n4. Nouns/Adj: Nominative, Singular, Masculine.\n5. Format: Lowercase, no punctuation, no explanations.\n\n### Examples\nContext: Wir gingen nach Hause.\nLiteral: Мы шли домой.\nGerman Lemma: gehen\nInflected Form: gingen\nOutput: идти\n\nContext: Das ist ein kleiner Tisch.\nLiteral: Это есть маленький стол.\nGerman Lemma: klein\nInflected Form: kleiner\nOutput: маленький\n\n### Input Data\nContext: {{{SentenceSource}}}\nLiteral: {{{SentenceDestination}}}\nGerman Lemma: {{{WordSource}}}\nInflected Form: {{{WordSourceInflectedForm}}}\n\n### Output",
+      "promptName": "Contextual Dictionary Translation (Literal)",
+      "responseFormat": "text",
+      "targetField": "WordDestination"
     },
     {
-      "prompt": "How formal does the following sencence sounds? Please provide some example situations where it can be used. \n\n {{{Sentence}}}",
-      "targetField": "ChatGPT Output",
-      "promptName": "Formality level"
+      "fieldMapping": {},
+      "pinned": false,
+      "prompt": "### Role\nYou are an expert Russian-German lexicographer.\n\n### Task\nTranslate the \"German Lemma\" into Russian.\n1. Analyze the \"Inflected Form\" within the \"Context\" and use the \"Literary Translation\" as a semantic guide.\n2. Output ONLY the Russian lemma (dictionary form).\n3. Verbs: Imperfective Infinitive (что делать?).\n4. Nouns/Adj: Nominative, Singular, Masculine.\n5. Format: Lowercase, no punctuation, no explanations.\n\n### Examples\nContext: Hör auf damit!\nLiterary: Перестань!\nGerman Lemma: aufhören\nInflected Form: Hör ... auf\nOutput: прекращать\n\nContext: Gute Nacht.\nLiterary: Спокойной ночи.\nGerman Lemma: gut\nInflected Form: Gute\nOutput: хороший\n\n### Input Data\nContext: {{{SentenceSource}}}\nLiterary: {{{SentenceDestination2}}}\nGerman Lemma: {{{WordSource}}}\nInflected Form: {{{WordSourceInflectedForm}}}\n\n### Output",
+      "promptName": "Contextual Dictionary Translation (Literary)",
+      "responseFormat": "text",
+      "targetField": "WordDestination"
     },
     {
-      "prompt": "Give me a numbered list of synonyms for the word {{{Word}}}. For each synonym, explain, in which context it is usually used. ",
-      "targetField": "ChatGPT Output",
-      "promptName": "Synonyms"
+      "fieldMapping": {},
+      "pinned": false,
+      "prompt": "### Role\nYou are an expert Russian-German lexicographer.\n\n### Task\nTranslate the \"German Lemma\" into Russian based on its usage in the German \"Context\".\n1. Output ONLY the Russian lemma (dictionary form).\n2. Verbs: Imperfective Infinitive (что делать?).\n3. Nouns/Adj: Nominative, Singular, Masculine.\n4. Format: Lowercase, no punctuation, no explanations.\n\n### Examples\nContext: Der Hund bellte laut.\nGerman Lemma: bellen\nInflected Form: bellte\nOutput: лаять\n\nContext: Ein roter Apfel.\nGerman Lemma: rot\nInflected Form: roter\nOutput: красный\n\n### Input Data\nContext: {{{SentenceSource}}}\nGerman Lemma: {{{WordSource}}}\nInflected Form: {{{WordSourceInflectedForm}}}\n\n### Output",
+      "promptName": "Contextual Dictionary Translation (Source Only)",
+      "responseFormat": "text",
+      "targetField": "WordDestination"
     },
     {
-      "prompt": "Write me a little dialog with the word {{{Word}}}. Make sure to use simple grammar and vocabulary in this dialog. ",
-      "targetField": "ChatGPT Output",
-      "promptName": "Example phrases"
+      "fieldMapping": {},
+      "pinned": false,
+      "prompt": "### Role\nYou are an expert lexicographer.\n\n### Task\nTranslate the English \"Word\" into Russian based on the \"Sentence\".\n1. Output ONLY the Russian lemma (dictionary form).\n2. Verbs: Imperfective Infinitive.\n3. Nouns/Adj: Nominative, Singular, Masculine.\n4. Format: Lowercase, no punctuation.\n\n### Input Data\nSentence: {{{SentenceSource}}}\nTranslation: {{{SentenceDestination}}}\nWord: {{{WordSource}}}\n\n### Output",
+      "promptName": "English -> Russian (Contextual)",
+      "responseFormat": "text",
+      "targetField": "WordDestination"
     },
     {
-      "prompt": "Simplify the phrase using basic vocabulary and grammar. Phrase: {{{Sentence}}}",
-      "targetField": "ChatGPT Output",
-      "promptName": "Simplify the phrase"
+      "fieldMapping": {},
+      "pinned": false,
+      "prompt": "### Role\nYou are a professional translator.\n\n### Task\nTranslate the \"Target Sentence\" from German to English.\n1. Use \"Context Before\" and \"Context After\" to understand the meaning, but translate ONLY the \"Target Sentence\".\n2. Keep the original structure and punctuation.\n3. Output plain text without explanations.\n\n### Input Data\nContext Before: {{{SentenceSourceContextLeft}}}\nTarget Sentence: {{{SentenceSource}}}\nContext After: {{{SentenceSourceContextRight}}}\n\n### Output",
+      "promptName": "German -> English",
+      "responseFormat": "text",
+      "targetField": "SentenceEnglish"
     },
     {
-      "prompt": "Are there any cultural references in the following phrase? Is there any slang or metaphor, idiom, figure of speech?  \nPhrase: {{{Sentence}}}",
-      "targetField": "ChatGPT Output",
-      "promptName": "Cultural references, idiom, slang"
+      "fieldMapping": {},
+      "pinned": false,
+      "prompt": "### Role\nYou are an expert lexicographer.\n\n### Task\nTranslate the German \"Word\" into English based on the \"Sentence\".\n1. Output ONLY the English lemma (dictionary form).\n2. Verbs: Infinitive (to ...).\n3. Nouns: Singular.\n4. Format: Lowercase, no punctuation.\n\n### Input Data\nSentence: {{{SentenceSource}}}\nTranslation: {{{SentenceEnglish}}}\nWord: {{{WordSource}}}\n\n### Output",
+      "promptName": "German -> English (Contextual)",
+      "responseFormat": "text",
+      "targetField": "WordEnglish"
     },
     {
-      "prompt": "Is this phrase neutral or emotional? What kind of emotion does it convey? \nPhrase: {{{Sencence}}}",
-      "targetField": "ChatGPT Output",
-      "promptName": "Emotions"
+      "fieldMapping": {},
+      "pinned": false,
+      "prompt": "### Role\nYou are a professional translator.\n\n### Task\nTranslate the \"Target Sentence\" from German to Russian.\n1. Use \"Context Before\" and \"Context After\" to understand the meaning, but translate ONLY the \"Target Sentence\".\n2. Keep the original structure and punctuation.\n3. Output plain text without explanations.\n\n### Input Data\nContext Before: {{{SentenceSourceContextLeft}}}\nTarget Sentence: {{{SentenceSource}}}\nContext After: {{{SentenceSourceContextRight}}}\n\n### Output",
+      "promptName": "German -> Russian",
+      "responseFormat": "text",
+      "targetField": "SentenceDestination"
     },
     {
-      "prompt": "Provide me with detailed explanations of the particles, conjugations and word forms used in the sentence below.  Provide more example phrases where the same grammatic constructions are used.\n\nUse unordered list to structure your response. \n\nSentence: \n\n{{{Sentence}}}.",
-      "targetField": "Grammar explanation AI",
-      "promptName": "Grammatic explanation"
+      "fieldMapping": {},
+      "pinned": false,
+      "prompt": "### Role\nYou are a professional translator.\n\n### Task\nTranslate the \"Target Sentence\" from German to Ukrainian.\n1. Use \"Context Before\" and \"Context After\" to understand the meaning, but translate ONLY the \"Target Sentence\".\n2. Keep the original structure and punctuation.\n3. Output plain text without explanations.\n\n### Input Data\nContext Before: {{{SentenceSourceContextLeft}}}\nTarget Sentence: {{{SentenceSource}}}\nContext After: {{{SentenceSourceContextRight}}}\n\n### Output",
+      "promptName": "German -> Ukrainian",
+      "responseFormat": "text",
+      "targetField": "SentenceUkrainian"
     },
     {
-      "prompt": "Sentence: {{{Sentence}}}\nDoes this sentence indicate any regional dialect? If so, from which region?",
-      "targetField": "ChatGPT Output",
-      "promptName": "Dialects"
+      "fieldMapping": {},
+      "pinned": false,
+      "prompt": "### Role\nYou are an expert lexicographer.\n\n### Task\nTranslate the German \"Word\" into Ukrainian based on the \"Sentence\".\n1. Output ONLY the Ukrainian lemma (dictionary form).\n2. Verbs: Infinitive (imperfective).\n3. Nouns/Adj: Nominative, Singular, Masculine.\n4. Format: Lowercase, no punctuation.\n\n### Input Data\nSentence: {{{SentenceSource}}}\nTranslation: {{{SentenceDestination}}}\nWord: {{{WordSource}}}\n\n### Output",
+      "promptName": "German -> Ukrainian (Contextual)",
+      "responseFormat": "text",
+      "targetField": "WordUkrainian"
     },
     {
-      "prompt": "Sentence: {{{Sentence}}}\nIs it a normal way to express the idea or does it sound odd? What would be more common way to express the same idea? ",
-      "targetField": "ChatGPT Output",
-      "promptName": "Is it normal and usual?"
+      "fieldMapping": {
+        "en": "WordEnglish",
+        "ipa": "WordSourceIPA",
+        "lemma": "WordSource",
+        "morphology": "WordSourceMorphologyAI",
+        "ru": "WordDestination",
+        "ua": "WordUkrainian"
+      },
+      "pinned": false,
+      "prompt": "### Role\nYou are an expert German Computational Linguist.\n\n### Task\nAnalyze the \"Candidate Word\" based on the \"Context\" and \"Translations\".\nOutput a SINGLE valid JSON object containing the keys below.\n\n### Fields Guide\n1. \"lemma\": Verify the \"Candidate Word\". Correct it if it is an inflected form, plural noun, or separable verb (e.g., 'fängt...an' -> 'anfangen'). Output the CORRECT dictionary form.\n2. \"ipa\": Standard German IPA (Hochdeutsch) for the lemma. No brackets/slashes.\n3. \"morphology\": Break down the word into morphemes (Root, Prefix, Suffix). Briefly explain the meaning/role of each part in Russian (e.g. \"prefix 'ver-' indicates change\").\n4. \"ru\": Translate the lemma to Russian. Use the \"Literal Translation\" or \"Literary Translation\" to find the exact meaning. Output ONE word (Nominative/Infinitive).\n5. \"en\": Translate the lemma to English (Lemma).\n6. \"ua\": Translate the lemma to Ukrainian (Lemma).\n\n### Examples\nInput Context: Er fängt heute an.\nInput Literal: Он начинает сегодня.\nInput Word: fängt\nInput Form: fängt...an\n\nOutput:\n{\n\"lemma\": \"anfangen\",\n\"ipa\": \"ˈanfaŋən\",\n\"morphology\": \"an- (приставка: начало действия) + fangen (корень: ловить)\",\n\"ru\": \"начинать\",\n\"en\": \"begin\",\n\"ua\": \"починати\"\n}\n\nInput Context: Die Unabhängigkeit ist wichtig.\nInput Literal: Независимость - это важно.\nInput Word: Unabhängigkeit\nInput Form: Unabhängigkeit\n\nOutput:\n{\n\"lemma\": \"Unabhängigkeit\",\n\"ipa\": \"ˈʊnaphɛŋɪçkaɪ̯t\",\n\"morphology\": \"Un- (отрицание) + hängig (зависимый) + -keit (суффикс сущ.)\",\n\"ru\": \"независимость\",\n\"en\": \"independence\",\n\"ua\": \"незалежність\"\n}\n\n### Input Data\nContext: {{{SentenceSource}}}\nLiteral Translation: {{{SentenceDestination}}}\nLiterary Translation: {{{SentenceDestination2}}}\nCandidate Word: {{{WordSource}}}\nInflected Form: {{{WordSourceInflectedForm}}}\n\n### Output\nReturn ONLY the raw JSON object. No Markdown. No explanations.",
+      "promptName": "German Analysis and Translation (JSON)",
+      "responseFormat": "json",
+      "targetField": ""
     },
     {
-      "prompt": "How common is the word {{{Word}}}? Do people use it often? Is it used universally or is it specific to some particular context? Is it used by everybody or is it used primarily by some group of people, e.g. women, scientists, low class people, lawyers? Is it used both in written language and spoken language? ",
-      "targetField": "ChatGPT Output",
-      "promptName": "How common is the word?"
+      "fieldMapping": {},
+      "pinned": false,
+      "prompt": "### Role\nGerman Language Teacher.\n\n### Task\nExplain the meaning of the \"Target Word\" in German.\n1. Use the \"Context\" to define the specific meaning used here.\n2. The definition must be simple and concise.\n3. DO NOT use the \"Target Word\" inside the definition.\n4. If {{{Source-de-DE}}} has data, output in German.\n\n### Input Data\nContext: {{{SentenceSourceContextLeft}}} {{{SentenceSource}}} {{{SentenceSourceContextRight}}}\nTarget Word: {{{WordSource}}}\n\n### Output",
+      "promptName": "German Definition (Contextual)",
+      "responseFormat": "text",
+      "targetField": "WordSourceDefinitionAISentenceSource"
     },
     {
-      "prompt": "What are the words that have the opposite meaning to the word {{{Word}}}? ",
-      "targetField": "Anthonyms",
-      "promptName": "Opposite word"
+      "fieldMapping": {},
+      "pinned": false,
+      "prompt": "### Role\nYou are an expert German Computational Linguist.\n\n### Task\nVerify and correct the \"Candidate Lemma\".\n1. Compare the \"Candidate Lemma\" with the \"Inflected Form\" used in the \"Context\".\n2. If the \"Candidate Lemma\" is incorrect or incomplete (e.g., missing prefix, wrong number), output the CORRECT dictionary lemma (Duden/Wiktionary standard).\n3. If the \"Candidate Lemma\" is already correct, output it exactly as is.\n4. Rules:\n   - Verbs: Combine separated prefixes (e.g., fängt...an -> anfangen).\n   - Nouns: Convert to Singular, Nominative. Capitalize.\n   - Adjectives: Convert to uninflected form.\n5. Output ONLY the corrected lemma text.\n\n### Examples\nContext: Er fängt heute mit der Arbeit an.\nInflected Form: fängt an\nCandidate Lemma: fangen\nOutput: anfangen\n\nContext: Die schönen Häuser stehen am Berg.\nInflected Form: Häuser\nCandidate Lemma: Häuser\nOutput: Haus\n\nContext: Wir gingen schnell nach Hause.\nInflected Form: gingen\nCandidate Lemma: gehen\nOutput: gehen\n\nContext: Das ist ein roter Apfel.\nInflected Form: roter\nCandidate Lemma: rot\nOutput: rot\n\n### Input Data\nContext: {{{SentenceSource}}}\nInflected Form: {{{WordSourceInflectedForm}}}\nCandidate Lemma: {{{WordSource}}}\n\n### Output",
+      "promptName": "Lemma Correction and Validation",
+      "responseFormat": "text",
+      "targetField": "WordSource"
     },
     {
-      "prompt": "Sentence: {{{Sentence}}} \nGive me some variations of this sentence. For each variation, please tell me how is it different from the original phrase",
-      "targetField": "Variations",
-      "promptName": "Variations of the sentence"
+      "fieldMapping": {},
+      "pinned": false,
+      "prompt": "### Role\nLinguist.\n\n### Task\nAnalyze the morphology of the \"Target Word\" (German).\n1. Break it down into: Prefix, Root, Suffix.\n2. Explain the meaning of each part in Russian.\n3. Format: Plain text list.\n\n### Input Data\nTarget Word: {{{WordSource}}}\nContext: {{{SentenceSource}}}\n\n### Output",
+      "promptName": "Morphology Analysis",
+      "responseFormat": "text",
+      "targetField": "WordSourceMorphologyAI"
     },
     {
-      "prompt": "on a scale from 0 (not frequent) to 9 (very frequent), what is the frequency rate of the kanji {{{Kanji}}}?",
-      "targetField": "Frequency rate from ChatGPT",
-      "promptName": "Kanji frequency"
+      "fieldMapping": {},
+      "pinned": false,
+      "prompt": "### Role\nYou are an expert English Phonologist.\n\n### Task\nProvide the exact International Phonetic Alphabet (IPA) transcription for the \"English Word\".\n1. Follow standard British pronunciation (Received Pronunciation / RP) as found in Wiktionary.\n2. Do NOT use square brackets [] or slashes //. Output ONLY the IPA characters.\n3. Mark primary stress with ˈ.\n4. Mark long vowels with ː.\n5. Output plain text without explanations.\n\n### Examples\nEnglish Word: car\nOutput: kɑː\n\nEnglish Word: home\nOutput: həʊm\n\nEnglish Word: water\nOutput: ˈwɔːtə\n\nEnglish Word: dance\nOutput: dɑːns\n\nEnglish Word: schedule\nOutput: ˈʃɛdjuːl\n\n### Input Data\nEnglish Word: {{{WordSource}}}\n\n### Output",
+      "promptName": "Raw British English IPA (RP) Transcription",
+      "responseFormat": "text",
+      "targetField": "WordSourceIPA"
+    },
+    {
+      "fieldMapping": {},
+      "pinned": false,
+      "prompt": "### Role\nGerman Teacher.\n\n### Task\nWrite a NEW, simple German sentence using the \"Target Word\".\n1. Ensure the meaning matches the \"Word Translation\".\n2. Keep the sentence short.\n3. Use the \"Target Word\" in the exact form provided.\n\n### Input Data\nContext: {{{SentenceSource}}}\nTarget Word: {{{WordSourceInflectedForm}}}\nWord Translation: {{{WordDestination}}}\n\n### Output",
+      "promptName": "Rewrite Sentence (Using Word + Translation Logic)",
+      "responseFormat": "text",
+      "targetField": "SentenceSourceRewriteAISentenceSource"
+    },
+    {
+      "fieldMapping": {},
+      "pinned": false,
+      "prompt": "### Role\nGerman Teacher.\n\n### Task\nWrite a NEW, simple German sentence using the \"Target Word\".\n1. The new sentence must demonstrate the meaning of the word.\n2. Keep the sentence short (A1-A2 level).\n3. Use the \"Target Word\" in the exact form provided.\n4. Do not copy the original context.\n\n### Input Data\nContext: {{{SentenceSource}}}\nTarget Word: {{{WordSourceInflectedForm}}}\n\n### Output",
+      "promptName": "Rewrite Sentence (Using Word)",
+      "responseFormat": "text",
+      "targetField": "SentenceSourceRewriteAISentenceSource"
+    },
+    {
+      "fieldMapping": {},
+      "pinned": false,
+      "prompt": "### Role\nYou are an expert German Phonologist.\n\n### Task\nProvide the exact International Phonetic Alphabet (IPA) transcription for the \"German Word\".\n1. Follow standard German pronunciation (Hochdeutsch) as found in Wiktionary.\n2. Do NOT use square brackets [] or slashes //. Output ONLY the IPA characters.\n3. Mark primary stress with ˈ.\n4. Mark vowel length with ː.\n5. Output plain text without explanations.\n\n### Examples\nGerman Word: Tag\nOutput: taːk\n\nGerman Word: König\nOutput: ˈkøːnɪç\n\nGerman Word: schwimmen\nOutput: ˈʃvɪmən\n\nGerman Word: Theater\nOutput: teˈaːtɐ\n\nGerman Word: Brötchen\nOutput: ˈbʁøːtçən\n\n### Input Data\nGerman Word: {{{WordSource}}}\n\n### Output",
+      "promptName": "Standard German IPA Transcription",
+      "responseFormat": "text",
+      "targetField": "WordSourceIPA"
+    },
+    {
+      "fieldMapping": {},
+      "pinned": false,
+      "prompt": "### Role\nThesaurus Assistant.\n\n### Task\nProvide 3 German synonyms for the \"Target Word\" suitable for the \"Context\".\n1. Output format: synonym1, synonym2, synonym3\n2. Lowercase, comma-separated.\n3. DO NOT include the target word itself.\n\n### Input Data\nContext: {{{SentenceSource}}}\nTarget Word: {{{WordSource}}}\n\n### Output",
+      "promptName": "Synonyms",
+      "responseFormat": "text",
+      "targetField": "WordSourceSynonymAI"
+    },
+    {
+      "fieldMapping": {},
+      "pinned": false,
+      "prompt": "### Role\nTranslator.\n\n### Task\nTranslate the \"German Text\" into Russian.\n1. Keep the structure simple.\n2. Output plain text only.\n\n### Input Data\nGerman Text: {{{SentenceSourceRewriteAISentenceSource}}}\n\n### Output",
+      "promptName": "Translate Rewrite (DE -> RU)",
+      "responseFormat": "text",
+      "targetField": "SentenceSourceRewriteAISentenceDestination"
+    },
+    {
+      "fieldMapping": {},
+      "pinned": false,
+      "prompt": "### Role\nTranslator.\n\n### Task\nTranslate the word described in \"Morphology Analysis\" into Russian.\n1. Output ONLY the Russian lemma (dictionary form).\n2. Use the analysis to find the most precise meaning.\n3. Format: Lowercase, single word.\n\n### Input Data\nMorphology Analysis: {{{WordSourceMorphologyAI}}}\n\n### Output",
+      "promptName": "Translation based on Morphology",
+      "responseFormat": "text",
+      "targetField": "WordDestination"
+    },
+    {
+      "fieldMapping": {},
+      "pinned": false,
+      "prompt": "### Role\nTranslator.\n\n### Task\nTranslate the \"Definition\" from German to Russian.\n1. Keep the meaning precise.\n2. Output plain text only.\n\n### Input Data\nDefinition: {{{WordSourceDefinitionAISentenceSource}}}\n\n### Output",
+      "promptName": "Translation of Definition (DE -> RU)",
+      "responseFormat": "text",
+      "targetField": "WordSourceDefinitionAISentenceDestination"
     }
   ]
 }
