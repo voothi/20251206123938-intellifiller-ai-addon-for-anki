@@ -59,8 +59,17 @@ class BackupManager:
 
         all_items = []
 
+        # Get backup path to exclude
+        settings = self.config_manager.get_full_config()
+        backup_path = settings.get('backup', {}).get('localPath')
+        abs_backup_path = os.path.abspath(backup_path) if backup_path else None
+
         # 1. user_files (Recursive)
         for root, dirs, files in os.walk(self.user_files_dir):
+            # Prune backup directory if it's inside user_files
+            if abs_backup_path:
+                 dirs[:] = [d for d in dirs if os.path.abspath(os.path.join(root, d)) != abs_backup_path]
+
             for file in files:
                 if file in excludes_names: continue
                 full_path = os.path.join(root, file)
@@ -166,14 +175,23 @@ class BackupManager:
         """
         Creates a zip file containing user_files (subfolder) and root json files.
         """
-        excludes_names = []
+        excludes_names = ['signatures.json']
         compression = zipfile.ZIP_DEFLATED
+        
+        # Get backup path to exclude
+        settings = self.config_manager.get_full_config()
+        backup_path = settings.get('backup', {}).get('localPath')
+        abs_backup_path = os.path.abspath(backup_path) if backup_path else None
         
         # Collect files to zip mapping: {full_path: arcname}
         files_to_zip = {}
         
         # 1. user_files
         for root, dirs, files in os.walk(self.user_files_dir):
+            # Prune backup directory if it's inside user_files
+            if abs_backup_path:
+                 dirs[:] = [d for d in dirs if os.path.abspath(os.path.join(root, d)) != abs_backup_path]
+
             for file in files:
                 if file in excludes_names: continue
                 full_path = os.path.join(root, file)
