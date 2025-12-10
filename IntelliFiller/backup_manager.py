@@ -147,9 +147,9 @@ class BackupManager:
         
         password = backup_config.get('zipPassword')
         
-        self.create_zip(target_file, password)
-        
         self.save_manifest(new_manifest)
+        
+        self.create_zip(target_file, password)
         
         external_path = backup_config.get('externalPath')
         if external_path and os.path.isdir(external_path):
@@ -165,7 +165,7 @@ class BackupManager:
         """
         Creates a zip file containing user_files (subfolder) and root json files.
         """
-        excludes_names = ['signatures.json']
+        excludes_names = []
         compression = zipfile.ZIP_DEFLATED
         
         # Collect files to zip mapping: {full_path: arcname}
