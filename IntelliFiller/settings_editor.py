@@ -28,7 +28,28 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
         self.setWindowTitle('ChatGPT Settings')
         config = ConfigManager.get_full_config()
         self.setup_config(config)
-        self.saveButton.clicked.connect(self.saveConfig)
+        
+        # Hide the old save button (keep it in layout but invisible)
+        self.saveButton.setVisible(False)
+        
+        # Create standard button box
+        self.buttonBox = QDialogButtonBox(self)
+        self.buttonBox.setOrientation(Qt.Orientation.Horizontal)
+        
+        # Add OK and Cancel
+        self.buttonBox.setStandardButtons(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
+        
+        # Add "Save" (Apply)
+        self.applyButton = self.buttonBox.addButton("Save", QDialogButtonBox.ButtonRole.ApplyRole)
+        
+        # Add to the vertical layout at the bottom
+        self.verticalLayout.addWidget(self.buttonBox)
+
+        # Connect signals
+        self.buttonBox.accepted.connect(self.on_ok_clicked)
+        self.buttonBox.rejected.connect(self.on_cancel_clicked)
+        self.applyButton.clicked.connect(self.on_apply_clicked)
+        
         self.addPromptButton.clicked.connect(self.add_new_prompt)
         self.backupNowBtn.clicked.connect(self.trigger_manual_backup)
         
@@ -37,18 +58,16 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
         # Set initial page based on config
         self.stackedWidget.setCurrentIndex(self.selectedApi.currentIndex())
         
-        # Track initial state for unsaved changes detection
-        self.config_saved = False
-        # We need to capture the state *after* setup_config is called, but that uses the raw config object.
-        # It's safer to call get_current_config() immediately after setup to establish baseline.
-        # But wait, config object passed to setup_config IS the source of truth initially.
-        self.original_config = json.dumps(config, sort_keys=True)
-
         self.setup_password_fields()
         
         # Connect Backup Browse Buttons
         self.browseLocalPathBtn.clicked.connect(self.browse_local_path)
         self.browseExternalPathBtn.clicked.connect(self.browse_external_path)
+        
+        # Track initial state for unsaved changes detection
+        # IMPORTANT: We capture this AFTER all UI setup is done, so get_current_config returns the true initial state
+        self.original_config = json.dumps(self.get_current_config(), sort_keys=True)
+        self.config_saved = False
 
     def setup_password_fields(self):
         """Configures API key fields to be masked with a toggle button."""
@@ -292,7 +311,8 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
         self.promptsLayout.removeWidget(promptWidgetToRemove)
         promptWidgetToRemove.deleteLater()
 
-    def saveConfig(self):
+    def _save_settings_logic(self):
+        """Internal logic to save settings without closing."""
         full_config = self.get_current_config()
         
         # 1. Credentials
@@ -342,11 +362,21 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
             settings['backup']['zipPassword'] = ""
             
         ConfigManager.save_settings(settings)
-
-        showInfo("Configuration saved.")
+        
+        # Update internal tracking
+        self.original_config = json.dumps(full_config, sort_keys=True)
         self.config_saved = True
-        self.original_config = json.dumps(full_config, sort_keys=True) # Update original config
-        self.close()
+
+    def on_ok_clicked(self):
+        self._save_settings_logic()
+        self.accept()
+
+    def on_apply_clicked(self):
+        self._save_settings_logic()
+        showInfo("Configuration saved.")
+
+    def on_cancel_clicked(self):
+        self.reject()
 
     def get_current_config(self):
         # Start with existing settings to preserve hidden fields (like 'history')
@@ -400,7 +430,6 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
             })
         
         config["pipelines"] = self.pipelines
-        config["pipelines"] = self.pipelines
         
         # Backup Settings
         config["backup"] = {
@@ -446,9 +475,14 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
 
     def keyPressEvent(self, event):
         if event.key() == Qt.Key.Key_S and (event.modifiers() & Qt.KeyboardModifier.ControlModifier):
-            self.saveConfig()
+            self._save_settings_logic()
+            showInfo("Configuration saved.")
         else:
             super().keyPressEvent(event)
+
+    def reject(self):
+        """Handle Esc key and Cancel button by invoking default Close behavior."""
+        self.close()
 
     def closeEvent(self, event):
         if self.config_saved:
@@ -458,6 +492,7 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
         current_config = self.get_current_config()
         current_config_str = json.dumps(current_config, sort_keys=True)
         
+        # Compare current state with the captured state at open
         if current_config_str != self.original_config:
             reply = QMessageBox.question(
                 self, 
@@ -467,7 +502,7 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
             )
 
             if reply == QMessageBox.StandardButton.Save:
-                self.saveConfig()
+                self._save_settings_logic()
                 event.accept()
             elif reply == QMessageBox.StandardButton.Discard:
                 event.accept()
