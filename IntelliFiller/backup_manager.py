@@ -209,6 +209,25 @@ class BackupManager:
 
         def write_to_zip(zf):
              for full_path, arcname in files_to_zip.items():
+                # If we are creating an encrypted backup, we save credentials.json in plain text
+                # so it can be easily restored/read if the user has the zip password.
+                if password and os.path.basename(full_path) == 'credentials.json':
+                    try:
+                        # Determine encryption key (same logic as ConfigManager)
+                        settings = self.config_manager.load_settings()
+                        key = settings.get('encryptionKey', '')
+                        
+                        # Load pure data (decrypts if necessary)
+                        creds = self.config_manager.load_credentials(key)
+                        
+                        # Write as pretty-printed JSON string
+                        data = json.dumps(creds, indent=2, sort_keys=True)
+                        zf.writestr(arcname, data)
+                        continue
+                    except Exception as e:
+                        # Fallback to raw copy if something fails
+                        print(f"Backup warning: Failed to save unobfuscated credentials: {e}")
+
                 try:
                     zf.write(full_path, arcname)
                 except:
