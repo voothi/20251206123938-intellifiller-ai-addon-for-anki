@@ -12,6 +12,7 @@ from aqt.browser import Browser
 from aqt.addcards import AddCards
 from aqt.addons import AddonManager
 from anki.hooks import addHook
+from aqt.utils import showWarning
 
 # --- Atomic Rename Strategy Implementation ---
 
@@ -159,6 +160,71 @@ def handle_add_cards_mode(editor: Editor, prompt_config):
 
 def save_prompt_config(updated_prompt_config):
     ConfigManager.save_prompt(updated_prompt_config)
+
+def get_common_fields(note_ids):
+    if not note_ids:
+        return []
+    
+    # helper to get fields for a note id
+    def get_fields(nid):
+        try:
+            note = mw.col.get_note(nid)
+            return set(note.keys())
+        except:
+            return set()
+            
+    # Start with fields of first note
+    if note_ids:
+        common_fields = get_fields(note_ids[0])
+    
+        # Intersect with rest
+        for nid in note_ids[1:]:
+            common_fields.intersection_update(get_fields(nid))
+            if not common_fields:
+                break
+                
+        return sorted(list(common_fields))
+    return []
+
+def create_run_prompt_dialog_from_browser(browser, prompt_config):
+    selected_nids = browser.selectedNotes()
+    if not selected_nids:
+        showWarning("No notes selected.")
+        return
+
+    common_fields = get_common_fields(selected_nids)
+    
+    # We need a parent window. Browser is a QMainWindow.
+    dialog = RunPromptDialog(browser, common_fields, prompt_config)
+    
+    if dialog.exec() == QDialog.DialogCode.Accepted:
+        result = dialog.get_result()
+        updated_prompt_config = result["config"]
+        if result["save"]:
+            save_prompt_config(updated_prompt_config)
+            
+        process_notes(browser, updated_prompt_config)
+
+def handle_browser_mode(editor, prompt_config):
+    browser = None
+    if isinstance(editor.parentWindow, Browser):
+        browser = editor.parentWindow
+    
+    if browser:
+        create_run_prompt_dialog_from_browser(browser, prompt_config)
+    else:
+        # Fallback if we cannot find the browser, though EditorMode.BROWSER implies it.
+        # Maybe use mw.app.activeWindow() or simply warn.
+        # Trying to find ANY open browser:
+        for window in mw.app.topLevelWidgets():
+            if isinstance(window, Browser):
+                browser = window
+                break
+        
+        if browser:
+             create_run_prompt_dialog_from_browser(browser, prompt_config)
+        else:
+             showWarning("Could not determine Browser context.")
 
 def create_run_prompt_dialog_from_editor(editor: Editor, prompt_config):
     if editor.editorMode == EditorMode.BROWSER:
