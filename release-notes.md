@@ -1,3 +1,32 @@
+# IntelliFiller Release Notes
+
+## Table of Contents
+
+- [v2.18.12](#release-notes-v21812)
+- [v2.18.10](#release-notes-v21810)
+- [v2.18.8](#release-notes-v2188)
+- [v2.16.2](#release-notes-v2162)
+- [v2.14.12](#release-notes-v21412)
+- [v2.14.8](#release-notes-v2148)
+- [v2.14.2](#release-notes-v2142)
+- [v2.12.2](#release-notes-v2122)
+- [v2.6.2](#release-notes-v262)
+- [v2.4.12](#release-notes-v2412)
+- [v2.4.2](#release-notes-v242)
+- [v2.2.4](#release-notes-v224)
+- [v2.2.2](#release-notes-v222)
+
+---
+
+## Release Notes v2.18.12
+
+### 🐛 Bug Fixes
+
+*   **Fixed Crash in "Prompts" Submenu**
+    Resolved a `NameError` that caused the addon to crash when attempting to run a prompt solely from the "Prompts" submenu context. The missing underlying helper functions have been restored, ensuring reliable launching of prompts from all menu locations (Favorites/History and the nested Submenu).
+
+[Return to Top](#intellifiller-release-notes)
+
 ## Release Notes v2.18.10
 
 ### ⚙️ Improvements
@@ -10,7 +39,9 @@
 
 **Full Changelog**: https://github.com/voothi/20251206123938-intellifiller-ai-addon-for-anki/compare/v2.18.8...v2.18.10
 
-###  v2.18.8 Release Notes
+[Return to Top](#intellifiller-release-notes)
+
+## Release Notes v2.18.8
 
 #### **🛡️ Enhanced Backup System**
 This release introduces a significant upgrade to the automated backup engine, ensuring your data is even safer:
@@ -24,13 +55,15 @@ This release introduces a significant upgrade to the automated backup engine, en
 *   **Expanded Defaults:** The default configuration (`config.json`) has been significantly expanded, likely introducing a robust set of default prompts, presets, or examples to help new users get started immediately.
 
 #### **🧹 Maintenance & Cleanup**
-*   **Documentation Refinement:** Removed obsolete developer documentation (`DEVELOPER_README.md`) and consolidated project information into the main [README.md](cci:7://file:///u:/voothi/20251206123938-intellifiller-ai-addon-for-anki/README.md:0:0-0:0).
+*   **Documentation Refinement:** Removed obsolete developer documentation (`DEVELOPER_README.md`) and consolidated project information into the main [README.md](file:///u:/voothi/20251206123938-intellifiller-ai-addon-for-anki/README.md).
 *   **Asset Cleanup:** Removed unused static image assets (`editor-button.png`, `installation.png`, etc.) to reduce the overall package size.
 *   **License Update:** Updated the `LICENSE` file.
 
 **Full Changelog**: https://github.com/voothi/20251206123938-intellifiller-ai-addon-for-anki/compare/v2.16.2...v2.18.8
 
-###  v2.16.2 Release Notes
+[Return to Top](#intellifiller-release-notes)
+
+## Release Notes v2.16.2
 
 #### **🚀 Enhancements & Refinements**
 
@@ -50,7 +83,9 @@ This release introduces a significant upgrade to the automated backup engine, en
 
 **Full Changelog**: https://github.com/voothi/20251206123938-intellifiller-ai-addon-for-anki/compare/v2.14.12...v2.16.2
 
-# Release Notes v2.14.12
+[Return to Top](#intellifiller-release-notes)
+
+## Release Notes v2.14.12
 
 ### 🎨 User Interface Improvements
 *   **Prompts Tab Overhaul**: The **Prompts** tab in the Settings window has been completely redesigned to match the *Master-Detail* layout of the Pipelines tab.
@@ -69,27 +104,31 @@ This release introduces a significant upgrade to the automated backup engine, en
 
 **Full Changelog**: https://github.com/voothi/20251206123938-intellifiller-ai-addon-for-anki/compare/v2.14.8...v2.14.12
 
-# Release Notes v2.14.8
+[Return to Top](#intellifiller-release-notes)
 
-## 🚀 Key Improvements
+## Release Notes v2.14.8
 
-### 🛠️ Robust Windows Updates (Atomic Rename)
+### 🚀 Key Improvements
+
+#### 🛠️ Robust Windows Updates (Atomic Rename)
 We have completely rewritten the update mechanism for Windows users to prevent the dreaded `PermissionError: [WinError 5] Access is denied`. 
 - **The Fix:** Instead of trying to delete locked files (like `.pyd` dependencies) during an update, the addon now "atomically renames" the old version to a temporary trash folder and "neutralizes" it.
 - **Auto-Cleanup:** These trash folders are automatically cleaned up silently the next time you start Anki.
 - **No More Errors:** This ensures future updates proceed smoothly without requiring you to manually disable the addon or restart Anki beforehand.
 
-### 📦 New Packaging Tools (For Developers)
+#### 📦 New Packaging Tools (For Developers)
 Added a specialized packaging utility to safe-guard releases:
-- [scripts/package_addon.py](cci:7://file:///u:/voothi/20251206123938-intellifiller-ai-addon-for-anki/scripts/package_addon.py:0:0-0:0): Creates clean `.ankiaddon` builds.
+- `scripts/package_addon.py`: Creates clean `.ankiaddon` builds.
 - Automatically excludes sensitive user data (`user_files`, `credentials.json`, `settings.json`) and development artifacts (`__pycache__`).
 - Includes warnings if potentially sensitive files are detected in `vendor`.
 
-## 🐛 Bug Fixes
+### 🐛 Bug Fixes
 - **Fixed Startup Crash:** Resolved a `NameError: name 'Path' is not defined` that could occur on initialization.
-- **Fixed "Add-on Startup Failed"**: Corrected an issue where Anki attempted to load "trash" folders from previous updates. We now immediately remove [__init__.py](cci:7://file:///u:/voothi/20251206123938-intellifiller-ai-addon-for-anki/IntelliFiller/__init__.py:0:0-0:0) and [manifest.json](cci:7://file:///u:/voothi/20251206123938-intellifiller-ai-addon-for-anki/IntelliFiller/manifest.json:0:0-0:0) from the old folder during the rename process, so Anki correctly ignores it.
+- **Fixed "Add-on Startup Failed"**: Corrected an issue where Anki attempted to load "trash" folders from previous updates. We now immediately remove `__init__.py` and `manifest.json` from the old folder during the rename process, so Anki correctly ignores it.
 
 **Full Changelog**: https://github.com/voothi/20251206123938-intellifiller-ai-addon-for-anki/compare/v2.14.2...v2.14.8
+
+[Return to Top](#intellifiller-release-notes)
 
 ## Release Notes v2.14.2
 
@@ -117,6 +156,8 @@ Added a specialized packaging utility to safe-guard releases:
 
 **Full Changelog**: https://github.com/voothi/20251206123938-intellifiller-ai-addon-for-anki/compare/v2.12.2...v2.14.2
 
+[Return to Top](#intellifiller-release-notes)
+
 ## Release Notes v2.12.2
 
 ### 🚀 New Features & Enhancements
@@ -140,7 +181,9 @@ Added a specialized packaging utility to safe-guard releases:
 
 **Full Changelog**: https://github.com/voothi/20251206123938-intellifiller-ai-addon-for-anki/compare/v2.8.2...v2.12.2
 
-# Release Notes v2.6.2
+[Return to Top](#intellifiller-release-notes)
+
+## Release Notes v2.6.2
 
 ### 🏗 Architecture & Core Logic
 *   **Pipeline Architecture**: Introduced a new **Pipelines** concept in the configuration schema. This logic allows users to define complex workflows (chains of prompts) rather than just single prompt executions.
@@ -156,7 +199,9 @@ Added a specialized packaging utility to safe-guard releases:
 
 **Full Changelog**: [v2.4.12...v2.6.2](https://github.com/voothi/20251206123938-intellifiller-ai-addon-for-anki/compare/v2.4.12...v2.6.2)
 
-# Release Notes v2.4.12
+[Return to Top](#intellifiller-release-notes)
+
+## Release Notes v2.4.12
 
 ### 💻 Codebase Changes
 *   **Settings Dialog Implementation**: Introduced a new `SettingsDialog` class using the Qt framework. This creates a dedicated UI layer for configuration, decoupling user settings from manual file edits.
@@ -166,7 +211,9 @@ Added a specialized packaging utility to safe-guard releases:
 
 **Full Changelog**: [v2.4.2...v2.4.12](https://github.com/voothi/20251206123938-intellifiller-ai-addon-for-anki/compare/v2.4.2...v2.4.12)
 
-# Release Notes v2.4.2
+[Return to Top](#intellifiller-release-notes)
+
+## Release Notes v2.4.2
 
 ### 🚀 New Features
 *   **Core Note Processing**: Implemented the primary logic for processing Anki notes with AI, enabling the core functionality of the addon.
@@ -177,7 +224,9 @@ Added a specialized packaging utility to safe-guard releases:
 
 **Full Changelog**: [v2.2.4...v2.4.2](https://github.com/voothi/20251206123938-intellifiller-ai-addon-for-anki/compare/v2.2.4...v2.4.2)
 
-# Release Notes v2.2.4
+[Return to Top](#intellifiller-release-notes)
+
+## Release Notes v2.2.4
 
 ### 🐛 Bug Fixes
 *   **Fix "Add Prompt" Button**: Resolved an issue in the Settings Editor where the **"Add Prompt"** button was not functioning correctly. You can now successfully add and configure new custom prompts directly through the user interface.
@@ -187,7 +236,9 @@ Added a specialized packaging utility to safe-guard releases:
 
 **Full Changelog**: [v2.2.2...v2.2.4](https://github.com/voothi/20251206123938-intellifiller-ai-addon-for-anki/compare/v2.2.2...v2.2.4)
 
-# Release Notes v2.2.2
+[Return to Top](#intellifiller-release-notes)
+
+## Release Notes v2.2.2
 
 ### 🚀 New Features
 *   **Multi-Provider Support**: added full integration for **OpenAI**, **Anthropic**, and **Google Gemini** LLMs. You can now choose your preferred AI provider and configure API keys directly within the addon.
@@ -204,3 +255,5 @@ Added a specialized packaging utility to safe-guard releases:
 ### 📖 Documentation
 *   **Enhanced README**: Significantly updated the documentation with a Table of Contents, navigation links, and detailed guides.
 *   **New Visuals**: Added screenshots and step-by-step instructions for Editor integration, multi-provider setup, and custom endpoint configuration.
+
+[Return to Top](#intellifiller-release-notes)

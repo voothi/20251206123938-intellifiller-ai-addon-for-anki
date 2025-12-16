@@ -1,12 +1,12 @@
 # IntelliFiller AI - Multi-Provider Prompt Orchestrator
 
-[![Version](https://img.shields.io/badge/version-v2.18.10-blue)](https://github.com/voothi/20251206123938-intellifiller-ai-addon-for-anki/releases) 
+[![Version](https://img.shields.io/badge/version-v2.18.12-blue)](https://github.com/voothi/20251206123938-intellifiller-ai-addon-for-anki/releases) 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) 
 [![AnkiWeb](https://img.shields.io/badge/AnkiWeb-1149226090-blue)](https://ankiweb.net/shared/info/1149226090)
 
 This is an enhanced version of the [IntelliFiller](https://github.com/ganqqwerty/intellifiller-ai-addon-for-anki) addon for Anki, allowing you to automatically fill note fields using various Large Language Models (LLMs).
 
-For a detailed history of changes, please view the [Releases Page](https://github.com/voothi/20251206123938-intellifiller-ai-addon-for-anki/releases).
+For a detailed history of changes, please view the [release-notes.md](release-notes.md) file or the [Releases Page](https://github.com/voothi/20251206123938-intellifiller-ai-addon-for-anki/releases).
 
 > **Attribution & Source**
 >
