@@ -188,7 +188,8 @@ class ProgressDialog(QDialog):
         layout.addWidget(self.counter_label)
         
         self.deck_label = QLabel("Deck: ...")
-        self.deck_label.setStyleSheet("color: #666; font-style: italic;")
+        # User requested to make it visible like other inscriptions (white), removing dimmed gray style
+        # self.deck_label.setStyleSheet("color: #666; font-style: italic;") 
         layout.addWidget(self.deck_label)
 
         # Button Layout
@@ -270,7 +271,7 @@ class ProgressDialog(QDialog):
 
     def update_deck_info(self, deck_name):
         self.deck_label.setText(f"Deck: {deck_name}")
-        self.setWindowTitle(f"Processing {deck_name}...")
+        # self.setWindowTitle(f"Processing {deck_name}...") # User requested to stop changing title
 
     def on_worker_finished(self):
         self.update_progress(
