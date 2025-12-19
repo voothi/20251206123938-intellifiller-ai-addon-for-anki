@@ -1,4 +1,4 @@
-from aqt.qt import QThread, pyqtSignal, QDialog, QVBoxLayout, QHBoxLayout, QProgressBar, QPushButton, QLabel
+from aqt.qt import QThread, pyqtSignal, QDialog, QVBoxLayout, QHBoxLayout, QProgressBar, QPushButton, QLabel, QLineEdit, Qt
 from aqt import mw
 from aqt.utils import showWarning
 
@@ -17,11 +17,7 @@ def get_deck_name(note):
             did = note.cards()[0].did
             deck = mw.col.decks.get(did)
             if deck:
-                full_name = deck['name']
-                parts = full_name.split("::")
-                if len(parts) > 2:
-                    return "..." + "::".join(parts[-2:])
-                return full_name
+                return deck['name']
     except:
         pass
     return "Unknown Deck"
@@ -187,10 +183,17 @@ class ProgressDialog(QDialog):
         self.counter_label = QLabel()
         layout.addWidget(self.counter_label)
         
-        self.deck_label = QLabel("Deck: ...")
-        # User requested to make it visible like other inscriptions (white), removing dimmed gray style
-        # self.deck_label.setStyleSheet("color: #666; font-style: italic;") 
-        layout.addWidget(self.deck_label)
+        self.deck_line_edit = QLineEdit()
+        self.deck_line_edit.setReadOnly(True)
+        self.deck_line_edit.setPlaceholderText("Deck path...")
+        self.deck_line_edit.setAlignment(Qt.AlignmentFlag.AlignRight)
+        # Ensure it doesn't change window size, just fills available width
+        self.deck_line_edit.setStyleSheet("color: white; background: transparent; border: none;") # Optional styling to make it look cleaner if desired, or keep standard look.
+        # User asked for "separate field", so standard border might be better to indicate copyability. 
+        # But also "standard window should be size it was before". 
+        # A standard QLineEdit definitely looks like a field.
+        self.deck_line_edit.setStyleSheet("") # Reset to default style to look like a field
+        layout.addWidget(self.deck_line_edit)
 
         # Button Layout
         button_layout = QHBoxLayout()
@@ -270,7 +273,9 @@ class ProgressDialog(QDialog):
         self.counter_label.setText(text)
 
     def update_deck_info(self, deck_name):
-        self.deck_label.setText(f"Deck: {deck_name}")
+        self.deck_line_edit.setText(deck_name)
+        # Scroll to end to show the final part of the path
+        self.deck_line_edit.setCursorPosition(len(deck_name))
         # self.setWindowTitle(f"Processing {deck_name}...") # User requested to stop changing title
 
     def on_worker_finished(self):
