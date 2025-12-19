@@ -1,4 +1,4 @@
-from aqt.qt import QThread, pyqtSignal, QDialog, QVBoxLayout, QProgressBar, QPushButton, QLabel
+from aqt.qt import QThread, pyqtSignal, QDialog, QVBoxLayout, QProgressBar, QPushButton, QLabel, QTimer
 from aqt import mw
 from aqt.utils import showWarning
 
@@ -193,9 +193,10 @@ class ProgressDialog(QDialog):
             elif hasattr(parent, "search"):
                  pass
 
-        # Restore scroll position
+
+        # Restore scroll position with a slight delay to override any auto-scroll to selection
         if table_view and hasattr(table_view, "verticalScrollBar"):
-            table_view.verticalScrollBar().setValue(scrollbar_pos)
+            QTimer.singleShot(50, lambda: table_view.verticalScrollBar().setValue(scrollbar_pos))
 
     def update_status(self, text):
         self.counter_label.setText(text)
