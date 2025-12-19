@@ -17,7 +17,11 @@ def get_deck_name(note):
             did = note.cards()[0].did
             deck = mw.col.decks.get(did)
             if deck:
-                return deck['name']
+                full_name = deck['name']
+                parts = full_name.split("::")
+                if len(parts) > 2:
+                    return "..." + "::".join(parts[-2:])
+                return full_name
     except:
         pass
     return "Unknown Deck"
