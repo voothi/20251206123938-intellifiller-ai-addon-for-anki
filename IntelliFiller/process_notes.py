@@ -367,6 +367,8 @@ class ProgressDialog(QDialog):
              self.counter_label.setStyleSheet("color: #d9534f")
         else:
              # Reset style if recovering
+             if self.counter_label.text().startswith("Stalled?"):
+                 self.counter_label.setText("Resuming...")
              self.counter_label.setStyleSheet("")
 
     def restart_connection(self):
