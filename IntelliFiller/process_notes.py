@@ -1,10 +1,11 @@
-from aqt.qt import QThread, pyqtSignal, QDialog, QVBoxLayout, QProgressBar, QPushButton, QLabel
+from aqt.qt import QThread, pyqtSignal, QDialog, QVBoxLayout, QHBoxLayout, QProgressBar, QPushButton, QLabel
 from aqt import mw
 from aqt.utils import showWarning
 
 from .data_request import create_prompt, send_prompt_to_llm
 from .modify_notes import fill_field_for_note_in_editor, fill_field_for_note_not_in_editor
 from .config_manager import ConfigManager
+from .execution_manager import ExecutionManager
 from anki.notes import Note, NoteId
 import sys
 import time
@@ -32,11 +33,29 @@ class MultipleNotesThreadWorker(QThread):
         self.random_delay = batch_cfg.get("randomDelay", True)
         self.random_min = batch_cfg.get("randomDelayMin", 0)
         self.random_max = batch_cfg.get("randomDelayMax", 10)
+        
+        self.is_paused = False
+
+    def pause(self):
+        self.is_paused = True
+
+    def resume(self):
+        self.is_paused = False
 
     def run(self):
         total_notes = len(self.notes)
         
         for i, item in enumerate(self.notes):
+            # Check for pause before starting next item
+            if self.is_paused:
+                self.refresh_browser.emit()
+                self.status_update.emit("Paused. Click Resume to continue.")
+                while self.is_paused:
+                    if self.isInterruptionRequested():
+                        return
+                    time.sleep(0.1)
+                self.status_update.emit("Resuming...")
+
             # Batch Processing Delay
             # Check if enabled, if we hit the batch limit, and if it's NOT the last item
             if self.batch_enabled and i > 0 and (i % self.batch_size == 0):
@@ -139,11 +158,21 @@ class ProgressDialog(QDialog):
         self.counter_label = QLabel()
         layout.addWidget(self.counter_label)
 
+        # Button Layout
+        button_layout = QHBoxLayout()
+
+        self.pause_button = QPushButton('Pause')
+        self.pause_button.clicked.connect(self.toggle_pause)
+        self.pause_button.setAutoDefault(False)
+        button_layout.addWidget(self.pause_button)
+        
         self.cancel_button = QPushButton('Cancel')
         self.cancel_button.clicked.connect(self.cancel)
         self.cancel_button.setAutoDefault(False)
         self.cancel_button.setDefault(False)
-        layout.addWidget(self.cancel_button)
+        button_layout.addWidget(self.cancel_button)
+
+        layout.addLayout(button_layout)
 
         self.setLayout(layout)
         self.setWindowTitle("Processing Notes...")
@@ -161,10 +190,40 @@ class ProgressDialog(QDialog):
         self.worker.status_update.connect(self.update_status)
         self.worker.refresh_browser.connect(self.on_refresh_browser)
         self.worker.finished.connect(self.on_worker_finished)  # connect the finish signal to a slot
-        self.worker.start()
+        
+        # Instead of starting immediately, add to global queue
+        self.update_status("Waiting in queue...")
         self.show()
+        ExecutionManager.instance().enqueue(self)
+
+    def start_processing(self):
+        """Called by ExecutionManager when it's our turn"""
+        if self.worker and not self.worker.isRunning():
+            self.worker.start()
         self.cancel_button.clearFocus()
-        self.setFocus()
+        self.pause_button.setFocus()
+
+    def toggle_pause(self):
+        if not self.worker:
+            return
+            
+        if self.worker.is_paused:
+            # Resume
+            self.worker.resume()
+            self.pause_button.setText("Pause")
+            ExecutionManager.instance().enqueue(self) # Re-queue (wait for turn if needed, though we probably just continue if we were running)
+            # Actually, if we were the current task, we just continue. 
+            # But if we paused, we might have yielded.
+            # So we should treat this as a request to run again.
+            # Logic: If we are paused, we are likely 'current_task' that is sleeping, OR we yielded.
+            # If we yielded, we need to be enqueued.
+            # If we didn't yield (just local pause), we just resume.
+            # To be safe and follow the plan: Yield on pause, Enqueue on resume.
+        else:
+            # Pause
+            self.worker.pause()
+            self.pause_button.setText("Resume")
+            ExecutionManager.instance().yield_execution(self)
 
     def on_refresh_browser(self):
         mw.reset()
@@ -181,6 +240,7 @@ class ProgressDialog(QDialog):
         # mw.reset() is good for browser.
         # For AddCards/EditCurrent, we might need to trigger a reload of the note in the editor?
         mw.reset() 
+        ExecutionManager.instance().notify_finished(self)
         self.close()  # close the dialog when the worker finishes
 
     def cancel(self):
@@ -192,6 +252,8 @@ class ProgressDialog(QDialog):
         mw.reset()
         
         # Close immediately so the user isn't stuck
+        # Close immediately so the user isn't stuck
+        ExecutionManager.instance().notify_finished(self)
         self.close()
 
     def reject(self):
