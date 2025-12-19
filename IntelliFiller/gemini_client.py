@@ -6,7 +6,7 @@ class GeminiClient:
         self.model = model
         self.base_url = f"https://generativelanguage.googleapis.com/v1beta/models/{self.model}:generateContent"
 
-    def generate_content(self, prompt):
+    def generate_content(self, prompt, timeout=60.0):
         headers = {
             "Content-Type": "application/json"
         }
@@ -23,7 +23,7 @@ class GeminiClient:
                 headers=headers,
                 params={"key": self.api_key},
                 json=data,
-                timeout=30.0
+                timeout=timeout
             )
             response.raise_for_status()
             result = response.json()

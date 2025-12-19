@@ -58,6 +58,9 @@ def send_prompt_to_llm(prompt):
     
     # Merge for easier access
     config = {**settings, **credentials}
+    
+    # Get timeout from settings (default 60s)
+    net_timeout = float(config.get("netTimeout", 60.0))
 
     if config.get('emulate') == 'yes':
         print("Fake request: ", prompt)
@@ -68,6 +71,7 @@ def send_prompt_to_llm(prompt):
         def try_openai_call():
             client = openai.OpenAI(
                 api_key=config['apiKey'],  # This is the default and can be omitted
+                timeout=net_timeout
             )
             response = client.chat.completions.create(
                 messages=[
@@ -86,7 +90,7 @@ def send_prompt_to_llm(prompt):
                 api_key=config['anthropicKey'], 
                 model=config.get('anthropicModel') or 'claude-haiku-4-5'
             )
-            response = client.create_message(prompt)
+            response = client.create_message(prompt, timeout=net_timeout)
             print("Response from Anthropic:", response)
             return response.strip()
 
@@ -95,7 +99,7 @@ def send_prompt_to_llm(prompt):
                 api_key=config['geminiKey'],
                 model=config.get('geminiModel') or 'gemini-2.0-flash-lite-001'
             )
-            response = client.generate_content(prompt)
+            response = client.generate_content(prompt, timeout=net_timeout)
             print("Response from Gemini:", response)
             return response.strip()
 
@@ -103,6 +107,7 @@ def send_prompt_to_llm(prompt):
             client = openai.OpenAI(
                 base_url="https://openrouter.ai/api/v1",
                 api_key=config['openrouterKey'],
+                timeout=net_timeout
             )
             response = client.chat.completions.create(
                 messages=[{"role": "user", "content": prompt}],
@@ -119,6 +124,7 @@ def send_prompt_to_llm(prompt):
             client = openai.OpenAI(
                 base_url=config['customUrl'],
                 api_key=config['customKey'],
+                timeout=net_timeout
             )
             response = client.chat.completions.create(
                 messages=[{"role": "user", "content": prompt}],

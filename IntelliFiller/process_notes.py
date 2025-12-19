@@ -49,6 +49,10 @@ class MultipleNotesThreadWorker(QThread):
         
         self.run_permission = False
         self.is_user_paused = False
+        self.last_activity = time.time() # Watchdog timestamp
+
+    def update_activity(self):
+        self.last_activity = time.time()
 
     def set_permission(self, allowed: bool):
         self.run_permission = allowed
@@ -60,6 +64,7 @@ class MultipleNotesThreadWorker(QThread):
         total_notes = len(self.notes)
         
         for i, item in enumerate(self.notes):
+            self.update_activity()
             # Check for pause before starting next item
             # Check state before processing
             while not self.run_permission:
@@ -110,6 +115,7 @@ class MultipleNotesThreadWorker(QThread):
 
             # Retry loop for the distinct note
             while True:
+                self.update_activity()
                 if self.isInterruptionRequested():
                     break
                 
@@ -138,6 +144,7 @@ class MultipleNotesThreadWorker(QThread):
                         enrich_without_editor(note, self.prompt_config)
                     
                     # If we reached here, success!
+                    self.update_activity()
                     break 
 
                 except Exception as e:
@@ -176,6 +183,13 @@ class ProgressDialog(QDialog):
         super(ProgressDialog, self).__init__(parent)
         self.worker = None
         self.errors = []
+        
+        # Load timeout for Watchdog
+        settings = ConfigManager.load_settings()
+        self.net_timeout = float(settings.get("netTimeout", 60.0))
+        self.watchdog_timer = None
+        self.processed_count = 0 
+        
         layout = QVBoxLayout()
 
         self.progress_bar = QProgressBar()
@@ -223,13 +237,22 @@ class ProgressDialog(QDialog):
         self.cancel_button.setDefault(False)
         button_layout.addWidget(self.cancel_button)
 
+        self.restart_button = QPushButton('Restart Connection')
+        self.restart_button.setToolTip("Force restart the worker if connection is stuck")
+        self.restart_button.clicked.connect(self.restart_connection)
+        self.restart_button.setAutoDefault(False)
+        # Style it to look like a 'rescue' button (optional, maybe just normal)
+        self.restart_button.setStyleSheet("color: #d9534f;") # Reddish text to indicate 'force' action
+        button_layout.addWidget(self.restart_button)
+        
         layout.addLayout(button_layout)
 
         self.setLayout(layout)
         self.setWindowTitle("Processing Notes...")
-        self.resize(250, 100)
+        self.resize(350, 150) # Slightly larger for extra button/info
 
     def update_progress(self, value):
+        self.processed_count = value # Track locally for restart logic
         self.progress_bar.setValue(value)
         self.counter_label.setText(f"{value} of {self.progress_bar.maximum()} processed")
 
@@ -243,6 +266,11 @@ class ProgressDialog(QDialog):
         self.worker.deck_update.connect(self.update_deck_info)
         self.worker.refresh_browser.connect(self.on_refresh_browser)
         self.worker.finished.connect(self.on_worker_finished)  # connect the finish signal to a slot
+        
+        # Start Watchdog
+        self.watchdog_timer = QTimer(self)
+        self.watchdog_timer.timeout.connect(self.check_worker_activity)
+        self.watchdog_timer.start(2000) # Check every 2s
         
         # Instead of starting immediately, add to global queue
         self.update_status("Waiting in queue...")
@@ -319,7 +347,84 @@ class ProgressDialog(QDialog):
         # For AddCards/EditCurrent, we might need to trigger a reload of the note in the editor?
         mw.reset() 
         ExecutionManager.instance().notify_finished(self)
+        if self.watchdog_timer:
+            self.watchdog_timer.stop()
         self.close()  # close the dialog when the worker finishes
+
+    def check_worker_activity(self):
+        if not self.worker or not self.worker.isRunning() or self.worker.is_user_paused:
+             self.counter_label.setStyleSheet("")
+             return
+             
+        # Check delta
+        delta = time.time() - self.worker.last_activity
+        # Tolerance: netTimeout + 15s grace
+        threshold = self.net_timeout + 15
+        
+        if delta > threshold:
+             self.counter_label.setText(f"Stalled? ({int(delta)}s). Try 'Restart Connection'.")
+             self.counter_label.setStyleSheet("color: red; font-weight: bold;")
+        else:
+             # Reset style if recovering
+             self.counter_label.setStyleSheet("")
+
+    def restart_connection(self):
+        """Kills current worker and starts a new one with remaining items."""
+        if not self.worker:
+            return
+
+        # 1. Stop old worker
+        old_worker = self.worker
+        # Disconnect signals to prevent 'finished' from closing the dialog
+        try:
+            old_worker.finished.disconnect(self.on_worker_finished)
+        except:
+            pass # Already disconnected or not connected?
+            
+        old_worker.requestInterruption()
+        # Force terminate if needed? No, wait() is safer usually.
+        # But we want instant feedback.
+        old_worker.quit() 
+        # We don't wait() forever, just proceed. Python threads are hard to kill.
+        # We rely on isInterruptionRequested check in the loop.
+        
+        self.update_status("Restarting connection...")
+        
+        # 2. Prepare new worker
+        # Notes remaining = all_notes[processed_count:]
+        # Note: self.processed_count is 1-based (i+1), so it works as slice index
+        # e.g. processed 5. slice [5:] skps 0,1,2,3,4. correct.
+        
+        # However, run_task argument 'notes' was the full list.
+        # We need to know the 'notes' passed originally. 
+        # But we don't store them in self in run_task. Let's fix that.
+        # Accessing old_worker.notes is safer.
+        
+        remaining_notes = old_worker.notes[self.processed_count:]
+        
+        if not remaining_notes:
+            # Nothing left?
+            self.on_worker_finished()
+            return
+
+        # 3. Create new worker
+        new_worker = MultipleNotesThreadWorker(remaining_notes, mw.col, old_worker.prompt_config)
+        
+        self.worker = new_worker
+        self.worker.progress_made.connect(lambda val: self.update_progress(self.processed_count + val)) # Adjust value
+        self.worker.status_update.connect(self.update_status)
+        self.worker.deck_update.connect(self.update_deck_info)
+        self.worker.refresh_browser.connect(self.on_refresh_browser)
+        self.worker.finished.connect(self.on_worker_finished)
+        
+        # Restart immediately (bypass queue as we already hold the token)
+        self.worker.set_permission(True)
+        self.worker.start()
+        
+        # Reset watchdog
+        self.worker.update_activity()
+        self.counter_label.setStyleSheet("")
+        self.update_status("Connection restarted. Resuming...")
 
     def cancel(self):
         if self.worker:

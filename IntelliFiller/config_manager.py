@@ -55,7 +55,11 @@ class ConfigManager:
         cls._ensure_directories()
         if os.path.exists(cls.SETTINGS_FILE):
              with open(cls.SETTINGS_FILE, "r", encoding="utf-8") as f:
-                 return json.load(f)
+                 settings = json.load(f)
+                 # Ensure defaults for key settings
+                 if "netTimeout" not in settings:
+                     settings["netTimeout"] = 60
+                 return settings
         return {}
 
     @classmethod
