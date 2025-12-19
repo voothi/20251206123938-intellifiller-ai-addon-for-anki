@@ -169,8 +169,9 @@ class ProgressDialog(QDialog):
     def on_refresh_browser(self):
         mw.reset()
         
-        # Attempt to force a repaint of the browser table to update the view without scrolling
-        # This helps in cases where multi-selection doesn't visually update until scroll
+        # "Minimally invasive" fix for multi-selection update issue:
+        # Trigger a tiny scroll event to force the view to refresh its data
+        # This mimics the user manually scrolling "a little" which was confirmed to work
         parent = self.parent()
         if parent:
             table_view = None
@@ -179,8 +180,12 @@ class ProgressDialog(QDialog):
             elif hasattr(parent, "form") and hasattr(parent.form, "tableView"):
                 table_view = parent.form.tableView
             
-            if table_view and hasattr(table_view, "viewport"):
-                table_view.viewport().update()
+            # Wiggle the scrollbar slightly to wake up the view
+            if table_view and hasattr(table_view, "verticalScrollBar"):
+                scrollbar = table_view.verticalScrollBar()
+                current_pos = scrollbar.value()
+                scrollbar.setValue(current_pos + 1)
+                scrollbar.setValue(current_pos)
 
     def update_status(self, text):
         self.counter_label.setText(text)
