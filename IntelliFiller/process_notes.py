@@ -363,7 +363,7 @@ class ProgressDialog(QDialog):
         threshold = self.net_timeout + 15
         
         if delta > threshold:
-             self.counter_label.setText(f"Stalled? ({int(delta)}s). Try 'Restart'.")
+             self.counter_label.setText(f"Stalled? ({int(delta)}s)")
              self.counter_label.setStyleSheet("color: #d9534f")
         else:
              # Reset style if recovering
