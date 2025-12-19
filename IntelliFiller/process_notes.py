@@ -273,9 +273,10 @@ class ProgressDialog(QDialog):
         self.counter_label.setText(text)
 
     def update_deck_info(self, deck_name):
-        self.deck_line_edit.setText(deck_name)
+        text = f"deck:{deck_name}"
+        self.deck_line_edit.setText(text)
         # Scroll to end to show the final part of the path
-        self.deck_line_edit.setCursorPosition(len(deck_name))
+        self.deck_line_edit.setCursorPosition(len(text))
         # self.setWindowTitle(f"Processing {deck_name}...") # User requested to stop changing title
 
     def on_worker_finished(self):
