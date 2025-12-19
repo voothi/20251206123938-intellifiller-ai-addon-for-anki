@@ -1,4 +1,4 @@
-from aqt.qt import QThread, pyqtSignal, QDialog, QVBoxLayout, QProgressBar, QPushButton, QLabel, QTimer
+from aqt.qt import QThread, pyqtSignal, QDialog, QVBoxLayout, QProgressBar, QPushButton, QLabel
 from aqt import mw
 from aqt.utils import showWarning
 
@@ -167,36 +167,7 @@ class ProgressDialog(QDialog):
         self.setFocus()
 
     def on_refresh_browser(self):
-        # Determine if we are attached to the Browser
-        parent = self.parent()
-        table_view = None
-        scrollbar_pos = 0
-        
-        # Try to find the card list table to save scroll position
-        if parent:
-            # Check for common Anki Browser table locations
-            if hasattr(parent, "table"):
-                table_view = parent.table
-            elif hasattr(parent, "form") and hasattr(parent.form, "tableView"):
-                table_view = parent.form.tableView
-                
-            if table_view and hasattr(table_view, "verticalScrollBar"):
-                scrollbar_pos = table_view.verticalScrollBar().value()
-
-        # Trigger Reset
         mw.reset()
-        
-        if parent:
-            # Try standard Browser model reset (works in many Anki versions)
-            if hasattr(parent, "model") and hasattr(parent.model, "reset"):
-                parent.model.reset()
-            elif hasattr(parent, "search"):
-                 pass
-
-
-        # Restore scroll position with a slight delay to override any auto-scroll to selection
-        if table_view and hasattr(table_view, "verticalScrollBar"):
-            QTimer.singleShot(50, lambda: table_view.verticalScrollBar().setValue(scrollbar_pos))
 
     def update_status(self, text):
         self.counter_label.setText(text)
