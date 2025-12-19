@@ -159,6 +159,7 @@ class MultipleNotesThreadWorker(QThread):
                     
                     if is_net_error:
                         # If filter matches network error, wait and retry
+                        self.status_update.emit("Network error. Retrying...")
                         # Check cancel again before sleeping
                         if self.isInterruptionRequested():
                             break
