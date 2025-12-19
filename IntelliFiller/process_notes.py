@@ -168,6 +168,16 @@ class ProgressDialog(QDialog):
 
     def on_refresh_browser(self):
         mw.reset()
+        # If we are in the Browser, force the list to repaint/update
+        parent = self.parent()
+        if parent:
+            # Try standard Browser model reset (works in many Anki versions)
+            if hasattr(parent, "model") and hasattr(parent.model, "reset"):
+                parent.model.reset()
+            elif hasattr(parent, "search"):
+                 # In some older/newer versions, triggering search again might be needed, 
+                 # but mw.reset() usually covers it. We'll stick to model.reset() attempt.
+                 pass
 
     def update_status(self, text):
         self.counter_label.setText(text)
