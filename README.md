@@ -49,6 +49,8 @@ For a detailed history of changes, please view the [release-notes.md](release-no
 * **Smart Batch Processing**: 
     *   **Batch Processing**: Select multiple cards in the browser and fill them in bulk.
     *   **Configurable Delays**: Set fixed and **random** delays between batches to avoid rate limits and disperse requests.
+    *   **Execution Queue**: Queue multiple batch tasks to run sequentially.
+    *   **Pause/Resume**: Manually pause processing to inspect results or yield to other tasks.
     *   **Progress Tracking**: Real-time progress dialog with live countdown and pause/resume capabilities.
 * **Flexible Prompting**: 
     *   Design prompts that use existing field data (e.g., `{{{Sentence}}}`) to generate new content.

@@ -2,6 +2,7 @@
 
 ## Table of Contents
 
+- [v2.22.2](#release-notes-v2222)
 - [v2.20.2](#release-notes-v2202)
 - [v2.18.12](#release-notes-v21812)
 - [v2.18.10](#release-notes-v21810)
@@ -19,26 +20,48 @@
 
 ---
 ---
-+
-+## Release Notes v2.20.2
-+
-+### 🚀 New Features
-+
-+*   **🎲 Configurable Random Delay**
-+    Introduced advanced controls for batch processing:
-+    *   **Enable Random Delay**: A new toggle allows users to add a layer of jitter to batch pauses.
-+    *   **Min/Max Random Delay**: Users can now precisely configure the random duration range (in seconds). This helps disperse requests, preventing potential rate limits or synchronization issues during high-volume processing.
-+
-+### ⚙️ Improvements
-+
-+*   **⚡ Better Default Batch Settings**
-+    Updated the default "Batch Processing" configuration to provide a smoother, more efficient experience for most users:
-+    *   **Batch Size**: 20 notes.
-+    *   **Fixed Delay**: 5 seconds.
-+    *   **Random Variance**: 0–10 seconds (enabled by default).
-+
-+[Return to Top](#intellifiller-release-notes)
-+
+
+## Release Notes v2.22.2
+
+### 🚀 New Features
+
+*   **⏸️ Smart Execution Queue & Pause Control**
+    Significant overhaul of the batch processing engine to support managing multiple tasks and granular control:
+    *   **Execution Queue**: You can now launch multiple batch operations sequentially. If a task is running, subsequent requests are automatically queued and will start processing as soon as the current one finishes.
+    *   **Pause/Resume**: Added a manual **Pause** button to the progress dialog. Pausing a task cleanly stops execution (transactionally after the current note) and yields the execution slot to the next waiting task in the queue.
+    *   **Window Title Updates**: The window title now dynamically reflects the queue position (e.g., `Queue: #1`) when waiting.
+
+*   **🖥️ UI Refinements**
+    *   **Deck Path Display**: Added a dedicated, read-only field showing the full deck path of the active note.
+    *   **Copy Button**: Included a clickable "Copy" icon (page symbol) inside the deck field to instantly copy the full path to the clipboard.
+    *   **Responsive Layout**: The progress window is now fully resizeable with a standardized default size.
+
+### 🐛 Bug Fixes
+
+*   **Fixed Race Condition**: Resolved a potential race condition where resuming a paused task could conflict with another active task. The system now correctly re-queues resumed tasks.
+*   **PyQt6 Compatibility**: Fixed an `AttributeError` related to icon loading on newer Anki versions using PyQt6.
+
+[Return to Top](#intellifiller-release-notes)
+
+## Release Notes v2.20.2
+
+### 🚀 New Features
+
+*   **🎲 Configurable Random Delay**
+    Introduced advanced controls for batch processing:
+    *   **Enable Random Delay**: A new toggle allows users to add a layer of jitter to batch pauses.
+    *   **Min/Max Random Delay**: Users can now precisely configure the random duration range (in seconds). This helps disperse requests, preventing potential rate limits or synchronization issues during high-volume processing.
+
+### ⚙️ Improvements
+
+*   **⚡ Better Default Batch Settings**
+    Updated the default "Batch Processing" configuration to provide a smoother, more efficient experience for most users:
+    *   **Batch Size**: 20 notes.
+    *   **Fixed Delay**: 5 seconds.
+    *   **Random Variance**: 0–10 seconds (enabled by default).
+
+[Return to Top](#intellifiller-release-notes)
+
 ## Release Notes v2.18.12
 
 ### 🐛 Bug Fixes
