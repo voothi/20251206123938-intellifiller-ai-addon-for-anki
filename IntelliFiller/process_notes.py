@@ -213,7 +213,7 @@ class ProgressDialog(QDialog):
 
         self.setLayout(layout)
         self.setWindowTitle("Processing Notes...")
-        self.setFixedSize(350, 100)
+        self.resize(550, 250)
 
     def update_progress(self, value):
         self.progress_bar.setValue(value)
