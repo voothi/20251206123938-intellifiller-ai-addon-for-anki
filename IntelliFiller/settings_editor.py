@@ -139,7 +139,7 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
         self.overwriteField.setChecked(config.get("overwriteField", False))
         self.flatMenu.setChecked(config.get("flatMenu", False))
         self.maxFavorites.setValue(config.get("maxFavorites", 3))
-        self.netTimeout.setValue(config.get("netTimeout", 60))
+        self.netTimeout.setValue(config.get("netTimeout", 10))
         # Default to True (Security by Default)
         self.obfuscateCreds.setChecked(config.get("obfuscateCreds", True))
         self.encryptionKey.setText(config.get("encryptionKey", ""))

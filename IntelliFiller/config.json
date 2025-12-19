@@ -14,7 +14,7 @@
   "emulate": "no",
   "overwriteField": false,
   "maxFavorites": 3,
-  "netTimeout": 60,
+  "netTimeout": 10,
   "batchProcessing": {
     "enabled": true,
     "batchSize": 20,

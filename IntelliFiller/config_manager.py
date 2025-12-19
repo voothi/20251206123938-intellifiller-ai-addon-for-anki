@@ -58,7 +58,7 @@ class ConfigManager:
                  settings = json.load(f)
                  # Ensure defaults for key settings
                  if "netTimeout" not in settings:
-                     settings["netTimeout"] = 60
+                     settings["netTimeout"] = 10
                  return settings
         return {}
 
