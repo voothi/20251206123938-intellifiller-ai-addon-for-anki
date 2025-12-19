@@ -2,6 +2,7 @@
 
 ## Table of Contents
 
+- [v2.20.2](#release-notes-v2202)
 - [v2.18.12](#release-notes-v21812)
 - [v2.18.10](#release-notes-v21810)
 - [v2.18.8](#release-notes-v2188)
@@ -17,7 +18,27 @@
 - [v2.2.2](#release-notes-v222)
 
 ---
-
+---
++
++## Release Notes v2.20.2
++
++### 🚀 New Features
++
++*   **🎲 Configurable Random Delay**
++    Introduced advanced controls for batch processing:
++    *   **Enable Random Delay**: A new toggle allows users to add a layer of jitter to batch pauses.
++    *   **Min/Max Random Delay**: Users can now precisely configure the random duration range (in seconds). This helps disperse requests, preventing potential rate limits or synchronization issues during high-volume processing.
++
++### ⚙️ Improvements
++
++*   **⚡ Better Default Batch Settings**
++    Updated the default "Batch Processing" configuration to provide a smoother, more efficient experience for most users:
++    *   **Batch Size**: 20 notes.
++    *   **Fixed Delay**: 5 seconds.
++    *   **Random Variance**: 0–10 seconds (enabled by default).
++
++[Return to Top](#intellifiller-release-notes)
++
 ## Release Notes v2.18.12
 
 ### 🐛 Bug Fixes

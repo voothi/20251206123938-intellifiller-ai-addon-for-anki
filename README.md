@@ -1,6 +1,6 @@
 # IntelliFiller AI - Multi-Provider Prompt Orchestrator
 
-[![Version](https://img.shields.io/badge/version-v2.18.12-blue)](https://github.com/voothi/20251206123938-intellifiller-ai-addon-for-anki/releases) 
+[![Version](https://img.shields.io/badge/version-v2.20.2-blue)](https://github.com/voothi/20251206123938-intellifiller-ai-addon-for-anki/releases) 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) 
 [![AnkiWeb](https://img.shields.io/badge/AnkiWeb-1149226090-blue)](https://ankiweb.net/shared/info/1149226090)
 
@@ -48,8 +48,8 @@ For a detailed history of changes, please view the [release-notes.md](release-no
 * **Configurable Models**: Easily switch between models (e.g., GPT-4o, Claude 3.5 Sonnet, Gemini 1.5 Pro).
 * **Smart Batch Processing**: 
     *   **Batch Processing**: Select multiple cards in the browser and fill them in bulk.
-    *   **Configurable Delays**: Set delays between requests to avoid rate limits.
-    *   **Progress Tracking**: Real-time progress dialog with pause/resume capabilities.
+    *   **Configurable Delays**: Set fixed and **random** delays between batches to avoid rate limits and disperse requests.
+    *   **Progress Tracking**: Real-time progress dialog with live countdown and pause/resume capabilities.
 * **Flexible Prompting**: 
     *   Design prompts that use existing field data (e.g., `{{{Sentence}}}`) to generate new content.
     *   **Multi-Field Updates**: Support for JSON responses to update multiple fields from a single prompt.
