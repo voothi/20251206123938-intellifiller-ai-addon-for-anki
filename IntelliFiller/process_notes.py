@@ -168,6 +168,19 @@ class ProgressDialog(QDialog):
 
     def on_refresh_browser(self):
         mw.reset()
+        
+        # Attempt to force a repaint of the browser table to update the view without scrolling
+        # This helps in cases where multi-selection doesn't visually update until scroll
+        parent = self.parent()
+        if parent:
+            table_view = None
+            if hasattr(parent, "table"):
+                table_view = parent.table
+            elif hasattr(parent, "form") and hasattr(parent.form, "tableView"):
+                table_view = parent.form.tableView
+            
+            if table_view and hasattr(table_view, "viewport"):
+                table_view.viewport().update()
 
     def update_status(self, text):
         self.counter_label.setText(text)
