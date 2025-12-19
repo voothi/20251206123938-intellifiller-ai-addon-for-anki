@@ -126,6 +126,12 @@ class Ui_SettingsWindow(object):
         self.encryptionKey = QtWidgets.QLineEdit(self.tabApi)
         self.encryptionKey.setEchoMode(QtWidgets.QLineEdit.EchoMode.Password)
         self.emulationLayout.addRow(self.labelEncryptionKey, self.encryptionKey)
+
+        self.labelNetTimeout = QtWidgets.QLabel(self.tabApi)
+        self.netTimeout = QtWidgets.QSpinBox(self.tabApi)
+        self.netTimeout.setRange(5, 300)
+        self.netTimeout.setSuffix(" sec")
+        self.emulationLayout.addRow(self.labelNetTimeout, self.netTimeout)
         
         self.tabApiLayout.addLayout(self.emulationLayout)
         
@@ -424,6 +430,9 @@ class Ui_SettingsWindow(object):
         self.encryptionKey.setToolTip(_translate("SettingsWindow", "Custom string used to encrypt the credentials file. If changed, the file will be re-encrypted."))
         
         self.encryptionKey.setToolTip(_translate("SettingsWindow", "Custom string used to encrypt the credentials file. If changed, the file will be re-encrypted."))
+        
+        self.labelNetTimeout.setText(_translate("SettingsWindow", "Network Timeout:"))
+        self.netTimeout.setToolTip(_translate("SettingsWindow", "Time in seconds to wait for an API response before giving up."))
         
         self.batchGroup.setTitle(_translate("SettingsWindow", "Batch Processing"))
         self.batchEnabled.setText(_translate("SettingsWindow", ""))
