@@ -17,7 +17,8 @@
   "batchProcessing": {
     "enabled": true,
     "batchSize": 20,
-    "batchDelay": 10
+    "batchDelay": 10,
+    "randomDelay": false
   },
   "pipelines": [],
   "history": [],

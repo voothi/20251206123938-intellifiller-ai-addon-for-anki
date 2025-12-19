@@ -8,6 +8,7 @@ from .config_manager import ConfigManager
 from anki.notes import Note, NoteId
 import sys
 import time
+import random
 
 class MultipleNotesThreadWorker(QThread):
     progress_made = pyqtSignal(int)
@@ -28,6 +29,7 @@ class MultipleNotesThreadWorker(QThread):
         self.batch_enabled = batch_cfg.get("enabled", True)
         self.batch_size = batch_cfg.get("batchSize", 20)
         self.batch_delay = batch_cfg.get("batchDelay", 10)
+        self.random_delay = batch_cfg.get("randomDelay", False)
 
     def run(self):
         total_notes = len(self.notes)
@@ -46,6 +48,12 @@ class MultipleNotesThreadWorker(QThread):
                 self.refresh_browser.emit()
                 
                 remaining = self.batch_delay
+                
+                if self.random_delay:
+                    extra = random.randint(10, 60)
+                    self.status_update.emit(f"Adding random delay variance: +{extra}s")
+                    remaining += extra
+                
                 while remaining > 0:
                     if self.isInterruptionRequested():
                         return # Exit run immediately
