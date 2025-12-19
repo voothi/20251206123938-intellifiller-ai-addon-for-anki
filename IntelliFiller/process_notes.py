@@ -1,4 +1,4 @@
-from aqt.qt import QThread, pyqtSignal, QDialog, QVBoxLayout, QHBoxLayout, QProgressBar, QPushButton, QLabel, QLineEdit, Qt, QAction, QStyle, QApplication, QIcon
+from aqt.qt import QThread, pyqtSignal, QDialog, QVBoxLayout, QHBoxLayout, QProgressBar, QPushButton, QLabel, QLineEdit, Qt, QAction, QStyle, QApplication, QIcon, QTimer
 from aqt import mw
 from aqt.utils import showWarning
 
