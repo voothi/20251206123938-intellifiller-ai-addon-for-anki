@@ -353,7 +353,7 @@ class ProgressDialog(QDialog):
         self.close()  # close the dialog when the worker finishes
 
     def check_worker_activity(self):
-        if not self.worker or not self.worker.isRunning() or self.worker.is_user_paused:
+        if not self.worker or not self.worker.isRunning() or self.worker.is_user_paused or not self.worker.run_permission:
              self.counter_label.setStyleSheet("")
              return
              
