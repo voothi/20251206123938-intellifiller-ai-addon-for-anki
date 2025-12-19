@@ -195,8 +195,8 @@ class ProgressDialog(QDialog):
         self.deck_line_edit.setStyleSheet("") # Reset to default style to look like a field
         
         # Add Copy Action inside the field
-        copy_icon = self.style().standardIcon(QStyle.SP_FileIcon) # Generic file icon as placeholder for Copy
-        copy_action = self.deck_line_edit.addAction(copy_icon, QLineEdit.TrailingPosition)
+        copy_icon = self.style().standardIcon(QStyle.StandardPixmap.SP_FileIcon) # Generic file icon as placeholder for Copy
+        copy_action = self.deck_line_edit.addAction(copy_icon, QLineEdit.ActionPosition.TrailingPosition)
         copy_action.setToolTip("Copy Deck Path")
         copy_action.triggered.connect(self.copy_deck_path)
         
