@@ -1,4 +1,4 @@
-from aqt.qt import QThread, pyqtSignal, QDialog, QVBoxLayout, QHBoxLayout, QProgressBar, QPushButton, QLabel, QLineEdit, Qt, QAction, QStyle, QApplication
+from aqt.qt import QThread, pyqtSignal, QDialog, QVBoxLayout, QHBoxLayout, QProgressBar, QPushButton, QLabel, QLineEdit, Qt, QAction, QStyle, QApplication, QIcon
 from aqt import mw
 from aqt.utils import showWarning
 
@@ -10,6 +10,7 @@ from anki.notes import Note, NoteId
 import sys
 import time
 import random
+import os
 
 def get_deck_name(note):
     try:
@@ -195,7 +196,13 @@ class ProgressDialog(QDialog):
         self.deck_line_edit.setStyleSheet("") # Reset to default style to look like a field
         
         # Add Copy Action inside the field
-        copy_icon = self.style().standardIcon(QStyle.StandardPixmap.SP_FileIcon) # Generic file icon as placeholder for Copy
+        # Use custom copy.svg if available, else standard icon
+        icon_path = os.path.join(os.path.dirname(__file__), "copy.svg")
+        if os.path.exists(icon_path):
+             copy_icon = QIcon(icon_path)
+        else:
+             copy_icon = self.style().standardIcon(QStyle.StandardPixmap.SP_FileIcon)
+             
         copy_action = self.deck_line_edit.addAction(copy_icon, QLineEdit.ActionPosition.TrailingPosition)
         copy_action.setToolTip("Copy Deck Path")
         copy_action.triggered.connect(self.copy_deck_path)
