@@ -395,6 +395,10 @@ class ProgressDialog(QDialog):
         
         self.update_status("Restarting...")
         
+        # Reload Watchdog Timeout setting to keep UI in sync
+        settings = ConfigManager.load_settings()
+        self.net_timeout = float(settings.get("netTimeout", 60.0))
+        
         # 2. Prepare new worker
         progress_offset = self.processed_count
         remaining_notes = old_worker.notes[progress_offset:]
