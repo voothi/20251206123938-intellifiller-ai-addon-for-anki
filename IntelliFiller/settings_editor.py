@@ -146,10 +146,10 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
         # Batch Processing
         batch_config = config.get("batchProcessing", {})
         self.batchEnabled.setChecked(batch_config.get("enabled", True))
-        self.batchSize.setValue(batch_config.get("batchSize", 20))
-        self.batchDelay.setValue(batch_config.get("batchDelay", 10))
-        self.batchRandom.setChecked(batch_config.get("randomDelay", False))
-        self.randomDelayMin.setValue(batch_config.get("randomDelayMin", 5))
+        self.batchSize.setValue(batch_config.get("batchSize", 10))
+        self.batchDelay.setValue(batch_config.get("batchDelay", 5))
+        self.batchRandom.setChecked(batch_config.get("randomDelay", True))
+        self.randomDelayMin.setValue(batch_config.get("randomDelayMin", 0))
         self.randomDelayMax.setValue(batch_config.get("randomDelayMax", 10))
         
         # Connect additional signal for batchRandom toggle

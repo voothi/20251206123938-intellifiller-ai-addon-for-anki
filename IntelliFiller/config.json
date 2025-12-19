@@ -16,10 +16,10 @@
   "maxFavorites": 3,
   "batchProcessing": {
     "enabled": true,
-    "batchSize": 20,
-    "batchDelay": 10,
-    "randomDelay": false,
-    "randomDelayMin": 5,
+    "batchSize": 10,
+    "batchDelay": 5,
+    "randomDelay": true,
+    "randomDelayMin": 0,
     "randomDelayMax": 10
   },
   "pipelines": [],
