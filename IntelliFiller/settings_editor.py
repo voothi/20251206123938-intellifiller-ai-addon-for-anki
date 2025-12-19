@@ -67,6 +67,13 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
         self.batchSize.setEnabled(checked)
         self.batchDelay.setEnabled(checked)
         self.batchRandom.setEnabled(checked)
+        self.randomDelayMin.setEnabled(checked and self.batchRandom.isChecked())
+        self.randomDelayMax.setEnabled(checked and self.batchRandom.isChecked())
+
+    def update_random_ui_state(self, checked):
+        enabled = self.batchEnabled.isChecked() and checked
+        self.randomDelayMin.setEnabled(enabled)
+        self.randomDelayMax.setEnabled(enabled)
 
     def setup_password_fields(self):
         """Configures API key fields to be masked with a toggle button."""
@@ -142,6 +149,12 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
         self.batchSize.setValue(batch_config.get("batchSize", 20))
         self.batchDelay.setValue(batch_config.get("batchDelay", 10))
         self.batchRandom.setChecked(batch_config.get("randomDelay", False))
+        self.randomDelayMin.setValue(batch_config.get("randomDelayMin", 5))
+        self.randomDelayMax.setValue(batch_config.get("randomDelayMax", 10))
+        
+        # Connect additional signal for batchRandom toggle
+        self.batchRandom.toggled.connect(self.update_random_ui_state)
+        
         self.update_batch_ui_state(self.batchEnabled.isChecked())
         
         self.pipelinesList.currentRowChanged.connect(self.display_pipeline_details)
@@ -488,7 +501,9 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
             "enabled": self.batchEnabled.isChecked(),
             "batchSize": self.batchSize.value(),
             "batchDelay": self.batchDelay.value(),
-            "randomDelay": self.batchRandom.isChecked()
+            "randomDelay": self.batchRandom.isChecked(),
+            "randomDelayMin": self.randomDelayMin.value(),
+            "randomDelayMax": self.randomDelayMax.value()
         }
         
         config["prompts"] = self.prompts

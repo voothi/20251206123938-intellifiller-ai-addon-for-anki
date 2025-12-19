@@ -30,6 +30,8 @@ class MultipleNotesThreadWorker(QThread):
         self.batch_size = batch_cfg.get("batchSize", 20)
         self.batch_delay = batch_cfg.get("batchDelay", 10)
         self.random_delay = batch_cfg.get("randomDelay", False)
+        self.random_min = batch_cfg.get("randomDelayMin", 5)
+        self.random_max = batch_cfg.get("randomDelayMax", 10)
 
     def run(self):
         total_notes = len(self.notes)
@@ -50,7 +52,7 @@ class MultipleNotesThreadWorker(QThread):
                 remaining = self.batch_delay
                 
                 if self.random_delay:
-                    extra = random.randint(10, 60)
+                    extra = random.randint(self.random_min, self.random_max)
                     self.status_update.emit(f"Adding random delay variance: +{extra}s")
                     remaining += extra
                 

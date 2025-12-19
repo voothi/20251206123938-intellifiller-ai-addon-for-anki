@@ -146,6 +146,16 @@ class Ui_SettingsWindow(object):
 
         self.batchRandom = QtWidgets.QCheckBox(self.batchGroup)
         self.batchLayout.addRow(QtWidgets.QLabel("Enable Random Delay:", self.batchGroup), self.batchRandom)
+
+        self.randomDelayMin = QtWidgets.QSpinBox(self.batchGroup)
+        self.randomDelayMin.setRange(0, 3600)
+        self.randomDelayMin.setSuffix(" sec")
+        self.batchLayout.addRow(QtWidgets.QLabel("Min Random Delay:", self.batchGroup), self.randomDelayMin)
+
+        self.randomDelayMax = QtWidgets.QSpinBox(self.batchGroup)
+        self.randomDelayMax.setRange(0, 3600)
+        self.randomDelayMax.setSuffix(" sec")
+        self.batchLayout.addRow(QtWidgets.QLabel("Max Random Delay:", self.batchGroup), self.randomDelayMax)
         
         self.tabApiLayout.addWidget(self.batchGroup)
         
@@ -421,7 +431,9 @@ class Ui_SettingsWindow(object):
         self.batchSize.setToolTip(_translate("SettingsWindow", "Number of notes to process before taking a break."))
         self.batchDelay.setToolTip(_translate("SettingsWindow", "Duration of the break in seconds."))
         self.batchRandom.setText(_translate("SettingsWindow", ""))
-        self.batchRandom.setToolTip(_translate("SettingsWindow", "Adds a random delay (10-60s) after the batch pause to disperse requests."))
+        self.batchRandom.setToolTip(_translate("SettingsWindow", "Adds a random delay after the batch pause to disperse requests."))
+        self.randomDelayMin.setToolTip(_translate("SettingsWindow", "Minimum additional random delay in seconds."))
+        self.randomDelayMax.setToolTip(_translate("SettingsWindow", "Maximum additional random delay in seconds."))
         
         self.backupNowBtn.setText(_translate("SettingsWindow", "Backup Now"))
         

@@ -18,7 +18,9 @@
     "enabled": true,
     "batchSize": 20,
     "batchDelay": 10,
-    "randomDelay": false
+    "randomDelay": false,
+    "randomDelayMin": 5,
+    "randomDelayMax": 10
   },
   "pipelines": [],
   "history": [],
