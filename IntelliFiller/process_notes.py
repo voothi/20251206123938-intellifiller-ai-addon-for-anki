@@ -250,7 +250,7 @@ class ProgressDialog(QDialog):
 
         self.setLayout(layout)
         self.setWindowTitle("Processing Notes...")
-        self.resize(350, 150) # Slightly larger for extra button/info
+        # self.resize(350, 150) # Slightly larger for extra button/info
 
     def update_progress(self, value):
         self.processed_count = value # Track locally for restart logic
