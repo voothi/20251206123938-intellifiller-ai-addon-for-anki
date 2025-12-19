@@ -34,27 +34,36 @@ class MultipleNotesThreadWorker(QThread):
         self.random_min = batch_cfg.get("randomDelayMin", 0)
         self.random_max = batch_cfg.get("randomDelayMax", 10)
         
-        self.is_paused = False
+        self.run_permission = False
+        self.is_user_paused = False
 
-    def pause(self):
-        self.is_paused = True
+    def set_permission(self, allowed: bool):
+        self.run_permission = allowed
 
-    def resume(self):
-        self.is_paused = False
+    def set_user_paused(self, paused: bool):
+        self.is_user_paused = paused
 
     def run(self):
         total_notes = len(self.notes)
         
         for i, item in enumerate(self.notes):
             # Check for pause before starting next item
-            if self.is_paused:
-                self.refresh_browser.emit()
-                self.status_update.emit("Paused. Click Resume to continue.")
-                while self.is_paused:
-                    if self.isInterruptionRequested():
-                        return
-                    time.sleep(0.1)
-                self.status_update.emit("Resuming...")
+            # Check state before processing
+            while not self.run_permission:
+                if self.isInterruptionRequested():
+                    return
+                
+                if self.is_user_paused:
+                    self.status_update.emit("Paused by user. Click Resume to continue.")
+                else:
+                    self.status_update.emit("Waiting in queue...")
+                
+                time.sleep(0.1)
+                
+            if i > 0 and self.is_user_paused == False: # Only say resuming if we were actually ensuring progress
+                 # If we just came out of a wait, update status? 
+                 # Actually the loop above handles the wait. 
+                 pass
 
             # Batch Processing Delay
             # Check if enabled, if we hit the batch limit, and if it's NOT the last item
@@ -198,8 +207,10 @@ class ProgressDialog(QDialog):
 
     def start_processing(self):
         """Called by ExecutionManager when it's our turn"""
-        if self.worker and not self.worker.isRunning():
-            self.worker.start()
+        if self.worker:
+            self.worker.set_permission(True)
+            if not self.worker.isRunning():
+                self.worker.start()
         self.cancel_button.clearFocus()
         self.pause_button.setFocus()
 
@@ -207,22 +218,23 @@ class ProgressDialog(QDialog):
         if not self.worker:
             return
             
-        if self.worker.is_paused:
-            # Resume
-            self.worker.resume()
+        # Check if we are asking to Pause or Resume based on current State
+        # If user_paused is True, we are Resuming
+        if self.worker.is_user_paused:
+            # RESUME ACTION
+            self.worker.set_user_paused(False)
             self.pause_button.setText("Pause")
-            ExecutionManager.instance().enqueue(self) # Re-queue (wait for turn if needed, though we probably just continue if we were running)
-            # Actually, if we were the current task, we just continue. 
-            # But if we paused, we might have yielded.
-            # So we should treat this as a request to run again.
-            # Logic: If we are paused, we are likely 'current_task' that is sleeping, OR we yielded.
-            # If we yielded, we need to be enqueued.
-            # If we didn't yield (just local pause), we just resume.
-            # To be safe and follow the plan: Yield on pause, Enqueue on resume.
+            
+            # CRITICAL: We do NOT give permission immediately.
+            # We enqueue ourselves. Queue will give permission when free.
+            ExecutionManager.instance().enqueue(self)
         else:
-            # Pause
-            self.worker.pause()
+            # PAUSE ACTION
+            self.worker.set_user_paused(True)
+            self.worker.set_permission(False) # Stop running
             self.pause_button.setText("Resume")
+            
+            # Yield execution to others
             ExecutionManager.instance().yield_execution(self)
 
     def on_refresh_browser(self):
