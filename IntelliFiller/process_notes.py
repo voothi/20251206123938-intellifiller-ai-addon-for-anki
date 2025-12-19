@@ -364,7 +364,7 @@ class ProgressDialog(QDialog):
         
         if delta > threshold:
              self.counter_label.setText(f"Stalled? ({int(delta)}s). Try 'Restart'.")
-             self.counter_label.setStyleSheet("color: red; font-weight: bold;")
+             self.counter_label.setStyleSheet("color: #d9534f")
         else:
              # Reset style if recovering
              self.counter_label.setStyleSheet("")
