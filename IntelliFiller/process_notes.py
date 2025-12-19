@@ -27,7 +27,7 @@ class MultipleNotesThreadWorker(QThread):
         settings = ConfigManager.load_settings()
         batch_cfg = settings.get("batchProcessing", {})
         self.batch_enabled = batch_cfg.get("enabled", True)
-        self.batch_size = batch_cfg.get("batchSize", 10)
+        self.batch_size = batch_cfg.get("batchSize", 20)
         self.batch_delay = batch_cfg.get("batchDelay", 5)
         self.random_delay = batch_cfg.get("randomDelay", True)
         self.random_min = batch_cfg.get("randomDelayMin", 0)

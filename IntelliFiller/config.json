@@ -16,7 +16,7 @@
   "maxFavorites": 3,
   "batchProcessing": {
     "enabled": true,
-    "batchSize": 10,
+    "batchSize": 20,
     "batchDelay": 5,
     "randomDelay": true,
     "randomDelayMin": 0,
