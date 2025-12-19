@@ -167,17 +167,35 @@ class ProgressDialog(QDialog):
         self.setFocus()
 
     def on_refresh_browser(self):
-        mw.reset()
-        # If we are in the Browser, force the list to repaint/update
+        # Determine if we are attached to the Browser
         parent = self.parent()
+        table_view = None
+        scrollbar_pos = 0
+        
+        # Try to find the card list table to save scroll position
+        if parent:
+            # Check for common Anki Browser table locations
+            if hasattr(parent, "table"):
+                table_view = parent.table
+            elif hasattr(parent, "form") and hasattr(parent.form, "tableView"):
+                table_view = parent.form.tableView
+                
+            if table_view and hasattr(table_view, "verticalScrollBar"):
+                scrollbar_pos = table_view.verticalScrollBar().value()
+
+        # Trigger Reset
+        mw.reset()
+        
         if parent:
             # Try standard Browser model reset (works in many Anki versions)
             if hasattr(parent, "model") and hasattr(parent.model, "reset"):
                 parent.model.reset()
             elif hasattr(parent, "search"):
-                 # In some older/newer versions, triggering search again might be needed, 
-                 # but mw.reset() usually covers it. We'll stick to model.reset() attempt.
                  pass
+
+        # Restore scroll position
+        if table_view and hasattr(table_view, "verticalScrollBar"):
+            table_view.verticalScrollBar().setValue(scrollbar_pos)
 
     def update_status(self, text):
         self.counter_label.setText(text)
