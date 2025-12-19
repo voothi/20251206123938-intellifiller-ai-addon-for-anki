@@ -11,9 +11,21 @@ import sys
 import time
 import random
 
+def get_deck_name(note):
+    try:
+        if note.cards():
+            did = note.cards()[0].did
+            deck = mw.col.decks.get(did)
+            if deck:
+                return deck['name']
+    except:
+        pass
+    return "Unknown Deck"
+
 class MultipleNotesThreadWorker(QThread):
     progress_made = pyqtSignal(int)
     status_update = pyqtSignal(str)
+    deck_update = pyqtSignal(str)
     refresh_browser = pyqtSignal()
     # error_occurred = pyqtSignal(str) # No longer needed for UI, we use stderr directly
 
@@ -113,6 +125,10 @@ class MultipleNotesThreadWorker(QThread):
                         # If note deleted or not found, skip
                         break # Break retry loop, effectively skipping this note
                     
+                    # Update Deck Name info
+                    deck_name = get_deck_name(note)
+                    self.deck_update.emit(deck_name)
+
                     # prompt_config can be a dict (single prompt) or list (pipeline)
                     if isinstance(self.prompt_config, list):
                         for p_config in self.prompt_config:
@@ -166,6 +182,10 @@ class ProgressDialog(QDialog):
 
         self.counter_label = QLabel()
         layout.addWidget(self.counter_label)
+        
+        self.deck_label = QLabel("Deck: ...")
+        self.deck_label.setStyleSheet("color: #666; font-style: italic;")
+        layout.addWidget(self.deck_label)
 
         # Button Layout
         button_layout = QHBoxLayout()
@@ -197,6 +217,7 @@ class ProgressDialog(QDialog):
         self.worker = MultipleNotesThreadWorker(notes, mw.col, prompt_config)  # pass the notes and prompt_config
         self.worker.progress_made.connect(self.update_progress)
         self.worker.status_update.connect(self.update_status)
+        self.worker.deck_update.connect(self.update_deck_info)
         self.worker.refresh_browser.connect(self.on_refresh_browser)
         self.worker.finished.connect(self.on_worker_finished)  # connect the finish signal to a slot
         
@@ -242,6 +263,10 @@ class ProgressDialog(QDialog):
 
     def update_status(self, text):
         self.counter_label.setText(text)
+
+    def update_deck_info(self, deck_name):
+        self.deck_label.setText(f"Deck: {deck_name}")
+        self.setWindowTitle(f"Processing {deck_name}...")
 
     def on_worker_finished(self):
         self.update_progress(
