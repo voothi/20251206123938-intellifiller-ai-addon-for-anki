@@ -187,7 +187,7 @@ class ProgressDialog(QDialog):
         
         # Load timeout for Watchdog
         settings = ConfigManager.load_settings()
-        self.net_timeout = float(settings.get("netTimeout", 60.0))
+        self.net_timeout = float(settings.get("netTimeout", 10.0))
         self.watchdog_timer = None
         self.processed_count = 0 
         
@@ -399,7 +399,7 @@ class ProgressDialog(QDialog):
         
         # Reload Watchdog Timeout setting to keep UI in sync
         settings = ConfigManager.load_settings()
-        self.net_timeout = float(settings.get("netTimeout", 60.0))
+        self.net_timeout = float(settings.get("netTimeout", 10.0))
         
         # 2. Prepare new worker
         progress_offset = self.processed_count

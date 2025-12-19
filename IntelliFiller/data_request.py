@@ -59,8 +59,8 @@ def send_prompt_to_llm(prompt):
     # Merge for easier access
     config = {**settings, **credentials}
     
-    # Get timeout from settings (default 60s)
-    net_timeout = float(config.get("netTimeout", 60.0))
+    # Get timeout from settings (default 10s)
+    net_timeout = float(config.get("netTimeout", 10.0))
 
     if config.get('emulate') == 'yes':
         print("Fake request: ", prompt)
