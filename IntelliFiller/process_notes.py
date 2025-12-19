@@ -237,7 +237,7 @@ class ProgressDialog(QDialog):
         self.cancel_button.setDefault(False)
         button_layout.addWidget(self.cancel_button)
 
-        self.restart_button = QPushButton('Restart Connection')
+        self.restart_button = QPushButton('Restart')
         self.restart_button.setToolTip("Force restart the worker if connection is stuck")
         self.restart_button.clicked.connect(self.restart_connection)
         self.restart_button.setAutoDefault(False)
@@ -362,7 +362,7 @@ class ProgressDialog(QDialog):
         threshold = self.net_timeout + 15
         
         if delta > threshold:
-             self.counter_label.setText(f"Stalled? ({int(delta)}s). Try 'Restart Connection'.")
+             self.counter_label.setText(f"Stalled? ({int(delta)}s). Try 'Restart'.")
              self.counter_label.setStyleSheet("color: red; font-weight: bold;")
         else:
              # Reset style if recovering
@@ -370,8 +370,12 @@ class ProgressDialog(QDialog):
 
     def restart_connection(self):
         """Kills current worker and starts a new one with remaining items."""
-        if not self.worker:
+        if not self.worker or not self.worker.isRunning():
             return
+
+        # Avoid restarting if we are still waiting in queue for the first note
+        if self.processed_count == 0 and not self.worker.run_permission:
+             return
 
         # 1. Stop old worker
         old_worker = self.worker
@@ -388,19 +392,11 @@ class ProgressDialog(QDialog):
         # We don't wait() forever, just proceed. Python threads are hard to kill.
         # We rely on isInterruptionRequested check in the loop.
         
-        self.update_status("Restarting connection...")
+        self.update_status("Restarting...")
         
         # 2. Prepare new worker
-        # Notes remaining = all_notes[processed_count:]
-        # Note: self.processed_count is 1-based (i+1), so it works as slice index
-        # e.g. processed 5. slice [5:] skps 0,1,2,3,4. correct.
-        
-        # However, run_task argument 'notes' was the full list.
-        # We need to know the 'notes' passed originally. 
-        # But we don't store them in self in run_task. Let's fix that.
-        # Accessing old_worker.notes is safer.
-        
-        remaining_notes = old_worker.notes[self.processed_count:]
+        progress_offset = self.processed_count
+        remaining_notes = old_worker.notes[progress_offset:]
         
         if not remaining_notes:
             # Nothing left?
@@ -411,7 +407,8 @@ class ProgressDialog(QDialog):
         new_worker = MultipleNotesThreadWorker(remaining_notes, mw.col, old_worker.prompt_config)
         
         self.worker = new_worker
-        self.worker.progress_made.connect(lambda val: self.update_progress(self.processed_count + val)) # Adjust value
+        # Use default argument 'o=progress_offset' to capture the value at restart time
+        self.worker.progress_made.connect(lambda val, o=progress_offset: self.update_progress(o + val)) 
         self.worker.status_update.connect(self.update_status)
         self.worker.deck_update.connect(self.update_deck_info)
         self.worker.refresh_browser.connect(self.on_refresh_browser)
