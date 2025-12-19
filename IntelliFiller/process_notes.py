@@ -1,4 +1,4 @@
-from aqt.qt import QThread, pyqtSignal, QDialog, QVBoxLayout, QHBoxLayout, QProgressBar, QPushButton, QLabel, QLineEdit, Qt
+from aqt.qt import QThread, pyqtSignal, QDialog, QVBoxLayout, QHBoxLayout, QProgressBar, QPushButton, QLabel, QLineEdit, Qt, QAction, QStyle, QApplication
 from aqt import mw
 from aqt.utils import showWarning
 
@@ -193,6 +193,13 @@ class ProgressDialog(QDialog):
         # But also "standard window should be size it was before". 
         # A standard QLineEdit definitely looks like a field.
         self.deck_line_edit.setStyleSheet("") # Reset to default style to look like a field
+        
+        # Add Copy Action inside the field
+        copy_icon = self.style().standardIcon(QStyle.SP_FileIcon) # Generic file icon as placeholder for Copy
+        copy_action = self.deck_line_edit.addAction(copy_icon, QLineEdit.TrailingPosition)
+        copy_action.setToolTip("Copy Deck Path")
+        copy_action.triggered.connect(self.copy_deck_path)
+        
         layout.addWidget(self.deck_line_edit)
 
         # Button Layout
@@ -269,6 +276,12 @@ class ProgressDialog(QDialog):
 
     def on_refresh_browser(self):
         mw.reset()
+
+    def copy_deck_path(self):
+        text = self.deck_line_edit.text()
+        if text:
+            QApplication.clipboard().setText(text)
+            self.deck_line_edit.setSelection(0, len(text)) # Visual feedback: select all
 
     def update_status(self, text):
         self.counter_label.setText(text)
