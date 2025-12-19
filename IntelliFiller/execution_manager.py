@@ -27,8 +27,9 @@ class ExecutionManager:
             # Avoid duplicate queuing if possible, though logic in UI usually prevents this
             if task not in self.queue and task != self.current_task:
                 self.queue.append(task)
-                task.update_status(f"Queued... Position: {len(self.queue)}")
+                # task.update_status(f"Queued... Position: {len(self.queue)}") # Handled by broadcast now
         
+        self._update_queue_positions()
         self._try_start_next()
 
     def _try_start_next(self):
@@ -40,6 +41,9 @@ class ExecutionManager:
                 self.current_task = self.queue.popleft()
                 # Notify the task to start
                 self.current_task.start_processing()
+        
+        # Update positions for remaining items
+        self._update_queue_positions()
 
     def yield_execution(self, task):
         """
@@ -66,4 +70,18 @@ class ExecutionManager:
             if task in self.queue:
                 self.queue.remove(task)
 
+        self._update_queue_positions()
         self._try_start_next()
+
+    def _update_queue_positions(self):
+        """
+        Updates the titles of all queued tasks to reflect their current position.
+        """
+        with self.queue_lock:
+            for i, task in enumerate(self.queue):
+                # We assume task has a method set_queue_position
+                # Position is i+1
+                try:
+                    task.set_queue_position(i + 1)
+                except:
+                    pass

@@ -293,6 +293,15 @@ class ProgressDialog(QDialog):
     def update_status(self, text):
         self.counter_label.setText(text)
 
+    def set_queue_position(self, position):
+        self.setWindowTitle(f"Queue: #{position} - Processing Notes...")
+
+    def start_processing(self):
+        # Called by ExecutionManager when it's our turn
+        self.setWindowTitle("Processing Notes...") # Reset title to active state
+        self.worker.set_permission(True)
+        self.worker.start()
+
     def update_deck_info(self, deck_name):
         text = f"deck:{deck_name}"
         self.deck_line_edit.setText(text)
