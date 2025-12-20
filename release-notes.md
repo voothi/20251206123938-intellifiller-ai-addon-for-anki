@@ -21,6 +21,26 @@
 ---
 ---
 
+## Release Notes v2.22.12
+
+### 🚀 New Features
+
+*   **🛡️ Connection Watchdog System**
+    *   **Automated Stall Detection**: A new background monitoring system ("Watchdog") now actively supervises network requests. If a connection silently hangs (stops sending data without throwing an error), the interface explicitly warns you with a "Stalled?" message in red.
+    *   **Intelligent UI Feedback**: The "Stalled" warning automatically clears and switches to a "Resuming..." state as soon as network activity is detected again, preventing false alarms during active retries.
+    
+*   **🔌 Enhanced Network Controls**
+    *   **Configurable Timeout**: You can now adjust the **Network Timeout** directly in the Settings API tab (default: 10 seconds). This controls how long the system waits for a server response before attempting an automatic retry.
+    *   **"Restart" Button**: The "Restart Connection" button has been renamed to **"Restart"** and its logic improved to accurately resume processing from the exact note where it left off, preventing skipped cards or double-counts.
+
+### 🐛 Bug Fixes
+
+*   **Fixed Timeout Defaults**: Resolved an issue where the system could fall back to a hardcoded 60-second timeout even if the configuration was missing. The fallback is now strictly synchronized to **10 seconds** across all modules.
+*   **Queue Logic Fixes**: Fixed a bug where waiting/queued windows would incorrectly trigger the "Stalled" warning. The watchdog now correctly ignores tasks that haven't started running yet.
+*   **Visual improvements**: The "Stalled" warning color now matches the "Restart" button color for better visual consistency.
+
+[Return to Top](#intellifiller-release-notes)
+
 ## Release Notes v2.22.2
 
 ### 🚀 New Features

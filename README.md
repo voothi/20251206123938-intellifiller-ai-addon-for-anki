@@ -1,6 +1,4 @@
-# IntelliFiller AI - Multi-Provider Prompt Orchestrator
-
-[![Version](https://img.shields.io/badge/version-v2.22.2-blue)](https://github.com/voothi/20251206123938-intellifiller-ai-addon-for-anki/releases) 
+[![Version](https://img.shields.io/badge/version-v2.22.12-blue)](https://github.com/voothi/20251206123938-intellifiller-ai-addon-for-anki/releases) 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) 
 [![AnkiWeb](https://img.shields.io/badge/AnkiWeb-1149226090-blue)](https://ankiweb.net/shared/info/1149226090)
 
@@ -35,6 +33,7 @@ For a detailed history of changes, please view the [release-notes.md](release-no
   - [For Cross-Platform Release](#for-cross-platform-release)
   - [Packaging](#packaging)
 - [Usage](#usage)
+- [Configuration Guide](#configuration-guide)
 - [Original Project](#original-project)
 - [Kardenwort Ecosystem](#kardenwort-ecosystem)
 - [License](#license)
@@ -199,6 +198,35 @@ python scripts/package_addon.py --out "C:/My/Builds"
 ### Editor Integration
 
 You can also launch IntelliFiller directly from the note editor using the dedicated button in the editor toolbar.
+
+[Return to Top](#table-of-contents)
+
+## Configuration Guide
+
+For advanced users who prefer editing JSON files or need to understand the underlying keys, here is an explanation of the configuration parameters.
+
+### Keys Explanation
+
+- `apiKey`: Your personal OpenAI GPT API key.
+- `emulate`: Set to "yes" to use fake responses for testing, "no" for real API requests.
+
+### Prompt Configuration
+
+The `prompts` section is a list of prompt objects. Each object contains:
+
+- `prompt`: The text template sent to the AI.
+  
+  **Using Placeholders:**
+  The `prompt` field can contain placeholders in the form of `{{{field_name}}}`. Each `field_name` must correspond to a field in your Anki notes.
+  
+  *Example:*
+  > If you have a note with a "Word" field containing "apple", using `{{{Word}}}` in your prompt will replace it with "apple".
+  >
+  > Prompt: "Explain the usage of {{{Word}}} in a sentence."
+  > Sent to AI: "Explain the usage of apple in a sentence."
+
+- `targetField`: The field name where the API response will be stored.
+- `promptName`: A descriptive name for this prompt shown in the UI.
 
 [Return to Top](#table-of-contents)
 
