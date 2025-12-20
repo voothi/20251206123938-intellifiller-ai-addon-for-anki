@@ -39,6 +39,10 @@
 *   **Queue Logic Fixes**: Fixed a bug where waiting/queued windows would incorrectly trigger the "Stalled" warning. The watchdog now correctly ignores tasks that haven't started running yet.
 *   **Visual improvements**: The "Stalled" warning color now matches the "Restart" button color for better visual consistency.
 
+### ⚙️ Configuration
+
+*   **Expanded Prompt Library**: Added a new built-in prompt **"English Analysis and Translation (JSON)"**. This complex prompt demonstrates how to analyze English words (Lemma, IPA, Morphology) and translate them into multiple target languages (RU, DE, UA) simultaneously using JSON output mode.
+
 [Return to Top](#intellifiller-release-notes)
 
 ## Release Notes v2.22.2
