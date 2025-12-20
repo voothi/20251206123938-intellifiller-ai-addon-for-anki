@@ -19,7 +19,6 @@
 - [v2.2.2](#release-notes-v222)
 
 ---
----
 
 ## Release Notes v2.22.12
 
