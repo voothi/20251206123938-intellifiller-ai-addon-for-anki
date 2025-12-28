@@ -1,3 +1,5 @@
+# IntelliFiller AI - Multi-Provider Prompt Orchestrator
+
 [![Version](https://img.shields.io/badge/version-v2.22.12-blue)](https://github.com/voothi/20251206123938-intellifiller-ai-addon-for-anki/releases) 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) 
 [![AnkiWeb](https://img.shields.io/badge/AnkiWeb-1149226090-blue)](https://ankiweb.net/shared/info/1149226090)
