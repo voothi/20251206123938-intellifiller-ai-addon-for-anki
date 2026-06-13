@@ -3,12 +3,23 @@ import httpx
 class OllamaClient:
     def __init__(self, api_url="http://localhost:11434/api/generate", api_key=None, model="llama3"):
         self.api_url = api_url.strip()
-        # If the user put just a base domain/port, append /api/generate
         if not self.api_url:
             self.api_url = "http://localhost:11434/api/generate"
-        elif "/" not in self.api_url.replace("http://", "").replace("https://", ""):
-            # No path components, append default endpoint
-            self.api_url = self.api_url.rstrip("/") + "/api/generate"
+            
+        # Check if it's an OpenAI-compatible endpoint
+        self.is_chat = ("/v1" in self.api_url or "/chat" in self.api_url)
+        
+        if self.is_chat:
+            # If it's a base v1 or chat URL, append /chat/completions
+            if not (self.api_url.endswith("/chat/completions") or self.api_url.endswith("/completions")):
+                self.api_url = self.api_url.rstrip("/") + "/chat/completions"
+        else:
+            # Native Ollama endpoint
+            if "/" not in self.api_url.replace("http://", "").replace("https://", ""):
+                # No path components, append default endpoint
+                self.api_url = self.api_url.rstrip("/") + "/api/generate"
+            elif not self.api_url.endswith("/generate"):
+                self.api_url = self.api_url.rstrip("/") + "/generate"
             
         self.api_key = api_key
         self.model = model
@@ -20,13 +31,11 @@ class OllamaClient:
         if self.api_key:
             headers["Authorization"] = f"Bearer {self.api_key}"
             
-        is_chat = ("/v1/chat/completions" in self.api_url or "/chat" in self.api_url)
-        
         payload = {
             "model": self.model,
             "stream": False
         }
-        if is_chat:
+        if self.is_chat:
             payload["messages"] = [{"role": "user", "content": prompt}]
         else:
             payload["prompt"] = prompt
@@ -41,7 +50,7 @@ class OllamaClient:
             response.raise_for_status()
             result = response.json()
             
-            if is_chat:
+            if self.is_chat:
                 choices = result.get("choices", [])
                 if choices and choices[0].get("message"):
                     return choices[0]["message"].get("content", "").strip()

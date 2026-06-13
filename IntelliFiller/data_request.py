@@ -145,7 +145,7 @@ def send_prompt_to_llm(prompt):
 
         def try_ollama_cloud_call():
             client = OllamaClient(
-                api_url=config.get('ollamaCloudUrl') or 'https://ollama.com/api/generate',
+                api_url=config.get('ollamaCloudUrl') or 'https://ollama.com/v1',
                 api_key=config.get('ollamaCloudKey'),
                 model=config.get('ollamaCloudModel') or 'llama3'
             )

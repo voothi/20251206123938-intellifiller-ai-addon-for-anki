@@ -86,7 +86,7 @@ def test_send_prompt_to_llm_ollama_cloud(mocker):
     # Set settings first (uses Ollama Cloud)
     ConfigManager.save_settings({
         "selectedApi": "ollama_cloud",
-        "ollamaCloudUrl": "https://ollama.com/api/generate",
+        "ollamaCloudUrl": "https://ollama.com/v1",
         "ollamaCloudModel": "llama3-cloud-test",
         "emulate": "no",
         "encryptionKey": "test-cloud-salt"
@@ -99,14 +99,25 @@ def test_send_prompt_to_llm_ollama_cloud(mocker):
     # Mock httpx.post
     mock_post = mocker.patch("httpx.post")
     mock_response = mocker.Mock()
-    mock_response.json.return_value = {"response": "Mocked cloud response"}
+    mock_response.json.return_value = {
+        "choices": [
+            {
+                "message": {
+                    "content": "Mocked cloud response"
+                }
+            }
+        ]
+    }
     mock_post.return_value = mock_response
 
     res = data_request.send_prompt_to_llm("Hello cloud")
     assert res == "Mocked cloud response"
     
     mock_post.assert_called_once()
-    _, kwargs = mock_post.call_args
+    args, kwargs = mock_post.call_args
+    assert args[0] == "https://ollama.com/v1/chat/completions"
     assert kwargs["json"]["model"] == "llama3-cloud-test"
-    assert kwargs["json"]["prompt"] == "Hello cloud"
+    assert kwargs["json"]["messages"][0]["content"] == "Hello cloud"
     assert kwargs["headers"]["Authorization"] == "Bearer secret-cloud-key"
+
+
