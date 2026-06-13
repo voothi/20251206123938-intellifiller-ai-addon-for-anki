@@ -182,7 +182,7 @@ def test_connection(config=None, timeout=15.0):
 
         # OpenAI-compatible providers (openai, openrouter, custom)
         url, api_key, model, extra_headers = _provider_defaults(config)
-        if not url:
+        if url is None:
             return (False, f"Unknown provider: {selected}")
 
         # Validate required credentials
