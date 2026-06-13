@@ -172,3 +172,88 @@ def test_data_request_emulate(mocker):
     assert "fake response" in res.lower()
     assert "emulated prompt" in res
 
+
+def test_data_request_openrouter_uses_api_key(mocker):
+    mock_client = mocker.Mock()
+    mocker.patch("openai.OpenAI", return_value=mock_client)
+    mock_client.chat.completions.create.return_value = mocker.Mock(
+        choices=[mocker.Mock(message=mocker.Mock(content="ok"))]
+    )
+
+    ConfigManager.save_settings({
+        "selectedApi": "openrouter",
+        "openrouterModel": "google/gemini-2.0-flash-lite-001",
+        "netTimeout": 10.0,
+        "emulate": "no",
+        "encryptionKey": "test-salt",
+    })
+    ConfigManager.save_credentials({"openrouterKey": "openrouter-key"}, key="test-salt")
+
+    data_request.send_prompt_to_llm("hi")
+    args, kwargs = openai.OpenAI.call_args
+    assert kwargs["api_key"] == "openrouter-key"
+    assert kwargs["base_url"] == "https://openrouter.ai/api/v1"
+
+
+def test_data_request_propagates_openai_error(mocker):
+    mock_client = mocker.Mock()
+    mocker.patch("openai.OpenAI", return_value=mock_client)
+    mock_client.chat.completions.create.side_effect = RuntimeError("502 Bad Gateway")
+
+    ConfigManager.save_settings({
+        "selectedApi": "openai",
+        "openaiModel": "gpt-4o-mini",
+        "netTimeout": 5.0,
+        "emulate": "no",
+        "encryptionKey": "test-salt",
+    })
+    ConfigManager.save_credentials({"apiKey": "k"}, key="test-salt")
+
+    with pytest.raises(RuntimeError, match="502"):
+        data_request.send_prompt_to_llm("hi")
+
+
+def test_data_request_propagates_anthropic_error(mocker):
+    mocker.patch("httpx.post", side_effect=httpx.ConnectError("connection refused"))
+    ConfigManager.save_settings({
+        "selectedApi": "anthropic",
+        "netTimeout": 5.0,
+        "emulate": "no",
+        "encryptionKey": "test-salt",
+    })
+    ConfigManager.save_credentials({"anthropicKey": "k"}, key="test-salt")
+
+    with pytest.raises(Exception, match="Anthropic"):
+        data_request.send_prompt_to_llm("hi")
+
+
+def test_data_request_propagates_gemini_error(mocker):
+    mocker.patch("httpx.post", side_effect=httpx.TimeoutException("read timeout"))
+    ConfigManager.save_settings({
+        "selectedApi": "gemini",
+        "netTimeout": 5.0,
+        "emulate": "no",
+        "encryptionKey": "test-salt",
+    })
+    ConfigManager.save_credentials({"geminiKey": "k"}, key="test-salt")
+
+    with pytest.raises(Exception, match="Gemini"):
+        data_request.send_prompt_to_llm("hi")
+
+
+def test_anthropic_client_wraps_unexpected_payload(mocker):
+    mock_post = mocker.patch("httpx.post")
+    mock_post.return_value = mocker.Mock(json=lambda: {"unexpected": "shape"})
+
+    client = SimpleAnthropicClient(api_key="k", model="m")
+    with pytest.raises(Exception, match="Anthropic"):
+        client.create_message("hi")
+
+
+def test_gemini_client_wraps_unexpected_payload(mocker):
+    mock_post = mocker.patch("httpx.post")
+    mock_post.return_value = mocker.Mock(json=lambda: {"unexpected": "shape"})
+
+    client = GeminiClient(api_key="k", model="m")
+    with pytest.raises(Exception, match="Gemini"):
+        client.generate_content("hi")

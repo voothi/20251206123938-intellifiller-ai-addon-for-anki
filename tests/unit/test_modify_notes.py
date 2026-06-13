@@ -60,3 +60,21 @@ def test_format_response_and_fill_field_html_escaping():
     note = {"Target": "existing"}
     format_response_and_fill_field("a < b & c > d", note, "Target", overwrite=True)
     assert note["Target"] == "a < b & c > d"
+
+
+def test_format_response_and_fill_field_overwrite_empty_target():
+    note = {"Target": ""}
+    format_response_and_fill_field("new\ncontent", note, "Target", overwrite=True)
+    assert note["Target"] == "new<br>content"
+
+
+def test_format_response_and_fill_field_preserves_html_verbatim():
+    note = {"Target": "old"}
+    format_response_and_fill_field("<b>bold</b>", note, "Target", overwrite=True)
+    assert note["Target"] == "<b>bold</b>"
+
+
+def test_format_response_and_fill_field_empty_response_overwrites():
+    note = {"Target": "old"}
+    format_response_and_fill_field("", note, "Target", overwrite=True)
+    assert note["Target"] == ""

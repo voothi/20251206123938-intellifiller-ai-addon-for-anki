@@ -147,3 +147,94 @@ def test_create_prompt_missing_field_raises():
     with pytest.raises(ValueError) as excinfo:
         create_prompt(note, config)
     assert "MissingField" in str(excinfo.value)
+
+
+def test_create_prompt_preserves_text_without_html_tags():
+    class MockNote(dict):
+        pass
+
+    note = MockNote({"Word": "apple orange"})
+    config = {"prompt": "Define {{{Word}}}"}
+    assert create_prompt(note, config) == "Define apple orange"
+
+
+def test_create_prompt_repeats_same_placeholder():
+    class MockNote(dict):
+        pass
+
+    note = MockNote({"Word": "x"})
+    config = {"prompt": "{{{Word}}} and {{{Word}}}"}
+    assert create_prompt(note, config) == "x and x"
+
+
+def test_parse_llm_json_none_returns_none():
+    assert parse_llm_json(None) is None
+
+
+def test_parse_llm_json_empty_returns_none():
+    assert parse_llm_json("") is None
+
+
+def test_parse_llm_json_nested_object():
+    payload = '{"a": {"b": 1, "c": [1, 2]}}'
+    assert parse_llm_json(payload) == {"a": {"b": 1, "c": [1, 2]}}
+
+
+def test_parse_llm_json_unicode_keys_and_values():
+    payload = '{"café": "naïve — résumé"}'
+    assert parse_llm_json(payload) == {"café": "naïve — résumé"}
+
+
+def test_parse_llm_json_escaped_quotes_in_string():
+    payload = '{"k": "he said \\"hi\\""}'
+    assert parse_llm_json(payload) == {"k": 'he said "hi"'}
+
+
+def test_parse_llm_json_fenced_with_language_tag():
+    assert parse_llm_json("```JSON\n{\"a\": 1}\n```") == {"a": 1}
+
+
+def test_parse_llm_json_braces_fallback_extracts_inner_object():
+    text = "noise before {\"k\": \"v\"} noise after"
+    assert parse_llm_json(text) == {"k": "v"}
+
+
+def test_parse_llm_json_no_braces_returns_none():
+    assert parse_llm_json("nothing parseable here") is None
+
+
+def test_enrich_without_editor_uses_note_directly(mocker):
+    from IntelliFiller.process_notes import enrich_without_editor
+
+    note = Note()
+    note.__setitem__("Word", "apple") if hasattr(note, "__setitem__") else setattr(note, "Word", "apple")
+
+    mock_create = mocker.patch("IntelliFiller.process_notes.create_prompt", return_value="P")
+    mock_send = mocker.patch("IntelliFiller.process_notes.send_prompt_to_llm", return_value="R")
+    mock_apply = mocker.patch("IntelliFiller.process_notes.apply_response_to_note")
+
+    config = {"promptName": "X", "responseFormat": "text", "targetField": "T"}
+    enrich_without_editor(note, config)
+
+    mock_create.assert_called_once_with(note, config)
+    mock_send.assert_called_once_with("P")
+    mock_apply.assert_called_once_with(note, config, "R", is_editor=False)
+
+
+def test_enrich_without_editor_fetches_by_id(mocker):
+    from IntelliFiller.process_notes import enrich_without_editor
+    import aqt
+
+    fake_note = mocker.Mock()
+    aqt.mw.col = mocker.Mock()
+    aqt.mw.col.get_note.return_value = fake_note
+
+    mock_create = mocker.patch("IntelliFiller.process_notes.create_prompt", return_value="P")
+    mock_send = mocker.patch("IntelliFiller.process_notes.send_prompt_to_llm", return_value="R")
+    mock_apply = mocker.patch("IntelliFiller.process_notes.apply_response_to_note")
+
+    enrich_without_editor(12345, {"promptName": "X"})
+
+    aqt.mw.col.get_note.assert_called_once_with(12345)
+    mock_create.assert_called_once_with(fake_note, {"promptName": "X"})
+    mock_apply.assert_called_once_with(fake_note, {"promptName": "X"}, "R", is_editor=False)

@@ -1,0 +1,15 @@
+[run]
+omit =
+    IntelliFiller/vendor/*
+    IntelliFiller/prompt_ui.py
+    IntelliFiller/run_prompt_dialog.py
+    IntelliFiller/settings_window_ui.py
+    IntelliFiller/__init__.py
+    IntelliFiller/process_notes.py
+
+[report]
+exclude_lines =
+    pragma: no cover
+    if __name__ == .__main__.:
+    raise NotImplementedError
+    \.\.\.

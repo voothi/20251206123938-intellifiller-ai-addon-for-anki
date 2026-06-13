@@ -60,3 +60,134 @@ def test_settings_window_save():
     assert saved_config.get("ollamaCloudModel") == "new-cloud-model"
     assert saved_config.get("netTimeout") == 30
     assert saved_config.get("encryptionKey") == "new-salt-key"
+
+
+@pytest.mark.security
+def test_settings_save_strips_backup_password_from_plaintext_settings(mocker):
+    ConfigManager.save_settings({})
+    window = SettingsWindow()
+    window.backupPassword.setText("plaintext-zip-pwd")
+    window.on_apply_clicked()
+
+    raw_settings = open(ConfigManager.SETTINGS_FILE, "r", encoding="utf-8").read()
+    assert "plaintext-zip-pwd" not in raw_settings
+
+    creds = ConfigManager.load_credentials()
+    assert creds.get("backupZipPassword") == "plaintext-zip-pwd"
+
+
+@pytest.mark.security
+def test_settings_save_persists_api_keys_as_credentials_not_settings():
+    ConfigManager.save_settings({})
+    window = SettingsWindow()
+    window.apiKey.setText("openai-secret-123")
+    window.openaiModel.setText("gpt-4o")
+    window.encryptionKey.setText("salt-1")
+    window.on_apply_clicked()
+
+    raw_settings = open(ConfigManager.SETTINGS_FILE, "r", encoding="utf-8").read()
+    assert "openai-secret-123" not in raw_settings
+    assert "gpt-4o" not in raw_settings
+
+    creds = ConfigManager.load_credentials(key="salt-1")
+    assert creds.get("apiKey") == "openai-secret-123"
+    assert creds.get("openaiModel") == "gpt-4o"
+
+
+@pytest.mark.security
+def test_settings_save_reencrypts_when_key_changes():
+    ConfigManager.save_settings({})
+    window = SettingsWindow()
+    window.encryptionKey.setText("old-key")
+    window.apiKey.setText("rotate-me")
+    window.on_apply_clicked()
+
+    window2 = SettingsWindow()
+    window2.encryptionKey.setText("new-key")
+    window2.apiKey.setText("rotate-me")
+    window2.on_apply_clicked()
+
+    assert ConfigManager.load_credentials(key="new-key").get("apiKey") == "rotate-me"
+    assert ConfigManager.load_credentials(key="old-key").get("apiKey", "") == ""
+
+
+def test_settings_window_close_with_no_changes_closes():
+    ConfigManager.save_settings({"selectedApi": "openai"})
+    window = SettingsWindow()
+    window.config_saved = True
+    event = mocker_stub_event()
+    window.closeEvent(event)
+    assert event.accepted is True
+
+
+def test_settings_window_close_with_unsaved_changes_discard(mocker):
+    ConfigManager.save_settings({"selectedApi": "openai"})
+    window = SettingsWindow()
+    window.netTimeout.setValue(99)
+    mocker.patch("IntelliFiller.settings_editor.QMessageBox.question",
+                 return_value=window.StandardButton.Discard)
+    event = mocker_stub_event()
+    window.closeEvent(event)
+    assert event.accepted is True
+
+
+def test_settings_window_close_with_unsaved_changes_cancel(mocker):
+    ConfigManager.save_settings({"selectedApi": "openai"})
+    window = SettingsWindow()
+    window.netTimeout.setValue(99)
+    mocker.patch("IntelliFiller.settings_editor.QMessageBox.question",
+                 return_value=window.StandardButton.Cancel)
+    event = mocker_stub_event()
+    window.closeEvent(event)
+    assert event.accepted is False
+
+
+def test_settings_window_close_with_unsaved_changes_save(mocker):
+    ConfigManager.save_settings({"netTimeout": 10})
+    window = SettingsWindow()
+    window.netTimeout.setValue(77)
+    mocker.patch("IntelliFiller.settings_editor.QMessageBox.question",
+                 return_value=window.StandardButton.Save)
+    event = mocker_stub_event()
+    window.closeEvent(event)
+    assert event.accepted is True
+    assert ConfigManager.load_settings().get("netTimeout") == 77
+
+
+def test_settings_window_on_apply_shows_info(mocker):
+    mocker.patch("IntelliFiller.settings_editor.showInfo")
+    ConfigManager.save_settings({})
+    window = SettingsWindow()
+    window.on_apply_clicked()
+
+
+def test_settings_window_browse_local_path_uses_dialog(mocker):
+    mocker.patch("IntelliFiller.settings_editor.QFileDialog.getExistingDirectory",
+                 return_value="C:/picked")
+    ConfigManager.save_settings({})
+    window = SettingsWindow()
+    window.browse_local_path()
+    assert window.backupLocalPath.text() == "C:/picked"
+
+
+def test_settings_window_browse_local_path_cancel(mocker):
+    mocker.patch("IntelliFiller.settings_editor.QFileDialog.getExistingDirectory",
+                 return_value="")
+    ConfigManager.save_settings({})
+    window = SettingsWindow()
+    window.backupLocalPath.setText("unchanged")
+    window.browse_local_path()
+    assert window.backupLocalPath.text() == "unchanged"
+
+
+def mocker_stub_event():
+    class _Event:
+        def __init__(self):
+            self.accepted = False
+            self.ignored = False
+        def accept(self):
+            self.accepted = True
+        def ignore(self):
+            self.ignored = True
+    return _Event()
+

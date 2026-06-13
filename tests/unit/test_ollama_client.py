@@ -165,6 +165,63 @@ def test_ollama_client_unexpected_response_raises(mocker):
     mock_post.return_value = mock_response
 
     client = OllamaClient(api_url="http://localhost:11434/api/generate", model="llama3")
-    with pytest.raises(Exception):
+    with pytest.raises(Exception, match="Ollama"):
         client.generate_content("Hello")
+
+
+@pytest.mark.parametrize("input_url,expected_suffix", [
+    ("http://localhost:11434", "/api/generate"),
+    ("http://localhost:11434/v1", "/v1/chat/completions"),
+    ("http://localhost:11434/v1/", "/v1/chat/completions"),
+    ("http://localhost:11434/v1/chat/completions", "/v1/chat/completions"),
+    ("http://localhost:11434/v1/completions", "/v1/completions"),
+    ("http://localhost:11434/api/generate", "/generate"),
+    ("http://localhost:11434/other", "/other/generate"),
+    ("https://ollama.com/api/generate", "/v1/chat/completions"),
+])
+def test_ollama_client_url_normalization(input_url, expected_suffix):
+    client = OllamaClient(api_url=input_url, model="llama3")
+    assert client.api_url.endswith(expected_suffix)
+
+
+def test_ollama_client_trailing_slash_on_bare_host():
+    client = OllamaClient(api_url="http://localhost:11434/", model="llama3")
+    assert client.api_url.endswith("/generate")
+    assert "//generate" not in client.api_url.replace("http://", "")
+
+
+def test_ollama_client_v1_chat_without_completions_appended():
+    client = OllamaClient(api_url="http://localhost:11434/v1/chat", model="llama3")
+    assert client.api_url.endswith("/chat/completions")
+
+
+
+def test_ollama_client_empty_url_falls_back_to_default():
+    client = OllamaClient(api_url="", model="llama3")
+    assert client.api_url == "http://localhost:11434/api/generate"
+
+
+def test_ollama_client_http_error_raises(mocker):
+    mocker.patch("httpx.post", side_effect=httpx.ConnectError("conn refused"))
+    client = OllamaClient(api_url="http://localhost:11434/api/generate", model="llama3")
+    with pytest.raises(Exception, match="Ollama"):
+        client.generate_content("hi")
+
+
+def test_send_prompt_to_llm_ollama_cloud_without_key(mocker):
+    ConfigManager.save_settings({
+        "selectedApi": "ollama_cloud",
+        "ollamaCloudUrl": "https://ollama.com/v1",
+        "ollamaCloudModel": "llama3-cloud-test",
+        "emulate": "no",
+    })
+    mock_post = mocker.patch("httpx.post")
+    mock_post.return_value = mocker.Mock(json=lambda: {
+        "choices": [{"message": {"content": "no key response"}}]
+    })
+
+    res = data_request.send_prompt_to_llm("hi")
+    assert res == "no key response"
+    args, kwargs = mock_post.call_args
+    assert "Authorization" not in kwargs["headers"]
 

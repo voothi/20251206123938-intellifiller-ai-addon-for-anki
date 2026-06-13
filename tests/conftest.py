@@ -92,6 +92,8 @@ class DummyQtClass(metaclass=DummyQtMetaclass):
     class StandardButton:
         Ok = 1
         Cancel = 2
+        Save = 0x100
+        Discard = 0x200
     class ButtonRole:
         ApplyRole = 3
     class EchoMode:
