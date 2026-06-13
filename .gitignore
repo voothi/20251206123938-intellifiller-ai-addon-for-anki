@@ -97,3 +97,10 @@ vendor
 __pycache__
 
 user_files
+
+.kilocode/
+.agent/
+.qoder/
+openspec/
+
+
