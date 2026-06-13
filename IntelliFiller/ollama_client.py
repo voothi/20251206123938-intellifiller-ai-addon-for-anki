@@ -6,20 +6,25 @@ class OllamaClient:
         if not self.api_url:
             self.api_url = "http://localhost:11434/api/generate"
             
-        # Check if it's an OpenAI-compatible endpoint
-        self.is_chat = ("/v1" in self.api_url or "/chat" in self.api_url)
-        
-        if self.is_chat:
-            # If it's a base v1 or chat URL, append /chat/completions
-            if not (self.api_url.endswith("/chat/completions") or self.api_url.endswith("/completions")):
-                self.api_url = self.api_url.rstrip("/") + "/chat/completions"
+        # Force Ollama Cloud to use OpenAI-compatible chat completions
+        if "ollama.com" in self.api_url:
+            self.is_chat = True
+            self.api_url = "https://ollama.com/v1/chat/completions"
         else:
-            # Native Ollama endpoint
-            if "/" not in self.api_url.replace("http://", "").replace("https://", ""):
-                # No path components, append default endpoint
-                self.api_url = self.api_url.rstrip("/") + "/api/generate"
-            elif not self.api_url.endswith("/generate"):
-                self.api_url = self.api_url.rstrip("/") + "/generate"
+            # Check if it's an OpenAI-compatible endpoint
+            self.is_chat = ("/v1" in self.api_url or "/chat" in self.api_url)
+            
+            if self.is_chat:
+                # If it's a base v1 or chat URL, append /chat/completions
+                if not (self.api_url.endswith("/chat/completions") or self.api_url.endswith("/completions")):
+                    self.api_url = self.api_url.rstrip("/") + "/chat/completions"
+            else:
+                # Native Ollama endpoint
+                if "/" not in self.api_url.replace("http://", "").replace("https://", ""):
+                    # No path components, append default endpoint
+                    self.api_url = self.api_url.rstrip("/") + "/api/generate"
+                elif not self.api_url.endswith("/generate"):
+                    self.api_url = self.api_url.rstrip("/") + "/generate"
             
         self.api_key = api_key
         self.model = model

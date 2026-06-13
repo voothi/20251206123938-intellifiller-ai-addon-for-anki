@@ -120,4 +120,31 @@ def test_send_prompt_to_llm_ollama_cloud(mocker):
     assert kwargs["json"]["messages"][0]["content"] == "Hello cloud"
     assert kwargs["headers"]["Authorization"] == "Bearer secret-cloud-key"
 
+def test_ollama_client_cloud_domain_override(mocker):
+    mock_post = mocker.patch("httpx.post")
+    mock_response = mocker.Mock()
+    mock_response.json.return_value = {
+        "choices": [
+            {
+                "message": {
+                    "content": "Normalized response"
+                }
+            }
+        ]
+    }
+    mock_post.return_value = mock_response
+
+    client = OllamaClient(
+        api_url="https://ollama.com/api/generate",
+        api_key="my-key",
+        model="cloud-model"
+    )
+    res = client.generate_content("Hello")
+    assert res == "Normalized response"
+    
+    mock_post.assert_called_once()
+    args, kwargs = mock_post.call_args
+    assert args[0] == "https://ollama.com/v1/chat/completions"
+    assert kwargs["json"]["messages"][0]["content"] == "Hello"
+
 
