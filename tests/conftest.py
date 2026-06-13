@@ -18,9 +18,15 @@ class MockMw:
     addonManager = AddonManager()
 aqt.mw = MockMw()
 
-class DummyQtClass:
+class DummyQtMetaclass(type):
+    def __getattr__(cls, name):
+        if name.startswith("__"):
+            return super().__getattr__(name)
+        return cls
+
+class DummyQtClass(metaclass=DummyQtMetaclass):
     def __init__(self, *args, **kwargs):
-        pass
+        self._val = None
     def __call__(self, *args, **kwargs):
         return self
     def __getattr__(self, name):
@@ -29,6 +35,58 @@ class DummyQtClass:
         pass
     def emit(self, *args, **kwargs):
         pass
+    def setText(self, val):
+        self._val = val
+    def text(self):
+        return self._val if self._val is not None else ""
+    def setValue(self, val):
+        self._val = val
+    def value(self):
+        return self._val if self._val is not None else 0
+    def setChecked(self, val):
+        self._val = val
+    def isChecked(self):
+        return bool(self._val)
+    def setCurrentText(self, val):
+        self._val = val
+    def currentText(self):
+        return self._val if self._val is not None else ""
+    def setCurrentData(self, val):
+        self._val = val
+    def currentData(self):
+        return self._val if self._val is not None else ""
+    def findData(self, val):
+        return 0
+    def findText(self, val):
+        return 0
+    def currentRow(self):
+        return -1
+    def toPlainText(self):
+        return self._val if self._val is not None else ""
+    def setPlainText(self, val):
+        self._val = val
+    def __ge__(self, other):
+        return True
+    def __gt__(self, other):
+        return True
+    def __le__(self, other):
+        return True
+    def __lt__(self, other):
+        return True
+    def __eq__(self, other):
+        return True
+    def __ne__(self, other):
+        return False
+    def __bool__(self):
+        return True
+    def __int__(self):
+        return 0
+    def __str__(self):
+        return ""
+    def __len__(self):
+        return 0
+    def __iter__(self):
+        return iter([])
     class DialogCode:
         Accepted = 1
     class StandardButton:
