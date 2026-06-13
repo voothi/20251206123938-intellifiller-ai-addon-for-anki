@@ -11,27 +11,23 @@ import os
 
 
 class ConnectionTestWorker(QThread):
-    finished_with_result = pyqtSignal(bool, str)
+    success = pyqtSignal(str)
+    failure = pyqtSignal(str)
 
-    def __init__(self, config, timeout=15.0):
+    def __init__(self, config, timeout):
         super().__init__()
         self.config = config
         self.timeout = timeout
 
     def run(self):
-        ok, message = test_connection(self.config, timeout=self.timeout)
-        self.finished_with_result.emit(ok, message)
-
-
-
-
-from .settings_window_ui import Ui_SettingsWindow
-from .config_manager import ConfigManager
-from .backup_manager import BackupManager
-import json
-import os
-
-
+        try:
+            ok, message = test_connection(self.config, timeout=self.timeout)
+            if ok:
+                self.success.emit(message)
+            else:
+                self.failure.emit(message)
+        except Exception as e:
+            self.failure.emit(str(e))
 
 
 class SettingsWindow(QDialog, Ui_SettingsWindow):
@@ -85,7 +81,12 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
         
         self.batchEnabled.toggled.connect(self.update_batch_ui_state)
         self.testConnectionButton.clicked.connect(self.trigger_connection_test)
-        self.test_connection_worker = None
+        self._connection_test_worker = None
+        self._set_test_button_state(True)
+
+    def _set_test_button_state(self, enabled):
+        self.testConnectionButton.setEnabled(enabled)
+        self.testConnectionButton.setText("Test Connection" if enabled else "Testing...")
 
     def update_batch_ui_state(self, checked):
         self.batchSize.setEnabled(checked)
@@ -592,31 +593,87 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
             showInfo(f"Backup failed: {str(e)}")
 
     def trigger_connection_test(self):
-        if self.test_connection_worker and self.test_connection_worker.isRunning():
+        if self._connection_test_worker and self._connection_test_worker.isRunning():
             return
-        # Build a config snapshot from the current UI state
-        full_config = self.get_current_config()
-        settings_only = ConfigManager.load_settings()
-        encryption_key = full_config.get("encryptionKey", settings_only.get("encryptionKey", ""))
-        try:
-            credentials = ConfigManager.load_credentials(key=encryption_key)
-        except Exception:
-            credentials = {}
-        config = {**settings_only, **credentials, **full_config}
-        timeout = float(config.get("netTimeout", 15.0))
+        # Build a focused config snapshot from the current UI state
+        config = self._build_test_config()
+        validation_error = self._validate_test_config(config)
+        if validation_error:
+            showWarning(validation_error)
+            return
 
-        self.testConnectionButton.setEnabled(False)
-        self.test_connection_worker = ConnectionTestWorker(config, timeout=timeout)
-        self.test_connection_worker.finished_with_result.connect(self.on_connection_test_finished)
-        self.test_connection_worker.start()
+        self._set_test_button_state(False)
+        timeout = float(self.netTimeout.value())
 
-    def on_connection_test_finished(self, ok, message):
-        self.testConnectionButton.setEnabled(True)
-        self.test_connection_worker = None
-        if ok:
-            showInfo(f"Connection test succeeded.\n\n{message}")
+        self._connection_test_worker = ConnectionTestWorker(config, timeout)
+        self._connection_test_worker.success.connect(self._on_connection_test_success)
+        self._connection_test_worker.failure.connect(self._on_connection_test_failure)
+        self._connection_test_worker.finished.connect(self._on_connection_test_finished)
+        self._connection_test_worker.start()
+
+    def _on_connection_test_success(self, message):
+        showInfo(f"Connection test succeeded.\n\n{message}")
+
+    def _on_connection_test_failure(self, error_message):
+        showWarning(f"Connection test failed.\n\n{error_message}")
+
+    def _on_connection_test_finished(self):
+        self._set_test_button_state(True)
+        self._connection_test_worker = None
+
+    def _build_test_config(self):
+        return {
+            "selectedApi": self.selectedApi.currentData(),
+            "apiKey": self.apiKey.text().strip(),
+            "openaiModel": self.openaiModel.text().strip(),
+            "anthropicKey": self.anthropicKey.text().strip(),
+            "anthropicModel": self.anthropicModel.text().strip(),
+            "geminiKey": self.geminiKey.text().strip(),
+            "geminiModel": self.geminiModel.text().strip(),
+            "openrouterKey": self.openrouterKey.text().strip(),
+            "openrouterModel": self.openrouterModel.text().strip(),
+            "customUrl": self.customUrl.text().strip(),
+            "customKey": self.customKey.text().strip(),
+            "customModel": self.customModel.text().strip(),
+            "ollamaUrl": self.ollamaUrl.text().strip(),
+            "ollamaModel": self.ollamaModel.text().strip(),
+            "ollamaCloudUrl": self.ollamaCloudUrl.text().strip(),
+            "ollamaCloudKey": self.ollamaCloudKey.text().strip(),
+            "ollamaCloudModel": self.ollamaCloudModel.text().strip(),
+            "netTimeout": float(self.netTimeout.value()),
+        }
+
+    def _validate_test_config(self, config):
+        selected = config.get("selectedApi", "openai")
+
+        if selected == "openai":
+            if not config.get("apiKey"):
+                return "OpenAI API key is required to test the connection."
+        elif selected == "anthropic":
+            if not config.get("anthropicKey"):
+                return "Anthropic API key is required to test the connection."
+        elif selected == "gemini":
+            if not config.get("geminiKey"):
+                return "Google Gemini API key is required to test the connection."
+        elif selected == "openrouter":
+            if not config.get("openrouterKey"):
+                return "OpenRouter API key is required to test the connection."
+        elif selected == "custom":
+            if not config.get("customUrl"):
+                return "OpenAI compatible base URL is required to test the connection."
+        elif selected == "ollama":
+            if not config.get("ollamaUrl"):
+                return "Ollama URL is required to test the connection."
+        elif selected == "ollama_cloud":
+            if not config.get("ollamaCloudKey"):
+                return "Ollama Cloud API key is required to test the connection."
         else:
-            showWarning(f"Connection test failed.\n\n{message}")
+            return "Unknown API selection. Please choose a provider and try again."
+        return None
+
+    def on_test_connection_clicked(self):
+        # Backwards-compat alias for any external callers.
+        self.trigger_connection_test()
 
     def keyPressEvent(self, event):
         if event.key() == Qt.Key.Key_S and (event.modifiers() & Qt.KeyboardModifier.ControlModifier):
