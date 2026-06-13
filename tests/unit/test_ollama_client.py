@@ -1,21 +1,19 @@
 import pytest
-import httpx
+import json
+import io
+from urllib.error import HTTPError
 from IntelliFiller.config_manager import ConfigManager
 from IntelliFiller import data_request
 from IntelliFiller.ollama_client import OllamaClient
 
 
 def test_ollama_client_native(mocker):
-    # NOTE: This test verifies the client-internal HTTP request shape (URL, payload, headers).
-    # It mocks httpx.post directly. When the client is migrated to urllib (per the
-    # 20260613114219-port-fork-improvements spec), update this mock target to
-    # urllib.request.urlopen. The data_request-level tests in this file are
-    # transport-agnostic and do not need to change.
-    mock_post = mocker.patch("httpx.post")
+    mock_urlopen = mocker.patch("urllib.request.urlopen")
 
-    mock_response = mocker.Mock()
-    mock_response.json.return_value = {"response": "Local native response"}
-    mock_post.return_value = mock_response
+    mock_response = mocker.MagicMock()
+    mock_response.read.return_value = json.dumps({"response": "Local native response"}).encode("utf-8")
+    mock_response.__enter__.return_value = mock_response
+    mock_urlopen.return_value = mock_response
 
     client = OllamaClient(
         api_url="http://localhost:11434/api/generate",
@@ -24,21 +22,25 @@ def test_ollama_client_native(mocker):
     res = client.generate_content("Translate: Hello")
 
     assert res == "Local native response"
-    mock_post.assert_called_once()
-    args, kwargs = mock_post.call_args
-    assert args[0] == "http://localhost:11434/api/generate"
-    assert kwargs["json"]["model"] == "llama3-test"
-    assert kwargs["json"]["prompt"] == "Translate: Hello"
-    assert kwargs["json"]["stream"] is False
-    assert "Authorization" not in kwargs["headers"]
+    mock_urlopen.assert_called_once()
+    args, kwargs = mock_urlopen.call_args
+    req = args[0]
+    assert req.full_url == "http://localhost:11434/api/generate"
+    
+    data = json.loads(req.data.decode("utf-8"))
+    assert data["model"] == "llama3-test"
+    assert data["prompt"] == "Translate: Hello"
+    assert data["stream"] is False
+    
+    req_headers = {k.lower(): v for k, v in req.header_items()}
+    assert "authorization" not in req_headers
 
 
 def test_ollama_client_chat_completions(mocker):
-    # See migration note in test_ollama_client_native.
-    mock_post = mocker.patch("httpx.post")
+    mock_urlopen = mocker.patch("urllib.request.urlopen")
 
-    mock_response = mocker.Mock()
-    mock_response.json.return_value = {
+    mock_response = mocker.MagicMock()
+    mock_response.read.return_value = json.dumps({
         "choices": [
             {
                 "message": {
@@ -46,8 +48,9 @@ def test_ollama_client_chat_completions(mocker):
                 }
             }
         ]
-    }
-    mock_post.return_value = mock_response
+    }).encode("utf-8")
+    mock_response.__enter__.return_value = mock_response
+    mock_urlopen.return_value = mock_response
 
     client = OllamaClient(
         api_url="http://localhost:11434/v1/chat/completions",
@@ -56,17 +59,20 @@ def test_ollama_client_chat_completions(mocker):
     res = client.generate_content("Translate: Hello")
 
     assert res == "Chat completions response"
-    mock_post.assert_called_once()
-    args, kwargs = mock_post.call_args
-    assert args[0] == "http://localhost:11434/v1/chat/completions"
-    assert kwargs["json"]["model"] == "llama3-test"
-    assert kwargs["json"]["messages"][0]["content"] == "Translate: Hello"
-    assert "Authorization" not in kwargs["headers"]
+    mock_urlopen.assert_called_once()
+    args, kwargs = mock_urlopen.call_args
+    req = args[0]
+    assert req.full_url == "http://localhost:11434/v1/chat/completions"
+    
+    data = json.loads(req.data.decode("utf-8"))
+    assert data["model"] == "llama3-test"
+    assert data["messages"][0]["content"] == "Translate: Hello"
+    
+    req_headers = {k.lower(): v for k, v in req.header_items()}
+    assert "authorization" not in req_headers
 
 
 def test_send_prompt_to_llm_ollama_local(mocker):
-    # Mock the OllamaClient class so this test is transport-agnostic. It will
-    # keep working whether the client uses httpx, urllib, or anything else.
     ConfigManager.save_settings({
         "selectedApi": "ollama",
         "ollamaUrl": "http://localhost:11434/api/generate",
@@ -88,7 +94,6 @@ def test_send_prompt_to_llm_ollama_local(mocker):
 
 
 def test_send_prompt_to_llm_ollama_cloud(mocker):
-    # Transport-agnostic: mock the OllamaClient class, not httpx.
     ConfigManager.save_settings({
         "selectedApi": "ollama_cloud",
         "ollamaCloudUrl": "https://ollama.com/v1",
@@ -118,10 +123,10 @@ def test_send_prompt_to_llm_ollama_cloud(mocker):
 
 
 def test_ollama_client_cloud_domain_override(mocker):
-    # See migration note in test_ollama_client_native.
-    mock_post = mocker.patch("httpx.post")
-    mock_response = mocker.Mock()
-    mock_response.json.return_value = {
+    mock_urlopen = mocker.patch("urllib.request.urlopen")
+
+    mock_response = mocker.MagicMock()
+    mock_response.read.return_value = json.dumps({
         "choices": [
             {
                 "message": {
@@ -129,8 +134,9 @@ def test_ollama_client_cloud_domain_override(mocker):
                 }
             }
         ]
-    }
-    mock_post.return_value = mock_response
+    }).encode("utf-8")
+    mock_response.__enter__.return_value = mock_response
+    mock_urlopen.return_value = mock_response
 
     client = OllamaClient(
         api_url="https://ollama.com/api/generate",
@@ -140,10 +146,13 @@ def test_ollama_client_cloud_domain_override(mocker):
     res = client.generate_content("Hello")
     assert res == "Normalized response"
 
-    mock_post.assert_called_once()
-    args, kwargs = mock_post.call_args
-    assert args[0] == "https://ollama.com/v1/chat/completions"
-    assert kwargs["json"]["messages"][0]["content"] == "Hello"
+    mock_urlopen.assert_called_once()
+    args, kwargs = mock_urlopen.call_args
+    req = args[0]
+    assert req.full_url == "https://ollama.com/v1/chat/completions"
+    
+    data = json.loads(req.data.decode("utf-8"))
+    assert data["messages"][0]["content"] == "Hello"
 
 
 def test_ollama_client_default_url_no_path():
@@ -157,11 +166,12 @@ def test_ollama_client_v1_base_normalized():
 
 
 def test_ollama_client_unexpected_response_raises(mocker):
-    # See migration note in test_ollama_client_native.
-    mock_post = mocker.patch("httpx.post")
-    mock_response = mocker.Mock()
-    mock_response.json.return_value = {"unexpected": "shape"}
-    mock_post.return_value = mock_response
+    mock_urlopen = mocker.patch("urllib.request.urlopen")
+
+    mock_response = mocker.MagicMock()
+    mock_response.read.return_value = json.dumps({"unexpected": "shape"}).encode("utf-8")
+    mock_response.__enter__.return_value = mock_response
+    mock_urlopen.return_value = mock_response
 
     client = OllamaClient(api_url="http://localhost:11434/api/generate", model="llama3")
     with pytest.raises(Exception, match="Ollama"):
@@ -200,15 +210,16 @@ def test_ollama_client_empty_url_falls_back_to_default():
 
 
 def test_ollama_client_http_error_raises(mocker):
-    # See migration note in test_ollama_client_native.
-    mocker.patch("httpx.post", side_effect=httpx.ConnectError("conn refused"))
+    fp = io.BytesIO(b"Connection error details")
+    err = HTTPError("http://localhost:11434/api/generate", 500, "Internal Server Error", {}, fp)
+    mocker.patch("urllib.request.urlopen", side_effect=err)
+
     client = OllamaClient(api_url="http://localhost:11434/api/generate", model="llama3")
     with pytest.raises(Exception, match="Ollama"):
         client.generate_content("hi")
 
 
 def test_send_prompt_to_llm_ollama_cloud_without_key(mocker):
-    # Transport-agnostic: mock the OllamaClient class.
     ConfigManager.save_settings({
         "selectedApi": "ollama_cloud",
         "ollamaCloudUrl": "https://ollama.com/v1",
@@ -225,5 +236,5 @@ def test_send_prompt_to_llm_ollama_cloud_without_key(mocker):
 
     mock_cls.assert_called_once()
     kwargs = mock_cls.call_args.kwargs
-    # No key stored -> OllamaClient receives None for api_key
-    assert kwargs["api_key"] is None
+    # No key stored -> OllamaClient receives "" for api_key
+    assert kwargs["api_key"] == ""
