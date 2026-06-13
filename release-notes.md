@@ -3,6 +3,7 @@
 ## Table of Contents
 
 - [v2.24.0](#release-notes-v2240)
+- [Transition Instructions: Upgrading to v2.24.0 (Windows)](#transition-instructions-upgrading-to-v2240-windows)
 - [v2.22.12](#release-notes-v22212)
 - [v2.22.2](#release-notes-v2222)
 - [v2.20.2](#release-notes-v2202)
@@ -23,6 +24,9 @@
 ---
 
 ## Release Notes v2.24.0
+
+> [!IMPORTANT]
+> **Upgrading from v2.22.12 (or older) on Windows?** Please follow the preliminary [Transition Instructions](#transition-instructions-upgrading-to-v2240-windows) to avoid file lock errors during installation.
 
 ### 🚀 New Features
 
@@ -48,6 +52,31 @@
     *   Added a root-level delegator [scripts/make_release.py](file:///u:/voothi/20251206123938-intellifiller-ai-addon-for-anki/scripts/make_release.py) that cleans vendor folders, executes the test suite, and compiles the `.ankiaddon` package dynamically.
 
 **Full Changelog**: https://github.com/voothi/20251206123938-intellifiller-ai-addon-for-anki/compare/v2.22.12...v2.24.0
+
+[Return to Top](#intellifiller-release-notes)
+
+## Transition Instructions: Upgrading to v2.24.0 (Windows)
+
+If you are upgrading from **v2.22.12 (or older)** to **v2.24.0** on Windows, you will likely encounter a `PermissionError: [WinError 5] Access is denied` on `_Salsa20.pyd` because the old version imported `pyzipper` at startup, locking the binary files.
+
+To complete the upgrade, you must perform these preliminary steps to release the locks:
+
+### Method 1: Via Anki's UI (Recommended)
+1. In Anki, go to **Tools** -> **Add-ons**.
+2. Select **IntelliFiller** and click **Toggle Enabled** (disabling the addon).
+3. **Restart Anki** (this starts Anki without loading the addon, releasing all file locks).
+4. Go to **Tools** -> **Add-ons**, click **Install from file...**, and select the new `v2.24.0` `.ankiaddon` file.
+5. Select **IntelliFiller**, click **Toggle Enabled** (re-enabling it), and **Restart Anki** once more.
+
+### Method 2: Manual Update
+1. **Close Anki** completely.
+2. Open Windows Explorer or PowerShell and navigate to your Anki addons directory:
+   `C:\Users\voothi\AppData\Roaming\Anki2\addons21\`
+3. **Delete** the entire `1149226090` folder.
+4. **Start Anki** and install the new `v2.24.0` `.ankiaddon` file.
+
+> [!NOTE]
+> Once you have upgraded to **v2.24.0**, all future updates (e.g. to `v2.24.1`+) will update automatically and seamlessly without needing these steps because the new version does not load native binaries on startup.
 
 [Return to Top](#intellifiller-release-notes)
 

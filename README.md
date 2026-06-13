@@ -8,6 +8,9 @@ This is an enhanced version of the [IntelliFiller](https://github.com/ganqqwerty
 
 For a detailed history of changes, please view the [release-notes.md](release-notes.md) file or the [Releases Page](https://github.com/voothi/20251206123938-intellifiller-ai-addon-for-anki/releases).
 
+> [!IMPORTANT]
+> **Upgrading from v2.22.12 (or older) on Windows?** Please follow the preliminary [Transition Instructions](#transition-instructions-upgrading-to-v2240-windows) to avoid file lock errors during installation.
+
 > **Attribution & Source**
 >
 > This add-on is a modified fork of **IntelliFiller** by ganqqwerty.
@@ -33,6 +36,7 @@ For a detailed history of changes, please view the [release-notes.md](release-no
 - [Prerequisites](#prerequisites)
 - [Installation](#installation)
 - [Updating](#updating)
+- [Transition Instructions: Upgrading to v2.24.0 (Windows)](#transition-instructions-upgrading-to-v2240-windows)
 - [Advanced / Developer Installation](#advanced--developer-installation)
 - [Build Instructions](#build-instructions)
   - [For Local Development (Windows 11 / Current OS)](#for-local-development-windows-11--current-os)
@@ -142,6 +146,31 @@ If you tried to update without disabling and received an error (and the addon no
 The addon works around Windows file locking by hooking into Anki's update process. Instead of deleting the old folder, it **renames** it to `_IntelliFiller_trash_TIMESTAMP` and **immediately deletes** `__init__.py` and `manifest.json` from it. This prevents Anki from loading the trash folder on startup while ensuring the locked binary files can be cleaned up later.
 
 Your persistent settings and prompts (in `user_files`) will be preserved.
+
+[Return to Top](#table-of-contents)
+
+## Transition Instructions: Upgrading to v2.24.0 (Windows)
+
+If you are upgrading from **v2.22.12 (or older)** to **v2.24.0** on Windows, you will likely encounter a `PermissionError: [WinError 5] Access is denied` on `_Salsa20.pyd` because the old version imported `pyzipper` at startup, locking the binary files.
+
+To complete the upgrade, you must perform these preliminary steps to release the locks:
+
+### Method 1: Via Anki's UI (Recommended)
+1. In Anki, go to **Tools** -> **Add-ons**.
+2. Select **IntelliFiller** and click **Toggle Enabled** (disabling the addon).
+3. **Restart Anki** (this starts Anki without loading the addon, releasing all file locks).
+4. Go to **Tools** -> **Add-ons**, click **Install from file...**, and select the new `v2.24.0` `.ankiaddon` file.
+5. Select **IntelliFiller**, click **Toggle Enabled** (re-enabling it), and **Restart Anki** once more.
+
+### Method 2: Manual Update
+1. **Close Anki** completely.
+2. Open Windows Explorer or PowerShell and navigate to your Anki addons directory:
+   `C:\Users\voothi\AppData\Roaming\Anki2\addons21\`
+3. **Delete** the entire `1149226090` folder.
+4. **Start Anki** and install the new `v2.24.0` `.ankiaddon` file.
+
+> [!NOTE]
+> Once you have upgraded to **v2.24.0**, all future updates (e.g. to `v2.24.1`+) will update automatically and seamlessly without needing these steps because the new version does not load native binaries on startup.
 
 [Return to Top](#table-of-contents)
 
