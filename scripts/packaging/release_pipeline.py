@@ -46,36 +46,35 @@ def run_pipeline(output_dir: str) -> int:
                 return 1
 
     script_dir = Path(__file__).resolve().parent
-    setup_vendor_script = script_dir / "setup_local_vendor.py"
-    if not setup_vendor_script.exists():
-        print(f"[ERROR] setup_local_vendor.py not found at {setup_vendor_script}")
-        return 1
-
-    print("[INFO] Recreating vendor directory...")
-    rc = subprocess.call([sys.executable, str(setup_vendor_script)])
-    if rc != 0:
-        print(f"[ERROR] Recreating vendor directory failed with error code {rc}")
-        return rc
-
-    print("[INFO] Running test suite...")
     project_root = script_dir.parent.parent
-    rc = subprocess.call([sys.executable, "-m", "pytest"], cwd=str(project_root))
-    if rc != 0:
-        print(f"[ERROR] Tests failed with error code {rc}. Aborting release creation.")
-        return rc
 
-    package_script = script_dir / "create_addon_zip.py"
-    if not package_script.exists():
-        print(f"[ERROR] create_addon_zip.py not found at {package_script}")
-        return 1
+    config = load_config()
+    steps_str = config.get("pipeline", "steps", fallback="setup_local_vendor.py\npytest\ncreate_addon_zip.py")
+    steps = [s.strip() for s in steps_str.split("\n") if s.strip()]
 
-    cmd = [sys.executable, str(package_script), "--out", str(out_path)]
-    print(f"[INFO] Running: {' '.join(cmd)}")
-    rc = subprocess.call(cmd)
-    if rc != 0:
-        print()
-        print(f"[ERROR] Packaging failed with error code {rc}")
-        return rc
+    for step in steps:
+        if step == "pytest":
+            print("[INFO] Running test suite...")
+            rc = subprocess.call([sys.executable, "-m", "pytest"], cwd=str(project_root))
+            if rc != 0:
+                print(f"[ERROR] Tests failed with error code {rc}. Aborting release creation.")
+                return rc
+        else:
+            script_path = script_dir / step
+            if not script_path.exists():
+                print(f"[ERROR] Step script not found at {script_path}")
+                return 1
+
+            if step == "create_addon_zip.py":
+                cmd = [sys.executable, str(script_path), "--out", str(out_path)]
+            else:
+                cmd = [sys.executable, str(script_path)]
+
+            print(f"[INFO] Executing step: {step}...")
+            rc = subprocess.call(cmd)
+            if rc != 0:
+                print(f"[ERROR] Step '{step}' failed with error code {rc}. Aborting release creation.")
+                return rc
 
     print()
     print("[SUCCESS] Release pipeline complete.")
