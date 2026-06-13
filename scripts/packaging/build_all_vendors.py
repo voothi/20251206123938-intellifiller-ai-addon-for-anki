@@ -1,24 +1,35 @@
 import subprocess
 import shutil
 import os
-import platform
 import sys
+import configparser
+from pathlib import Path
+
+
+def load_config():
+    config = configparser.ConfigParser()
+    config_path = Path(__file__).resolve().parent / "config.ini"
+    config.read(config_path, encoding="utf-8")
+    return config
+
 
 def build_all_platforms():
+    config = load_config()
+    
     # Get path to vendor directory
-    vendor_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'IntelliFiller', 'vendor')
+    script_dir = Path(__file__).resolve().parent
+    project_root = script_dir.parent.parent
+    vendor_dir = os.path.join(project_root, 'IntelliFiller', 'vendor')
     
     # Clean/create vendor directory
     if os.path.exists(vendor_dir):
         shutil.rmtree(vendor_dir)
     os.makedirs(vendor_dir)
 
-    platforms = [
-        ('macosx_11_0_arm64', 'darwin_arm64'),
-        ('macosx_10_15_x86_64', 'darwin_x86_64'),
-        ('win_amd64', 'win32'),
-        ('manylinux2014_x86_64', 'linux')
-    ]
+    platforms = config.items("platforms")
+    
+    packages_str = config.get("vendor", "packages", fallback="")
+    packages = [p.strip() for p in packages_str.split("\n") if p.strip()]
     
     for platform_tag, dir_name in platforms:
         platform_dir = os.path.join(vendor_dir, dir_name)
@@ -31,12 +42,8 @@ def build_all_platforms():
             '--platform', platform_tag,
             '--target', platform_dir,
             '--only-binary=:all:',
-            'openai>=1.0.0',
-            'httpx>=0.24.0',
-            'typing_extensions>=4.7.0',
-            'pydantic',
-            'pyzipper'
-        ])
+        ] + packages)
+
 
 if __name__ == '__main__':
     build_all_platforms()

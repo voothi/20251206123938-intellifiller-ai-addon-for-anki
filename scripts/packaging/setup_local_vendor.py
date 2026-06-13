@@ -4,11 +4,26 @@ import os
 import platform
 import sys
 import argparse
+import configparser
+from pathlib import Path
 
 
-def setup_vendor(python_version="3.13"):
+def load_config():
+    config = configparser.ConfigParser()
+    config_path = Path(__file__).resolve().parent / "config.ini"
+    config.read(config_path, encoding="utf-8")
+    return config
+
+
+def setup_vendor(python_version=None):
+    config = load_config()
+    if python_version is None:
+        python_version = config.get("release", "python_version", fallback="3.13")
+
     # Create/clean vendor directory
-    vendor_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'IntelliFiller', 'vendor')
+    script_dir = Path(__file__).resolve().parent
+    project_root = script_dir.parent.parent
+    vendor_dir = os.path.join(project_root, 'IntelliFiller', 'vendor')
     if os.path.exists(vendor_dir):
         shutil.rmtree(vendor_dir)
     os.makedirs(vendor_dir)
@@ -38,13 +53,10 @@ def setup_vendor(python_version="3.13"):
             '--only-binary=:all:',
         ])
 
-    # Add the packages.
-    # Note: openai and httpx are intentionally removed; the addon uses urllib.request now.
-    pip_args.extend([
-        'typing_extensions>=4.7.0',
-        'pydantic',
-        'pyzipper'
-    ])
+    # Add the packages from config
+    packages_str = config.get("vendor", "packages", fallback="")
+    packages = [p.strip() for p in packages_str.split("\n") if p.strip()]
+    pip_args.extend(packages)
 
     try:
         subprocess.check_call(pip_args)
@@ -53,8 +65,7 @@ def setup_vendor(python_version="3.13"):
         print("Attempting fallback installation without platform specification...")
         fallback_args = [
             sys.executable, '-m', 'pip', 'install', '--no-user', '--target', vendor_dir,
-            'typing_extensions>=4.7.0', 'pydantic', 'pyzipper',
-        ]
+        ] + packages
         subprocess.check_call(fallback_args)
 
     # Remove unnecessary files to keep vendor directory slim
@@ -68,8 +79,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Vendor third-party packages for IntelliFiller.")
     parser.add_argument(
         "--python-version",
-        default="3.13",
-        help="Target Python version for Linux wheel selection (default: 3.13).",
+        default=None,
+        help="Target Python version for Linux wheel selection.",
     )
     args = parser.parse_args()
     setup_vendor(python_version=args.python_version)
