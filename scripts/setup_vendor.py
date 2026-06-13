@@ -51,10 +51,9 @@ def setup_vendor(python_version="3.13"):
     except subprocess.CalledProcessError as e:
         print(f"Error installing packages: {e}")
         print("Attempting fallback installation without platform specification...")
-        # Fallback to simple install without platform specification
         fallback_args = [
             sys.executable, '-m', 'pip', 'install', '--no-user', '--target', vendor_dir,
-            'pyzipper',
+            'typing_extensions>=4.7.0', 'pydantic', 'pyzipper',
         ]
         subprocess.check_call(fallback_args)
 

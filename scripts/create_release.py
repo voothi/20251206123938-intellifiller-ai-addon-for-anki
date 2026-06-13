@@ -33,8 +33,15 @@ def run_release(output_dir: str) -> int:
         try:
             out_path.mkdir(parents=True, exist_ok=True)
         except OSError as e:
-            print(f"[ERROR] Could not create output directory: {e}")
-            return 1
+            print(f"[WARNING] Could not create output directory '{output_dir}': {e}")
+            fallback_dir = Path(__file__).resolve().parent.parent / "dist"
+            print(f"[INFO] Falling back to local directory: {fallback_dir}")
+            try:
+                fallback_dir.mkdir(parents=True, exist_ok=True)
+                out_path = fallback_dir
+            except OSError as ex:
+                print(f"[ERROR] Could not create fallback directory: {ex}")
+                return 1
 
     script_dir = Path(__file__).resolve().parent
     package_script = script_dir / "package_addon.py"
