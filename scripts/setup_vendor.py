@@ -3,8 +3,10 @@ import shutil
 import os
 import platform
 import sys
+import argparse
 
-def setup_vendor():
+
+def setup_vendor(python_version="3.13"):
     # Create/clean vendor directory
     vendor_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'IntelliFiller', 'vendor')
     if os.path.exists(vendor_dir):
@@ -13,7 +15,7 @@ def setup_vendor():
 
     # Determine platform-specific pip arguments
     pip_args = [sys.executable, '-m', 'pip', 'install', '--no-user', '--target', vendor_dir]
-    
+
     system = platform.system().lower()
     machine = platform.machine().lower()
 
@@ -29,13 +31,16 @@ def setup_vendor():
         pip_args.extend(['--platform', 'win_amd64'])
         pip_args.append('--only-binary=:all:')
     elif system == 'linux':
-        pip_args.extend(['--platform', 'manylinux2014_x86_64'])
-        pip_args.append('--only-binary=:all:')
+        # Linux wheel targeting uses the requested python version
+        pip_args.extend([
+            '--platform', 'manylinux2014_x86_64',
+            '--python-version', python_version,
+            '--only-binary=:all:',
+        ])
 
-    # Add the packages
+    # Add the packages.
+    # Note: openai and httpx are intentionally removed; the addon uses urllib.request now.
     pip_args.extend([
-        'openai>=1.0.0',
-        'httpx>=0.24.0',
         'typing_extensions>=4.7.0',
         'pydantic',
         'pyzipper'
@@ -47,7 +52,10 @@ def setup_vendor():
         print(f"Error installing packages: {e}")
         print("Attempting fallback installation without platform specification...")
         # Fallback to simple install without platform specification
-        fallback_args = [sys.executable, '-m', 'pip', 'install', '--no-user', '--target', vendor_dir, 'openai>=1.0.0', 'httpx>=0.24.0', 'pyzipper']
+        fallback_args = [
+            sys.executable, '-m', 'pip', 'install', '--no-user', '--target', vendor_dir,
+            'pyzipper',
+        ]
         subprocess.check_call(fallback_args)
 
     # Remove unnecessary files to keep vendor directory slim
@@ -56,5 +64,13 @@ def setup_vendor():
             if dir_name in {'tests', 'test', '__pycache__', '*.dist-info'}:
                 shutil.rmtree(os.path.join(root, dir_name))
 
+
 if __name__ == '__main__':
-    setup_vendor()
+    parser = argparse.ArgumentParser(description="Vendor third-party packages for IntelliFiller.")
+    parser.add_argument(
+        "--python-version",
+        default="3.13",
+        help="Target Python version for Linux wheel selection (default: 3.13).",
+    )
+    args = parser.parse_args()
+    setup_vendor(python_version=args.python_version)

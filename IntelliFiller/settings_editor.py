@@ -1,6 +1,28 @@
 from aqt import mw
 from aqt.qt import *
-from aqt.utils import showInfo
+from aqt.utils import showInfo, showWarning
+
+from .settings_window_ui import Ui_SettingsWindow
+from .config_manager import ConfigManager
+from .backup_manager import BackupManager
+from .data_request import test_connection
+import json
+import os
+
+
+class ConnectionTestWorker(QThread):
+    finished_with_result = pyqtSignal(bool, str)
+
+    def __init__(self, config, timeout=15.0):
+        super().__init__()
+        self.config = config
+        self.timeout = timeout
+
+    def run(self):
+        ok, message = test_connection(self.config, timeout=self.timeout)
+        self.finished_with_result.emit(ok, message)
+
+
 
 
 from .settings_window_ui import Ui_SettingsWindow
@@ -62,6 +84,8 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
         self.config_saved = False
         
         self.batchEnabled.toggled.connect(self.update_batch_ui_state)
+        self.testConnectionButton.clicked.connect(self.trigger_connection_test)
+        self.test_connection_worker = None
 
     def update_batch_ui_state(self, checked):
         self.batchSize.setEnabled(checked)
@@ -558,7 +582,7 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
         temp_config = self.get_current_config()
         # Persist to disk so BackupManager sees them
         ConfigManager.save_settings(temp_config)
-        
+
         addon_dir = os.path.dirname(os.path.abspath(__file__))
         bm = BackupManager(ConfigManager, addon_dir)
         try:
@@ -566,6 +590,33 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
             showInfo("Backup completed successfully.\n\nCheck your configured local/external folders.")
         except Exception as e:
             showInfo(f"Backup failed: {str(e)}")
+
+    def trigger_connection_test(self):
+        if self.test_connection_worker and self.test_connection_worker.isRunning():
+            return
+        # Build a config snapshot from the current UI state
+        full_config = self.get_current_config()
+        settings_only = ConfigManager.load_settings()
+        encryption_key = full_config.get("encryptionKey", settings_only.get("encryptionKey", ""))
+        try:
+            credentials = ConfigManager.load_credentials(key=encryption_key)
+        except Exception:
+            credentials = {}
+        config = {**settings_only, **credentials, **full_config}
+        timeout = float(config.get("netTimeout", 15.0))
+
+        self.testConnectionButton.setEnabled(False)
+        self.test_connection_worker = ConnectionTestWorker(config, timeout=timeout)
+        self.test_connection_worker.finished_with_result.connect(self.on_connection_test_finished)
+        self.test_connection_worker.start()
+
+    def on_connection_test_finished(self, ok, message):
+        self.testConnectionButton.setEnabled(True)
+        self.test_connection_worker = None
+        if ok:
+            showInfo(f"Connection test succeeded.\n\n{message}")
+        else:
+            showWarning(f"Connection test failed.\n\n{message}")
 
     def keyPressEvent(self, event):
         if event.key() == Qt.Key.Key_S and (event.modifiers() & Qt.KeyboardModifier.ControlModifier):

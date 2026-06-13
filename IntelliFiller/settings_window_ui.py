@@ -131,7 +131,11 @@ class Ui_SettingsWindow(object):
         self.emulate = QtWidgets.QComboBox(self.tabApi)
         self.emulate.addItems(["yes", "no"])
         self.emulationLayout.addRow(self.labelEmulate, self.emulate)
-        
+
+        # Test Connection Button (covers currently selected provider)
+        self.testConnectionButton = QtWidgets.QPushButton(self.tabApi)
+        self.emulationLayout.addRow(QtWidgets.QLabel("Test Connection:", self.tabApi), self.testConnectionButton)
+
         self.overwriteFieldLabel = QtWidgets.QLabel(self.tabApi)
         self.overwriteField = QtWidgets.QCheckBox(self.tabApi)
         self.emulationLayout.addRow(self.overwriteFieldLabel, self.overwriteField)
@@ -456,6 +460,8 @@ class Ui_SettingsWindow(object):
         self.labelEmulate.setText(_translate("SettingsWindow", "Emulate:"))
         self.emulate.setItemText(0, _translate("SettingsWindow", "yes"))
         self.emulate.setItemText(1, _translate("SettingsWindow", "no"))
+        self.testConnectionButton.setText(_translate("SettingsWindow", "Test Connection"))
+        self.testConnectionButton.setToolTip(_translate("SettingsWindow", "Test the connection to the currently selected provider."))
         self.overwriteFieldLabel.setText(_translate("SettingsWindow", "Overwrite Target Field:"))
         self.overwriteField.setText(_translate("SettingsWindow", ""))
         self.flatMenuLabel.setText(_translate("SettingsWindow", "Show in Root Menu:"))

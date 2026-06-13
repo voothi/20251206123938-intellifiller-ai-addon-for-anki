@@ -1,4 +1,8 @@
-import httpx
+import json
+import urllib.request
+import urllib.parse
+import urllib.error
+
 
 class GeminiClient:
     def __init__(self, api_key, model="gemini-1.5-flash"):
@@ -10,25 +14,32 @@ class GeminiClient:
         headers = {
             "Content-Type": "application/json"
         }
-        
+
         data = {
             "contents": [{
                 "parts": [{"text": prompt}]
             }]
         }
-        
+
+        url = self.base_url + "?" + urllib.parse.urlencode({"key": self.api_key})
+
         try:
-            response = httpx.post(
-                self.base_url,
+            req = urllib.request.Request(
+                url,
+                data=json.dumps(data).encode("utf-8"),
                 headers=headers,
-                params={"key": self.api_key},
-                json=data,
-                timeout=timeout
+                method="POST",
             )
-            response.raise_for_status()
-            result = response.json()
-            # Extract text from the response structure
-            # Response format: { "candidates": [ { "content": { "parts": [ { "text": "..." } ] } } ] }
-            return result['candidates'][0]['content']['parts'][0]['text']
+            with urllib.request.urlopen(req, timeout=timeout) as response:
+                result = json.loads(response.read().decode("utf-8"))
+                return result['candidates'][0]['content']['parts'][0]['text']
+        except urllib.error.HTTPError as e:
+            try:
+                error_body = e.read().decode("utf-8", errors="replace")
+            except Exception:
+                error_body = str(e)
+            raise Exception(f"Error calling Gemini API: HTTP {e.code} {e.reason} - {error_body}")
+        except urllib.error.URLError as e:
+            raise Exception(f"Error calling Gemini API: {str(e)}")
         except Exception as e:
             raise Exception(f"Error calling Gemini API: {str(e)}")
