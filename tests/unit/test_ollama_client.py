@@ -4,11 +4,15 @@ from IntelliFiller.config_manager import ConfigManager
 from IntelliFiller import data_request
 from IntelliFiller.ollama_client import OllamaClient
 
+
 def test_ollama_client_native(mocker):
-    # Mock httpx.post
+    # NOTE: This test verifies the client-internal HTTP request shape (URL, payload, headers).
+    # It mocks httpx.post directly. When the client is migrated to urllib (per the
+    # 20260613114219-port-fork-improvements spec), update this mock target to
+    # urllib.request.urlopen. The data_request-level tests in this file are
+    # transport-agnostic and do not need to change.
     mock_post = mocker.patch("httpx.post")
-    
-    # Configure mock response
+
     mock_response = mocker.Mock()
     mock_response.json.return_value = {"response": "Local native response"}
     mock_post.return_value = mock_response
@@ -18,7 +22,7 @@ def test_ollama_client_native(mocker):
         model="llama3-test"
     )
     res = client.generate_content("Translate: Hello")
-    
+
     assert res == "Local native response"
     mock_post.assert_called_once()
     args, kwargs = mock_post.call_args
@@ -28,11 +32,11 @@ def test_ollama_client_native(mocker):
     assert kwargs["json"]["stream"] is False
     assert "Authorization" not in kwargs["headers"]
 
+
 def test_ollama_client_chat_completions(mocker):
-    # Mock httpx.post
+    # See migration note in test_ollama_client_native.
     mock_post = mocker.patch("httpx.post")
-    
-    # Configure mock response for OpenAI-compatible chat API
+
     mock_response = mocker.Mock()
     mock_response.json.return_value = {
         "choices": [
@@ -50,7 +54,7 @@ def test_ollama_client_chat_completions(mocker):
         model="llama3-test"
     )
     res = client.generate_content("Translate: Hello")
-    
+
     assert res == "Chat completions response"
     mock_post.assert_called_once()
     args, kwargs = mock_post.call_args
@@ -59,31 +63,32 @@ def test_ollama_client_chat_completions(mocker):
     assert kwargs["json"]["messages"][0]["content"] == "Translate: Hello"
     assert "Authorization" not in kwargs["headers"]
 
+
 def test_send_prompt_to_llm_ollama_local(mocker):
-    # Set settings first (uses local Ollama)
+    # Mock the OllamaClient class so this test is transport-agnostic. It will
+    # keep working whether the client uses httpx, urllib, or anything else.
     ConfigManager.save_settings({
         "selectedApi": "ollama",
         "ollamaUrl": "http://localhost:11434/api/generate",
         "ollamaModel": "llama3-test",
         "emulate": "no"
     })
-    
-    # Mock httpx.post
-    mock_post = mocker.patch("httpx.post")
-    mock_response = mocker.Mock()
-    mock_response.json.return_value = {"response": "Mocked local response"}
-    mock_post.return_value = mock_response
+
+    client_instance = mocker.Mock()
+    client_instance.generate_content.return_value = "Mocked local response"
+    mocker.patch("IntelliFiller.data_request.OllamaClient", return_value=client_instance)
 
     res = data_request.send_prompt_to_llm("Hello local")
     assert res == "Mocked local response"
-    
-    mock_post.assert_called_once()
-    _, kwargs = mock_post.call_args
-    assert kwargs["json"]["model"] == "llama3-test"
-    assert kwargs["json"]["prompt"] == "Hello local"
+
+    client_instance.generate_content.assert_called_once()
+    args, kwargs = client_instance.generate_content.call_args
+    assert args[0] == "Hello local"
+    assert kwargs["timeout"] == 10.0
+
 
 def test_send_prompt_to_llm_ollama_cloud(mocker):
-    # Set settings first (uses Ollama Cloud)
+    # Transport-agnostic: mock the OllamaClient class, not httpx.
     ConfigManager.save_settings({
         "selectedApi": "ollama_cloud",
         "ollamaCloudUrl": "https://ollama.com/v1",
@@ -91,36 +96,29 @@ def test_send_prompt_to_llm_ollama_cloud(mocker):
         "emulate": "no",
         "encryptionKey": "test-cloud-salt"
     })
-    
+
     ConfigManager.save_credentials({
         "ollamaCloudKey": "secret-cloud-key"
     }, key="test-cloud-salt", obfuscate=True)
-    
-    # Mock httpx.post
-    mock_post = mocker.patch("httpx.post")
-    mock_response = mocker.Mock()
-    mock_response.json.return_value = {
-        "choices": [
-            {
-                "message": {
-                    "content": "Mocked cloud response"
-                }
-            }
-        ]
-    }
-    mock_post.return_value = mock_response
+
+    client_instance = mocker.Mock()
+    client_instance.generate_content.return_value = "Mocked cloud response"
+    mock_cls = mocker.patch("IntelliFiller.data_request.OllamaClient", return_value=client_instance)
 
     res = data_request.send_prompt_to_llm("Hello cloud")
     assert res == "Mocked cloud response"
-    
-    mock_post.assert_called_once()
-    args, kwargs = mock_post.call_args
-    assert args[0] == "https://ollama.com/v1/chat/completions"
-    assert kwargs["json"]["model"] == "llama3-cloud-test"
-    assert kwargs["json"]["messages"][0]["content"] == "Hello cloud"
-    assert kwargs["headers"]["Authorization"] == "Bearer secret-cloud-key"
+
+    mock_cls.assert_called_once()
+    kwargs = mock_cls.call_args.kwargs
+    assert kwargs["api_url"] == "https://ollama.com/v1"
+    assert kwargs["api_key"] == "secret-cloud-key"
+    assert kwargs["model"] == "llama3-cloud-test"
+    client_instance.generate_content.assert_called_once()
+    assert client_instance.generate_content.call_args.args[0] == "Hello cloud"
+
 
 def test_ollama_client_cloud_domain_override(mocker):
+    # See migration note in test_ollama_client_native.
     mock_post = mocker.patch("httpx.post")
     mock_response = mocker.Mock()
     mock_response.json.return_value = {
@@ -141,7 +139,7 @@ def test_ollama_client_cloud_domain_override(mocker):
     )
     res = client.generate_content("Hello")
     assert res == "Normalized response"
-    
+
     mock_post.assert_called_once()
     args, kwargs = mock_post.call_args
     assert args[0] == "https://ollama.com/v1/chat/completions"
@@ -159,6 +157,7 @@ def test_ollama_client_v1_base_normalized():
 
 
 def test_ollama_client_unexpected_response_raises(mocker):
+    # See migration note in test_ollama_client_native.
     mock_post = mocker.patch("httpx.post")
     mock_response = mocker.Mock()
     mock_response.json.return_value = {"unexpected": "shape"}
@@ -195,13 +194,13 @@ def test_ollama_client_v1_chat_without_completions_appended():
     assert client.api_url.endswith("/chat/completions")
 
 
-
 def test_ollama_client_empty_url_falls_back_to_default():
     client = OllamaClient(api_url="", model="llama3")
     assert client.api_url == "http://localhost:11434/api/generate"
 
 
 def test_ollama_client_http_error_raises(mocker):
+    # See migration note in test_ollama_client_native.
     mocker.patch("httpx.post", side_effect=httpx.ConnectError("conn refused"))
     client = OllamaClient(api_url="http://localhost:11434/api/generate", model="llama3")
     with pytest.raises(Exception, match="Ollama"):
@@ -209,19 +208,22 @@ def test_ollama_client_http_error_raises(mocker):
 
 
 def test_send_prompt_to_llm_ollama_cloud_without_key(mocker):
+    # Transport-agnostic: mock the OllamaClient class.
     ConfigManager.save_settings({
         "selectedApi": "ollama_cloud",
         "ollamaCloudUrl": "https://ollama.com/v1",
         "ollamaCloudModel": "llama3-cloud-test",
         "emulate": "no",
     })
-    mock_post = mocker.patch("httpx.post")
-    mock_post.return_value = mocker.Mock(json=lambda: {
-        "choices": [{"message": {"content": "no key response"}}]
-    })
+
+    client_instance = mocker.Mock()
+    client_instance.generate_content.return_value = "no key response"
+    mock_cls = mocker.patch("IntelliFiller.data_request.OllamaClient", return_value=client_instance)
 
     res = data_request.send_prompt_to_llm("hi")
     assert res == "no key response"
-    args, kwargs = mock_post.call_args
-    assert "Authorization" not in kwargs["headers"]
 
+    mock_cls.assert_called_once()
+    kwargs = mock_cls.call_args.kwargs
+    # No key stored -> OllamaClient receives None for api_key
+    assert kwargs["api_key"] is None

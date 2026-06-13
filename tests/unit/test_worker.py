@@ -14,11 +14,12 @@ def test_get_deck_name_fallback():
 
 def test_get_deck_name_with_card(mocker):
     import aqt
+    col = mocker.Mock()
+    col.decks.get.return_value = {"name": "My Deck", "id": 42}
+    mocker.patch.object(aqt.mw, "col", col, create=True)
+
     card = mocker.Mock()
     card.did = 42
-    aqt.mw.col = mocker.Mock()
-    aqt.mw.col.decks.get.return_value = {"name": "My Deck", "id": 42}
-
     note = mocker.Mock()
     note.cards.return_value = [card]
 
@@ -27,11 +28,12 @@ def test_get_deck_name_with_card(mocker):
 
 def test_get_deck_name_card_but_missing_deck(mocker):
     import aqt
+    col = mocker.Mock()
+    col.decks.get.return_value = None
+    mocker.patch.object(aqt.mw, "col", col, create=True)
+
     card = mocker.Mock()
     card.did = 999
-    aqt.mw.col = mocker.Mock()
-    aqt.mw.col.decks.get.return_value = None
-
     note = mocker.Mock()
     note.cards.return_value = [card]
 
@@ -40,8 +42,9 @@ def test_get_deck_name_card_but_missing_deck(mocker):
 
 def test_get_deck_name_handles_exception(mocker):
     import aqt
-    aqt.mw.col = mocker.Mock()
-    aqt.mw.col.decks.get.side_effect = Exception("boom")
+    col = mocker.Mock()
+    col.decks.get.side_effect = Exception("boom")
+    mocker.patch.object(aqt.mw, "col", col, create=True)
 
     note = mocker.Mock()
     note.cards.return_value = [mocker.Mock()]
@@ -52,8 +55,9 @@ def test_get_deck_name_handles_exception(mocker):
 def test_worker_successful_run(mocker):
     import aqt
     mock_note = mocker.Mock(spec=Note)
-    aqt.mw.col = mocker.Mock()
-    aqt.mw.col.get_note.return_value = mock_note
+    col = mocker.Mock()
+    col.get_note.return_value = mock_note
+    mocker.patch.object(aqt.mw, "col", col, create=True)
 
     mock_enrich = mocker.patch("IntelliFiller.process_notes.enrich_without_editor")
 
@@ -84,8 +88,9 @@ def test_worker_uses_note_instance_fast_path(mocker):
 
 def test_worker_skips_note_when_get_note_raises(mocker):
     import aqt
-    aqt.mw.col = mocker.Mock()
-    aqt.mw.col.get_note.side_effect = Exception("note deleted")
+    col = mocker.Mock()
+    col.get_note.side_effect = Exception("note deleted")
+    mocker.patch.object(aqt.mw, "col", col, create=True)
 
     worker = MultipleNotesThreadWorker(notes=[999], browser=None, prompt_config={"promptName": "test"})
     worker.set_permission(True)
@@ -100,8 +105,9 @@ def test_worker_skips_note_when_get_note_raises(mocker):
 def test_worker_network_error_retry(mocker):
     import aqt
     mock_note = mocker.Mock(spec=Note)
-    aqt.mw.col = mocker.Mock()
-    aqt.mw.col.get_note.return_value = mock_note
+    col = mocker.Mock()
+    col.get_note.return_value = mock_note
+    mocker.patch.object(aqt.mw, "col", col, create=True)
 
     mock_sleep = mocker.patch("time.sleep")
 
@@ -128,8 +134,9 @@ def test_worker_network_error_retry(mocker):
 def test_worker_non_network_error_skips_after_one_attempt(mocker):
     import aqt
     mock_note = mocker.Mock(spec=Note)
-    aqt.mw.col = mocker.Mock()
-    aqt.mw.col.get_note.return_value = mock_note
+    col = mocker.Mock()
+    col.get_note.return_value = mock_note
+    mocker.patch.object(aqt.mw, "col", col, create=True)
 
     mock_sleep = mocker.patch("time.sleep")
     mock_enrich = mocker.patch("IntelliFiller.process_notes.enrich_without_editor")

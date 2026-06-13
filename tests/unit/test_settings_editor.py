@@ -155,10 +155,11 @@ def test_settings_window_close_with_unsaved_changes_save(mocker):
 
 
 def test_settings_window_on_apply_shows_info(mocker):
-    mocker.patch("IntelliFiller.settings_editor.showInfo")
+    mock_show = mocker.patch("IntelliFiller.settings_editor.showInfo")
     ConfigManager.save_settings({})
     window = SettingsWindow()
     window.on_apply_clicked()
+    mock_show.assert_called_once()
 
 
 def test_settings_window_browse_local_path_uses_dialog(mocker):

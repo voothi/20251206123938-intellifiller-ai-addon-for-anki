@@ -226,8 +226,9 @@ def test_enrich_without_editor_fetches_by_id(mocker):
     import aqt
 
     fake_note = mocker.Mock()
-    aqt.mw.col = mocker.Mock()
-    aqt.mw.col.get_note.return_value = fake_note
+    col = mocker.Mock()
+    col.get_note.return_value = fake_note
+    mocker.patch.object(aqt.mw, "col", col, create=True)
 
     mock_create = mocker.patch("IntelliFiller.process_notes.create_prompt", return_value="P")
     mock_send = mocker.patch("IntelliFiller.process_notes.send_prompt_to_llm", return_value="R")

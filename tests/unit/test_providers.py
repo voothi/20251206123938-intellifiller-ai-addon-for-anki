@@ -6,9 +6,15 @@ from IntelliFiller.gemini_client import GeminiClient
 from IntelliFiller.config_manager import ConfigManager
 from IntelliFiller import data_request
 
+
 def test_anthropic_client(mocker):
+    # NOTE: This test verifies SimpleAnthropicClient's internal HTTP request shape.
+    # When migrated to urllib per the 20260613114219-port-fork-improvements spec,
+    # update this mock target to urllib.request.urlopen. The data_request-level
+    # tests in this file mock at the client class boundary and are
+    # transport-agnostic.
     mock_post = mocker.patch("httpx.post")
-    
+
     mock_response = mocker.Mock()
     mock_response.json.return_value = {
         "content": [{"text": "Hello from Claude"}]
@@ -29,9 +35,11 @@ def test_anthropic_client(mocker):
     assert kwargs["json"]["messages"] == [{"role": "user", "content": "Hello Anthropic"}]
     assert kwargs["timeout"] == 30.0
 
+
 def test_gemini_client(mocker):
+    # See migration note in test_anthropic_client.
     mock_post = mocker.patch("httpx.post")
-    
+
     mock_response = mocker.Mock()
     mock_response.json.return_value = {
         "candidates": [{
@@ -53,10 +61,12 @@ def test_gemini_client(mocker):
     assert kwargs["json"]["contents"] == [{"parts": [{"text": "Hello Gemini"}]}]
     assert kwargs["timeout"] == 15.0
 
+
 def test_data_request_openai(mocker):
+    # Transport-agnostic: mock openai.OpenAI directly.
     mock_client = mocker.Mock()
     mocker.patch("openai.OpenAI", return_value=mock_client)
-    
+
     mock_completion = mocker.Mock()
     mock_completion.choices = [
         mocker.Mock(message=mocker.Mock(content="Hello OpenAI"))
@@ -74,16 +84,18 @@ def test_data_request_openai(mocker):
 
     res = data_request.send_prompt_to_llm("test prompt")
     assert res == "Hello OpenAI"
-    
+
     mock_client.chat.completions.create.assert_called_once()
     _, kwargs = mock_client.chat.completions.create.call_args
     assert kwargs["model"] == "gpt-4o-mini"
     assert kwargs["messages"] == [{"role": "user", "content": "test prompt"}]
 
+
 def test_data_request_openrouter(mocker):
+    # Transport-agnostic: mock openai.OpenAI directly.
     mock_client = mocker.Mock()
     mocker.patch("openai.OpenAI", return_value=mock_client)
-    
+
     mock_completion = mocker.Mock()
     mock_completion.choices = [
         mocker.Mock(message=mocker.Mock(content="Hello OpenRouter"))
@@ -101,7 +113,7 @@ def test_data_request_openrouter(mocker):
 
     res = data_request.send_prompt_to_llm("test prompt")
     assert res == "Hello OpenRouter"
-    
+
     mock_client.chat.completions.create.assert_called_once()
     _, kwargs = mock_client.chat.completions.create.call_args
     assert kwargs["model"] == "google/gemini-2.0-flash-lite-001"
@@ -111,13 +123,14 @@ def test_data_request_openrouter(mocker):
         "X-Title": "IntelliFiller Anki Addon",
     }
 
+
 def test_data_request_anthropic(mocker):
-    mock_post = mocker.patch("httpx.post")
-    mock_response = mocker.Mock()
-    mock_response.json.return_value = {
-        "content": [{"text": "Hello Anthropic"}]
-    }
-    mock_post.return_value = mock_response
+    # Transport-agnostic: mock SimpleAnthropicClient at the data_request boundary.
+    client_instance = mocker.Mock()
+    client_instance.create_message.return_value = "Hello Anthropic"
+    mock_cls = mocker.patch(
+        "IntelliFiller.data_request.SimpleAnthropicClient", return_value=client_instance
+    )
 
     ConfigManager.save_settings({
         "selectedApi": "anthropic",
@@ -131,20 +144,22 @@ def test_data_request_anthropic(mocker):
     res = data_request.send_prompt_to_llm("test prompt")
     assert res == "Hello Anthropic"
 
-    args, kwargs = mock_post.call_args
-    assert args[0] == "https://api.anthropic.com/v1/messages"
-    assert kwargs["json"]["model"] == "claude-3-haiku"
-    assert kwargs["json"]["messages"] == [{"role": "user", "content": "test prompt"}]
-    assert kwargs["timeout"] == 18.0
+    mock_cls.assert_called_once()
+    kwargs = mock_cls.call_args.kwargs
+    assert kwargs["api_key"] == "anthropic-key"
+    assert kwargs["model"] == "claude-3-haiku"
+    client_instance.create_message.assert_called_once()
+    assert client_instance.create_message.call_args.args[0] == "test prompt"
+    assert client_instance.create_message.call_args.kwargs["timeout"] == 18.0
 
 
 def test_data_request_gemini(mocker):
-    mock_post = mocker.patch("httpx.post")
-    mock_response = mocker.Mock()
-    mock_response.json.return_value = {
-        "candidates": [{"content": {"parts": [{"text": "Hello Gemini"}]}}]
-    }
-    mock_post.return_value = mock_response
+    # Transport-agnostic: mock GeminiClient at the data_request boundary.
+    client_instance = mocker.Mock()
+    client_instance.generate_content.return_value = "Hello Gemini"
+    mock_cls = mocker.patch(
+        "IntelliFiller.data_request.GeminiClient", return_value=client_instance
+    )
 
     ConfigManager.save_settings({
         "selectedApi": "gemini",
@@ -158,11 +173,13 @@ def test_data_request_gemini(mocker):
     res = data_request.send_prompt_to_llm("test prompt")
     assert res == "Hello Gemini"
 
-    args, kwargs = mock_post.call_args
-    assert args[0] == "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent"
-    assert kwargs["params"] == {"key": "gemini-key"}
-    assert kwargs["json"]["contents"] == [{"parts": [{"text": "test prompt"}]}]
-    assert kwargs["timeout"] == 16.0
+    mock_cls.assert_called_once()
+    kwargs = mock_cls.call_args.kwargs
+    assert kwargs["api_key"] == "gemini-key"
+    assert kwargs["model"] == "gemini-1.5-flash"
+    client_instance.generate_content.assert_called_once()
+    assert client_instance.generate_content.call_args.args[0] == "test prompt"
+    assert client_instance.generate_content.call_args.kwargs["timeout"] == 16.0
 
 
 def test_data_request_emulate(mocker):
@@ -214,7 +231,12 @@ def test_data_request_propagates_openai_error(mocker):
 
 
 def test_data_request_propagates_anthropic_error(mocker):
-    mocker.patch("httpx.post", side_effect=httpx.ConnectError("connection refused"))
+    # Mock the client class; raising from the client exercises the data_request
+    # try/except re-raise path.
+    client_instance = mocker.Mock()
+    client_instance.create_message.side_effect = Exception("Error calling Anthropic API: connection refused")
+    mocker.patch("IntelliFiller.data_request.SimpleAnthropicClient", return_value=client_instance)
+
     ConfigManager.save_settings({
         "selectedApi": "anthropic",
         "netTimeout": 5.0,
@@ -228,7 +250,10 @@ def test_data_request_propagates_anthropic_error(mocker):
 
 
 def test_data_request_propagates_gemini_error(mocker):
-    mocker.patch("httpx.post", side_effect=httpx.TimeoutException("read timeout"))
+    client_instance = mocker.Mock()
+    client_instance.generate_content.side_effect = Exception("Error calling Gemini API: read timeout")
+    mocker.patch("IntelliFiller.data_request.GeminiClient", return_value=client_instance)
+
     ConfigManager.save_settings({
         "selectedApi": "gemini",
         "netTimeout": 5.0,
@@ -242,6 +267,7 @@ def test_data_request_propagates_gemini_error(mocker):
 
 
 def test_anthropic_client_wraps_unexpected_payload(mocker):
+    # See migration note in test_anthropic_client.
     mock_post = mocker.patch("httpx.post")
     mock_post.return_value = mocker.Mock(json=lambda: {"unexpected": "shape"})
 
@@ -251,6 +277,7 @@ def test_anthropic_client_wraps_unexpected_payload(mocker):
 
 
 def test_gemini_client_wraps_unexpected_payload(mocker):
+    # See migration note in test_anthropic_client.
     mock_post = mocker.patch("httpx.post")
     mock_post.return_value = mocker.Mock(json=lambda: {"unexpected": "shape"})
 

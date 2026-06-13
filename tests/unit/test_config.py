@@ -7,13 +7,13 @@ def test_default_config():
     assert config.get("prompts") == []
 
 
-def test_migrate_legacy_skips_when_already_migrated():
+def test_migrate_legacy_skips_when_already_migrated(mocker):
     import aqt
     ConfigManager.save_settings({"already": True, "netTimeout": 7})
-    aqt.mw.addonManager.getConfig = lambda name: {
-        "apiKey": "should-not-be-picked-up",
-        "netTimeout": 999,
-    }
+    mocker.patch.object(
+        aqt.mw.addonManager, "getConfig",
+        return_value={"apiKey": "should-not-be-picked-up", "netTimeout": 999},
+    )
     ConfigManager.migrate_legacy_config("IntelliFiller")
     settings = ConfigManager.load_settings()
     assert settings.get("already") is True
@@ -21,9 +21,9 @@ def test_migrate_legacy_skips_when_already_migrated():
     assert not ConfigManager.list_prompts()
 
 
-def test_migrate_legacy_no_legacy_config_returns_early():
+def test_migrate_legacy_no_legacy_config_returns_early(mocker):
     import aqt
-    aqt.mw.addonManager.getConfig = lambda name: None
+    mocker.patch.object(aqt.mw.addonManager, "getConfig", return_value=None)
     ConfigManager.migrate_legacy_config("IntelliFiller")
     assert not os.path.exists(ConfigManager.SETTINGS_FILE)
     assert not os.path.exists(ConfigManager.CREDENTIALS_FILE)
@@ -61,15 +61,15 @@ def test_get_full_config():
 def test_migrate_legacy_config(mocker):
     # Mock mw.addonManager.getConfig
     import aqt
-    aqt.mw.addonManager.getConfig = mocker.Mock(return_value={
+    mocker.patch.object(aqt.mw.addonManager, "getConfig", return_value={
         "apiKey": "legacy-openai-key",
         "netTimeout": 42,
         "prompts": [{"promptName": "LegacyPrompt", "prompt": "Translate {{{Word}}}"}]
     })
-    
+
     # Run migration
     ConfigManager.migrate_legacy_config("IntelliFiller")
-    
+
     # Assert settings were saved
     settings = ConfigManager.load_settings()
     assert settings.get("netTimeout") == 42
