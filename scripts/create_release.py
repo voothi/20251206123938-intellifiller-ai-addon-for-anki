@@ -44,6 +44,23 @@ def run_release(output_dir: str) -> int:
                 return 1
 
     script_dir = Path(__file__).resolve().parent
+    setup_vendor_script = script_dir / "setup_vendor.py"
+    if not setup_vendor_script.exists():
+        print(f"[ERROR] setup_vendor.py not found at {setup_vendor_script}")
+        return 1
+
+    print("[INFO] Recreating vendor directory...")
+    rc = subprocess.call([sys.executable, str(setup_vendor_script)])
+    if rc != 0:
+        print(f"[ERROR] Recreating vendor directory failed with error code {rc}")
+        return rc
+
+    print("[INFO] Running test suite...")
+    rc = subprocess.call([sys.executable, "-m", "pytest"])
+    if rc != 0:
+        print(f"[ERROR] Tests failed with error code {rc}. Aborting release creation.")
+        return rc
+
     package_script = script_dir / "package_addon.py"
     if not package_script.exists():
         print(f"[ERROR] package_addon.py not found at {package_script}")
