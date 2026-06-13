@@ -276,7 +276,7 @@ def test_create_zip_unencrypted_raises_when_pyzipper_missing_and_password_given(
     cm.get_full_config.return_value = {"backup": {}}
     cm.load_settings.return_value = {}
     bm = BackupManager(cm, addon_dir)
-    mocker.patch("IntelliFiller.backup_manager.HAS_PYZIPPER", False)
+    mocker.patch.dict("sys.modules", {"pyzipper": None})
 
     with pytest.raises(RuntimeError, match="pyzipper"):
         bm.create_zip(target, password="x")

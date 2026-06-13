@@ -8,12 +8,7 @@ import zipfile
 import sys
 from pathlib import Path
 
-# Try to import pyzipper for AES encryption
-try:
-    import pyzipper
-    HAS_PYZIPPER = True
-except ImportError:
-    HAS_PYZIPPER = False
+
 
 class BackupManager:
     def __init__(self, config_manager, addon_dir):
@@ -234,7 +229,13 @@ class BackupManager:
                     pass
 
         if password:
-            if HAS_PYZIPPER:
+            try:
+                import pyzipper
+                has_pyzipper = True
+            except ImportError:
+                has_pyzipper = False
+
+            if has_pyzipper:
                 with pyzipper.AESZipFile(target_file, 'w', compression=compression, encryption=pyzipper.WZ_AES) as zf:
                     zf.setpassword(password.encode('utf-8'))
                     write_to_zip(zf)
