@@ -35,3 +35,58 @@ def test_get_full_config():
     assert full_config.get("ollamaUrl") == "http://localhost:11434/api/generate"
     assert full_config.get("ollamaModel") == "llama3-test"
     assert full_config.get("encryptionKey") == "my-secret-salt"
+
+def test_migrate_legacy_config(mocker):
+    # Mock mw.addonManager.getConfig
+    import aqt
+    aqt.mw.addonManager.getConfig = mocker.Mock(return_value={
+        "apiKey": "legacy-openai-key",
+        "netTimeout": 42,
+        "prompts": [{"promptName": "LegacyPrompt", "prompt": "Translate {{{Word}}}"}]
+    })
+    
+    # Run migration
+    ConfigManager.migrate_legacy_config("IntelliFiller")
+    
+    # Assert settings were saved
+    settings = ConfigManager.load_settings()
+    assert settings.get("netTimeout") == 42
+    
+    # Assert credentials were saved (migrated to user_files/credentials.json)
+    creds = ConfigManager.load_credentials()
+    assert creds.get("apiKey") == "legacy-openai-key"
+    
+    # Assert prompts were saved
+    prompts = ConfigManager.list_prompts()
+    assert len(prompts) == 1
+    assert prompts[0]["promptName"] == "LegacyPrompt"
+
+def test_legacy_secrets_detection_and_sanitization():
+    # Create dummy meta.json and config.json inside the mocked addon dir
+    meta_path = os.path.join(ConfigManager.ADDON_DIR, "meta.json")
+    config_path = os.path.join(ConfigManager.ADDON_DIR, "config.json")
+    
+    import json
+    with open(meta_path, "w", encoding="utf-8") as f:
+        json.dump({"config": {"apiKey": "secret-key", "netTimeout": 10}}, f)
+        
+    with open(config_path, "w", encoding="utf-8") as f:
+        json.dump({"apiKey": "secret-key", "other": "val"}, f)
+        
+    # Check secrets exist
+    assert ConfigManager.has_legacy_secrets("IntelliFiller") is True
+    
+    # Sanitize
+    ConfigManager.sanitize_legacy_files("IntelliFiller")
+    
+    # Check secrets are gone
+    assert ConfigManager.has_legacy_secrets("IntelliFiller") is False
+    
+    with open(meta_path, "r", encoding="utf-8") as f:
+        meta_data = json.load(f)
+        assert meta_data["config"]["apiKey"] == ""
+        assert meta_data["config"]["netTimeout"] == 10
+        
+    with open(config_path, "r", encoding="utf-8") as f:
+        config_data = json.load(f)
+        assert config_data["apiKey"] == ""
