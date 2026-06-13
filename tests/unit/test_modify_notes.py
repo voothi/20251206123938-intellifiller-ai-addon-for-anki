@@ -54,3 +54,9 @@ def test_fill_field_for_note_not_in_editor(mocker):
     
     assert mock_note["Target"] == "new response"
     mock_note.flush.assert_called_once()
+
+
+def test_format_response_and_fill_field_html_escaping():
+    note = {"Target": "existing"}
+    format_response_and_fill_field("a < b & c > d", note, "Target", overwrite=True)
+    assert note["Target"] == "a < b & c > d"

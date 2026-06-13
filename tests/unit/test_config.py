@@ -90,3 +90,19 @@ def test_legacy_secrets_detection_and_sanitization():
     with open(config_path, "r", encoding="utf-8") as f:
         config_data = json.load(f)
         assert config_data["apiKey"] == ""
+
+
+def test_save_and_load_prompt():
+    prompt = {
+        "promptName": "Test Prompt",
+        "prompt": "Translate {{{Word}}}",
+        "targetField": "Translation",
+        "responseFormat": "text"
+    }
+    ConfigManager.save_prompt(prompt)
+    
+    loaded = ConfigManager.list_prompts()
+    assert any(p["promptName"] == "Test Prompt" for p in loaded)
+    
+    ConfigManager.delete_prompt_file("Test Prompt")
+    assert not any(p["promptName"] == "Test Prompt" for p in ConfigManager.list_prompts())

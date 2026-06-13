@@ -148,3 +148,23 @@ def test_ollama_client_cloud_domain_override(mocker):
     assert kwargs["json"]["messages"][0]["content"] == "Hello"
 
 
+def test_ollama_client_default_url_no_path():
+    client = OllamaClient(api_url="http://localhost:11434", model="llama3")
+    assert client.api_url.endswith("/api/generate")
+
+
+def test_ollama_client_v1_base_normalized():
+    client = OllamaClient(api_url="http://localhost:11434/v1", model="llama3")
+    assert client.api_url.endswith("/v1/chat/completions")
+
+
+def test_ollama_client_unexpected_response_raises(mocker):
+    mock_post = mocker.patch("httpx.post")
+    mock_response = mocker.Mock()
+    mock_response.json.return_value = {"unexpected": "shape"}
+    mock_post.return_value = mock_response
+
+    client = OllamaClient(api_url="http://localhost:11434/api/generate", model="llama3")
+    with pytest.raises(Exception):
+        client.generate_content("Hello")
+

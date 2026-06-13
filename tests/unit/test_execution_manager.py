@@ -99,3 +99,16 @@ def test_notify_finished_queued(mocker):
     assert list(em.queue) == [task3]
     # task3 queue position should update to 1
     task3.set_queue_position.assert_called_with(1)
+
+def test_enqueue_duplicate_is_ignored(mocker):
+    em = ExecutionManager.instance()
+
+    task1 = mocker.Mock()
+    task1.start_processing = mocker.Mock()
+
+    em.enqueue(task1)
+    em.enqueue(task1)
+
+    assert em.current_task is task1
+    assert len(em.queue) == 0
+    task1.start_processing.assert_called_once()

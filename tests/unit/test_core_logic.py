@@ -77,6 +77,20 @@ def test_apply_response_to_note_json_mode(mocker):
     # Lists must be dumped back to JSON strings
     mock_fill_not_editor.assert_any_call('["item1", "item2"]', note, "FieldB", False)
 
+
+def test_apply_response_to_note_json_invalid_raises():
+    note = {}
+    prompt_config = {
+        "responseFormat": "json",
+        "promptName": "MyPrompt",
+        "fieldMapping": {"key1": "FieldA"}
+    }
+
+    with pytest.raises(ValueError) as excinfo:
+        apply_response_to_note(note, prompt_config, "not json", is_editor=False)
+    assert "Failed to parse JSON response" in str(excinfo.value)
+    assert "MyPrompt" in str(excinfo.value)
+
 def test_backup_manager_creation(mocker, tmp_path):
     # Setup temporary directories
     addon_dir = str(tmp_path / "addon")
@@ -121,3 +135,15 @@ def test_backup_manager_creation(mocker, tmp_path):
     assert len(zips) == 1
     assert "manual" in zips[0]
     mock_zip.assert_called_once()
+
+
+def test_create_prompt_missing_field_raises():
+    class MockNote(dict):
+        pass
+
+    note = MockNote({"Word": "apple"})
+    config = {"prompt": "Define {{{MissingField}}}"}
+
+    with pytest.raises(ValueError) as excinfo:
+        create_prompt(note, config)
+    assert "MissingField" in str(excinfo.value)

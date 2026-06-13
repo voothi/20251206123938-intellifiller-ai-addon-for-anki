@@ -103,4 +103,9 @@ user_files
 .qoder/
 openspec/
 
+# Test artifacts
+.coverage
+.pytest_cache/
+htmlcov/
+
 

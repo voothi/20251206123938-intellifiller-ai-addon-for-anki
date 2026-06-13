@@ -111,31 +111,64 @@ def test_data_request_openrouter(mocker):
         "X-Title": "IntelliFiller Anki Addon",
     }
 
-def test_data_request_custom(mocker):
-    mock_client = mocker.Mock()
-    mocker.patch("openai.OpenAI", return_value=mock_client)
-    
-    mock_completion = mocker.Mock()
-    mock_completion.choices = [
-        mocker.Mock(message=mocker.Mock(content="Hello Custom"))
-    ]
-    mock_client.chat.completions.create.return_value = mock_completion
+def test_data_request_anthropic(mocker):
+    mock_post = mocker.patch("httpx.post")
+    mock_response = mocker.Mock()
+    mock_response.json.return_value = {
+        "content": [{"text": "Hello Anthropic"}]
+    }
+    mock_post.return_value = mock_response
 
     ConfigManager.save_settings({
-        "selectedApi": "custom",
-        "customModel": "my-local-model",
-        "customUrl": "http://localhost:8080/v1",
-        "netTimeout": 12.0,
+        "selectedApi": "anthropic",
+        "anthropicModel": "claude-3-haiku",
+        "netTimeout": 18.0,
         "emulate": "no",
         "encryptionKey": "test-salt"
     })
-    ConfigManager.save_credentials({"customKey": "custom-key"}, key="test-salt")
+    ConfigManager.save_credentials({"anthropicKey": "anthropic-key"}, key="test-salt")
 
     res = data_request.send_prompt_to_llm("test prompt")
-    assert res == "Hello Custom"
-    
-    # Verify OpenAI client initialization arguments
-    args, kwargs = openai.OpenAI.call_args
-    assert kwargs["base_url"] == "http://localhost:8080/v1"
-    assert kwargs["api_key"] == "custom-key"
-    assert kwargs["timeout"] == 12.0
+    assert res == "Hello Anthropic"
+
+    args, kwargs = mock_post.call_args
+    assert args[0] == "https://api.anthropic.com/v1/messages"
+    assert kwargs["json"]["model"] == "claude-3-haiku"
+    assert kwargs["json"]["messages"] == [{"role": "user", "content": "test prompt"}]
+    assert kwargs["timeout"] == 18.0
+
+
+def test_data_request_gemini(mocker):
+    mock_post = mocker.patch("httpx.post")
+    mock_response = mocker.Mock()
+    mock_response.json.return_value = {
+        "candidates": [{"content": {"parts": [{"text": "Hello Gemini"}]}}]
+    }
+    mock_post.return_value = mock_response
+
+    ConfigManager.save_settings({
+        "selectedApi": "gemini",
+        "geminiModel": "gemini-1.5-flash",
+        "netTimeout": 16.0,
+        "emulate": "no",
+        "encryptionKey": "test-salt"
+    })
+    ConfigManager.save_credentials({"geminiKey": "gemini-key"}, key="test-salt")
+
+    res = data_request.send_prompt_to_llm("test prompt")
+    assert res == "Hello Gemini"
+
+    args, kwargs = mock_post.call_args
+    assert args[0] == "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent"
+    assert kwargs["params"] == {"key": "gemini-key"}
+    assert kwargs["json"]["contents"] == [{"parts": [{"text": "test prompt"}]}]
+    assert kwargs["timeout"] == 16.0
+
+
+def test_data_request_emulate(mocker):
+    ConfigManager.save_settings({"selectedApi": "openai", "emulate": "yes"})
+
+    res = data_request.send_prompt_to_llm("emulated prompt")
+    assert "fake response" in res.lower()
+    assert "emulated prompt" in res
+
