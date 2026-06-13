@@ -35,6 +35,7 @@ For a detailed history of changes, please view the [release-notes.md](release-no
   - [For Cross-Platform Release](#for-cross-platform-release)
   - [Packaging](#packaging)
 - [Usage](#usage)
+- [Testing](#testing)
 - [Configuration Guide](#configuration-guide)
 - [Original Project](#original-project)
 - [Kardenwort Ecosystem](#kardenwort-ecosystem)
@@ -44,7 +45,7 @@ For a detailed history of changes, please view the [release-notes.md](release-no
 
 ## Features
 
-* **Multi-Provider Support**: Use models from **OpenAI**, **Anthropic**, **Google Gemini**, **OpenRouter**, and **Ollama**.
+* **Multi-Provider Support**: Use models from **OpenAI**, **Anthropic**, **Google Gemini**, **OpenRouter**, **Ollama**, and **Ollama Cloud**.
 * **Custom Endpoints**: Support for any OpenAI-compatible API (local LLMs, etc.).
 * **Configurable Models**: Easily switch between models (e.g., GPT-4o, Claude 3.5 Sonnet, Gemini 1.5 Pro).
 * **Smart Batch Processing**: 
@@ -200,6 +201,40 @@ python scripts/package_addon.py --out "C:/My/Builds"
 ### Editor Integration
 
 You can also launch IntelliFiller directly from the note editor using the dedicated button in the editor toolbar.
+
+[Return to Top](#table-of-contents)
+
+## Testing
+
+The project includes a unified `pytest` suite for offline testing of core configurations, API client payload structures, and settings editor UI mapping.
+
+### Setup Test Environment
+
+Before running the tests, install the test dependencies from the root directory:
+
+```bash
+pip install -r tests/requirements.txt
+```
+
+### Running Tests
+
+Execute `pytest` from the **project root**:
+
+*   **Run all tests**:
+    ```bash
+    python -m pytest
+    ```
+*   **Run only unit tests**:
+    ```bash
+    python -m pytest tests/unit/
+    ```
+
+### Mocking Details
+
+To allow tests to run offline without a running Anki desktop instance or PyQt GUI loop:
+*   **Anki/Qt Mocks**: [tests/conftest.py](file:///u:/voothi/20251206123938-intellifiller-ai-addon-for-anki/tests/conftest.py) mocks `aqt`, `anki`, and PyQt elements pre-emptively.
+*   **Pyzipper & Cryptodome Mocks**: Prevents loading native binaries in the third-party `vendor` directory that might mismatch system Python architectures.
+*   **Isolated Config**: An autouse fixture isolates all `ConfigManager` load/save operations to a temporary directory per-test, avoiding any pollution of developer/user configuration files.
 
 [Return to Top](#table-of-contents)
 
