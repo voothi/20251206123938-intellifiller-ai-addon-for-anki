@@ -10,7 +10,7 @@ from pathlib import Path
 
 def load_config():
     config = configparser.ConfigParser()
-    config_path = Path(__file__).resolve().parent / "config.ini"
+    config_path = Path(__file__).resolve().parent / "packaging.ini"
     config.read(config_path, encoding="utf-8")
     return config
 
