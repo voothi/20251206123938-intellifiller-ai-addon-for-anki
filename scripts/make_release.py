@@ -11,7 +11,7 @@ from pathlib import Path
 
 def main():
     script_dir = Path(__file__).resolve().parent
-    pipeline_script = script_dir / "scripts" / "packaging" / "release_pipeline.py"
+    pipeline_script = script_dir / "packaging" / "release_pipeline.py"
     
     if not pipeline_script.exists():
         print(f"Error: Release pipeline script not found at {pipeline_script}")
