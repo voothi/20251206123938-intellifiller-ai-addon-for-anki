@@ -53,7 +53,10 @@ For a detailed history of changes, please view the [release-notes.md](release-no
     *   **Configurable Delays**: Set fixed and **random** delays between batches to avoid rate limits and disperse requests.
     *   **Execution Queue**: Queue multiple batch tasks to run sequentially.
     *   **Pause/Resume**: Manually pause processing to inspect results or yield to other tasks.
-    *   **Progress Tracking**: Real-time progress dialog with live countdown and pause/resume capabilities.
+    *   **Progress Tracking**: Real-time progress dialog with live countdown, pause/resume, and copyable deck path.
+    *   **Connection Watchdog**: Actively monitors connection requests and alerts users if a request stalls or hangs.
+    *   **Failures Summary Dialog**: Tabbed overview (Successful, Skipped, JSON Failures, Network Failures) showing notes status.
+    *   **Selective Retry**: Rerun only the highlighted notes from the failure tabs directly without reprocessing the whole batch.
 * **Flexible Prompting**: 
     *   Design prompts that use existing field data (e.g., `{{{Sentence}}}`) to generate new content.
     *   **Multi-Field Updates**: Support for JSON responses to update multiple fields from a single prompt.
