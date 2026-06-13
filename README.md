@@ -1,6 +1,6 @@
 # IntelliFiller AI - Multi-Provider Prompt Orchestrator
 
-[![Version](https://img.shields.io/badge/version-v2.22.12-blue)](https://github.com/voothi/20251206123938-intellifiller-ai-addon-for-anki/releases) 
+[![Version](https://img.shields.io/badge/version-v2.24.0-blue)](https://github.com/voothi/20251206123938-intellifiller-ai-addon-for-anki/releases) 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) 
 [![AnkiWeb](https://img.shields.io/badge/AnkiWeb-1149226090-blue)](https://ankiweb.net/shared/info/1149226090)
 
@@ -140,47 +140,46 @@ Your persistent settings and prompts (in `user_files`) will be preserved.
 
 ## Build Instructions
 
-This project includes scripts to manage Python dependencies (like `openai`, `httpx`) required by the addon.
+This project includes structured packaging scripts to manage Python dependencies required by the addon and build distributable releases. All configuration parameters, exclusions, and pipeline steps are defined in [packaging.ini](file:///u:/voothi/20251206123938-intellifiller-ai-addon-for-anki/scripts/packaging/packaging.ini).
 
-### For Local Development (Windows 11 / Current OS)
+### Unified Release Pipeline (Recommended)
 
-If you are running the addon locally on your machine, run the setup script to install dependencies for your current platform:
-
-```bash
-python scripts/setup_vendor.py
-```
-*   **Mac M1/M2 Users**: Ensure you are running the ARM64 version of Python.
-*   **Windows/Intel Mac**: The script automatically handles your architecture.
-
-This will populate the `IntelliFiller/vendor` directory with the necessary libraries.
-
-### For Cross-Platform Release
-
-To build a release that supports multiple platforms (Windows, macOS ARM/Intel, Linux), use the build release script:
+To run a complete clean build (which automatically sets up local vendor packages, executes the pytest suite, and compiles the `.ankiaddon` archive), run:
 
 ```bash
-python scripts/build_release.py
+python scripts/make_release.py
 ```
 
-This creates a `vendor` directory with subfolders for each platform, ensuring the addon works regardless of the user's OS.
+### Manual Packaging Steps
 
-### Packaging
+If you want to perform individual steps manually, the following scripts are available in the [scripts/packaging/](file:///u:/voothi/20251206123938-intellifiller-ai-addon-for-anki/scripts/packaging/) directory:
 
-To create an `.ankiaddon` package for distribution:
-
-1.  Run `python scripts/build_release.py` to prepare dependencies.
-2.  Run `python scripts/package_addon.py` to create the artifact.
-
-This will generate a timestamped `.ankiaddon` file in the project root, safely excluding sensitive user files.
-You can optionally specify an output directory:
+#### 1. Setup Local Vendor
+To setup the `IntelliFiller/vendor` directory for your current OS and architecture (cleaning any old or deprecated packages):
 ```bash
-python scripts/package_addon.py --out "C:/My/Builds"
+python scripts/packaging/setup_local_vendor.py
+```
+
+#### 2. Pre-Build Vendor for All Platforms
+To fetch and pre-build binary wheels for all target deployment platforms (Windows, macOS ARM/Intel, Linux):
+```bash
+python scripts/packaging/build_all_vendors.py
+```
+
+#### 3. Create Addon ZIP
+To package the compiled addon assets into an `.ankiaddon` file manually:
+```bash
+python scripts/packaging/create_addon_zip.py
+```
+You can optionally specify a custom output directory:
+```bash
+python scripts/packaging/create_addon_zip.py --out "C:/My/Builds"
 ```
 
 **Packaging Safety Features:**
 *   Automatically excludes sensitive user files (`user_files` directory).
-*   Excludes root-level secrets (`meta.json`, `credentials.json`, `settings.json`).
-*   Prints a warning if potentially sensitive files are detected in deep subdirectories.
+*   Excludes secrets (`meta.json`, `credentials.json`, `settings.json`).
+*   Logs warnings if potentially sensitive files are detected in deep vendor subfolders.
 
 [Return to Top](#table-of-contents)
 

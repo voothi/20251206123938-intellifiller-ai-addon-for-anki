@@ -2,6 +2,8 @@
 
 ## Table of Contents
 
+- [v2.24.0](#release-notes-v2240)
+- [v2.22.12](#release-notes-v22212)
 - [v2.22.2](#release-notes-v2222)
 - [v2.20.2](#release-notes-v2202)
 - [v2.18.12](#release-notes-v21812)
@@ -19,6 +21,35 @@
 - [v2.2.2](#release-notes-v222)
 
 ---
+
+## Release Notes v2.24.0
+
+### 🚀 New Features
+
+*   **🦙 Ollama & Ollama Cloud Integration**
+    *   **Local Ollama Support**: Full support for local Ollama deployments (defaulting to `http://localhost:11434/api/generate` and the `llama3` model).
+    *   **Ollama Cloud Integration**: Integrated support for Ollama Cloud (defaulting to `https://ollama.com/v1` and requiring an API key).
+*   **📊 Tabbed Processing Summary Dialog**
+    *   **Granular Categories**: A new tabbed interface (Successful, Skipped, JSON Failures, Network Failures) showing detailed lists of notes processed.
+    *   **Retry Selected**: Users can select one or more failed notes inside the summary tabs and trigger a retry execution queue for only the selected items.
+    *   *Ported from contribution by [emilythedev](https://github.com/emilythedev/20251206123938-intellifiller-ai-addon-for-anki).*
+*   **🧪 Robust Testing Infrastructure**
+    *   **Pytest Framework**: Integrated a full pytest architecture under `tests/` with 160+ unit tests covering atomic installers, backup management, LLM providers, and data request logic.
+*   **⚙️ Platform & Packaging Enhancements**
+    *   **Configurable Python Version**: Added options to target specific Python versions (e.g. `--python-version` defaulting to Python 3.13) for Linux wheel selection during package vendoring, ensuring future-proofing for Anki v25.
+    *   *Ported from contribution by [HummerGJB](https://github.com/HummerGJB/intellifiller-ai-addon-for-anki).*
+
+### 🧹 Maintenance & Cleanup
+
+*   **Vendor Clean-up**: Removed redundant external dependencies (`openai` and `httpx` libraries) from the `vendor` folder, relying on standard library `urllib` for OpenAI-compatible and custom endpoints.
+*   **Clean Packaging & Build Wrappers**:
+    *   Moved release automation scripts into a clean `scripts/packaging/` folder.
+    *   Moved hardcoded packaging options, target platforms, exclusions, and pipeline steps to [packaging.ini](file:///u:/voothi/20251206123938-intellifiller-ai-addon-for-anki/scripts/packaging/packaging.ini).
+    *   Added a root-level delegator [scripts/make_release.py](file:///u:/voothi/20251206123938-intellifiller-ai-addon-for-anki/scripts/make_release.py) that cleans vendor folders, executes the test suite, and compiles the `.ankiaddon` package dynamically.
+
+**Full Changelog**: https://github.com/voothi/20251206123938-intellifiller-ai-addon-for-anki/compare/v2.22.12...v2.24.0
+
+[Return to Top](#intellifiller-release-notes)
 
 ## Release Notes v2.22.12
 
