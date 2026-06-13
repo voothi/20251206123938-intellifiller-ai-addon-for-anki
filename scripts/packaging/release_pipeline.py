@@ -49,13 +49,17 @@ def run_pipeline(output_dir: str) -> int:
     project_root = script_dir.parent.parent
 
     config = load_config()
+    python_interpreter = config.get("release", "python_interpreter", fallback="").strip()
+    if not python_interpreter:
+        python_interpreter = sys.executable
+
     steps_str = config.get("pipeline", "steps", fallback="setup_local_vendor.py\npytest\ncreate_addon_zip.py")
     steps = [s.strip() for s in steps_str.split("\n") if s.strip()]
 
     for step in steps:
         if step == "pytest":
             print("[INFO] Running test suite...")
-            rc = subprocess.call([sys.executable, "-m", "pytest"], cwd=str(project_root))
+            rc = subprocess.call([python_interpreter, "-m", "pytest"], cwd=str(project_root))
             if rc != 0:
                 print(f"[ERROR] Tests failed with error code {rc}. Aborting release creation.")
                 return rc
@@ -66,9 +70,9 @@ def run_pipeline(output_dir: str) -> int:
                 return 1
 
             if step == "create_addon_zip.py":
-                cmd = [sys.executable, str(script_path), "--out", str(out_path)]
+                cmd = [python_interpreter, str(script_path), "--out", str(out_path)]
             else:
-                cmd = [sys.executable, str(script_path)]
+                cmd = [python_interpreter, str(script_path)]
 
             print(f"[INFO] Executing step: {step}...")
             rc = subprocess.call(cmd)

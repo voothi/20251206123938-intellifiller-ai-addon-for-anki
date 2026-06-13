@@ -18,9 +18,13 @@ For a detailed history of changes, please view the [release-notes.md](release-no
 > [!NOTE]
 > **Cross-Platform Ready (Linux & macOS)**
 >
-> **Developed & Validated Environment:**
-> *   **OS**: Windows 11 (Python 3.9.13 via Microsoft Store)
-> *   **Anki**: Version 24.06.3 (d678e393) - (Python 3.9.18 / Qt 6.6.2 / PyQt 6.6.1)
+> **Developed & Validated Environments:**
+> *   **Anki-Current**
+>     *   **OS**: Windows 11 (Python 3.9.13 via Microsoft Store)
+>     *   **Anki**: Version 24.06.3 (d678e393) - (Python 3.9.18 / Qt 6.6.2 / PyQt 6.6.1)
+> *   **Anki-Next (Anki 25 Support)**
+>     *   **OS**: Windows 11 (Python 3.13.0 from official installer)
+>     *   **Anki**: Version 25.09.4 (d52ca669) - (Python 3.13.5 / Qt 6.9.1 / Chromium 122)
 
 
 ## Table of Contents

@@ -17,7 +17,18 @@ def main():
         print(f"Error: Release pipeline script not found at {pipeline_script}")
         sys.exit(1)
 
-    cmd = [sys.executable, str(pipeline_script)] + sys.argv[1:]
+    import configparser
+    config_path = script_dir / "packaging" / "packaging.ini"
+    
+    python_interpreter = sys.executable
+    if config_path.exists():
+        config = configparser.ConfigParser()
+        config.read(config_path, encoding="utf-8")
+        configured_interpreter = config.get("release", "python_interpreter", fallback="").strip()
+        if configured_interpreter:
+            python_interpreter = configured_interpreter
+
+    cmd = [python_interpreter, str(pipeline_script)] + sys.argv[1:]
     sys.exit(subprocess.call(cmd))
 
 

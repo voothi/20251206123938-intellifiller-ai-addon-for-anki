@@ -26,6 +26,10 @@ def build_all_platforms():
         shutil.rmtree(vendor_dir)
     os.makedirs(vendor_dir)
 
+    python_interpreter = config.get("release", "python_interpreter", fallback="").strip()
+    if not python_interpreter:
+        python_interpreter = sys.executable
+
     platforms = config.items("platforms")
     
     packages_str = config.get("vendor", "packages", fallback="")
@@ -37,7 +41,7 @@ def build_all_platforms():
         
         print(f"Building for {platform_tag}...")
         subprocess.check_call([
-            sys.executable, '-m', 'pip', 'install',
+            python_interpreter, '-m', 'pip', 'install',
             '--no-user',
             '--platform', platform_tag,
             '--target', platform_dir,

@@ -28,8 +28,13 @@ def setup_vendor(python_version=None):
         shutil.rmtree(vendor_dir)
     os.makedirs(vendor_dir)
 
+    # Determine python interpreter
+    python_interpreter = config.get("release", "python_interpreter", fallback="").strip()
+    if not python_interpreter:
+        python_interpreter = sys.executable
+
     # Determine platform-specific pip arguments
-    pip_args = [sys.executable, '-m', 'pip', 'install', '--no-user', '--target', vendor_dir]
+    pip_args = [python_interpreter, '-m', 'pip', 'install', '--no-user', '--target', vendor_dir]
 
     system = platform.system().lower()
     machine = platform.machine().lower()
@@ -64,7 +69,7 @@ def setup_vendor(python_version=None):
         print(f"Error installing packages: {e}")
         print("Attempting fallback installation without platform specification...")
         fallback_args = [
-            sys.executable, '-m', 'pip', 'install', '--no-user', '--target', vendor_dir,
+            python_interpreter, '-m', 'pip', 'install', '--no-user', '--target', vendor_dir,
         ] + packages
         subprocess.check_call(fallback_args)
 
