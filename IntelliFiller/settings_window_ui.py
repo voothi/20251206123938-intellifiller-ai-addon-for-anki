@@ -30,6 +30,8 @@ class Ui_SettingsWindow(object):
         self.selectedApi.addItem("Google Gemini", "gemini")
         self.selectedApi.addItem("OpenRouter", "openrouter")
         self.selectedApi.addItem("OpenAI Compatible", "custom")
+        self.selectedApi.addItem("Ollama", "ollama")
+        self.selectedApi.addItem("Ollama Cloud", "ollama_cloud")
         
         self.apiSelectorLayout = QtWidgets.QFormLayout()
         self.apiSelectorLayout.addRow(self.labelSelectedApi, self.selectedApi)
@@ -96,6 +98,32 @@ class Ui_SettingsWindow(object):
         self.customModel = QtWidgets.QLineEdit(self.pageCustom)
         self.pageCustomLayout.addRow(self.labelCustomModel, self.customModel)
         self.stackedWidget.addWidget(self.pageCustom)
+        
+        # Page 5: Ollama
+        self.pageOllama = QtWidgets.QWidget()
+        self.pageOllamaLayout = QtWidgets.QFormLayout(self.pageOllama)
+        self.labelOllamaUrl = QtWidgets.QLabel(self.pageOllama)
+        self.ollamaUrl = QtWidgets.QLineEdit(self.pageOllama)
+        self.pageOllamaLayout.addRow(self.labelOllamaUrl, self.ollamaUrl)
+        self.labelOllamaModel = QtWidgets.QLabel(self.pageOllama)
+        self.ollamaModel = QtWidgets.QLineEdit(self.pageOllama)
+        self.pageOllamaLayout.addRow(self.labelOllamaModel, self.ollamaModel)
+        self.stackedWidget.addWidget(self.pageOllama)
+        
+        # Page 6: Ollama Cloud
+        self.pageOllamaCloud = QtWidgets.QWidget()
+        self.pageOllamaCloudLayout = QtWidgets.QFormLayout(self.pageOllamaCloud)
+        self.labelOllamaCloudUrl = QtWidgets.QLabel(self.pageOllamaCloud)
+        self.ollamaCloudUrl = QtWidgets.QLineEdit(self.pageOllamaCloud)
+        self.pageOllamaCloudLayout.addRow(self.labelOllamaCloudUrl, self.ollamaCloudUrl)
+        self.labelOllamaCloudKey = QtWidgets.QLabel(self.pageOllamaCloud)
+        self.ollamaCloudKey = QtWidgets.QLineEdit(self.pageOllamaCloud)
+        self.pageOllamaCloudLayout.addRow(self.labelOllamaCloudKey, self.ollamaCloudKey)
+        self.labelOllamaCloudModel = QtWidgets.QLabel(self.pageOllamaCloud)
+        self.ollamaCloudModel = QtWidgets.QLineEdit(self.pageOllamaCloud)
+        self.pageOllamaCloudLayout.addRow(self.labelOllamaCloudModel, self.ollamaCloudModel)
+        self.stackedWidget.addWidget(self.pageOllamaCloud)
+
 
         # Emulation (Outside stack, always visible)
         self.emulationLayout = QtWidgets.QFormLayout()
@@ -412,6 +440,18 @@ class Ui_SettingsWindow(object):
         self.customKey.setPlaceholderText(_translate("SettingsWindow", "API Key"))
         self.labelCustomModel.setText(_translate("SettingsWindow", "OpenAI Compatible Model ID:"))
         self.customModel.setPlaceholderText(_translate("SettingsWindow", "Model ID"))
+
+        self.labelOllamaUrl.setText(_translate("SettingsWindow", "Ollama API URL:"))
+        self.ollamaUrl.setPlaceholderText(_translate("SettingsWindow", "http://localhost:11434/api/generate"))
+        self.labelOllamaModel.setText(_translate("SettingsWindow", "Ollama Model:"))
+        self.ollamaModel.setPlaceholderText(_translate("SettingsWindow", "llama3"))
+
+        self.labelOllamaCloudUrl.setText(_translate("SettingsWindow", "Ollama Cloud URL:"))
+        self.ollamaCloudUrl.setPlaceholderText(_translate("SettingsWindow", "https://ollama.com/api/generate"))
+        self.labelOllamaCloudKey.setText(_translate("SettingsWindow", "Ollama Cloud API Key:"))
+        self.ollamaCloudKey.setPlaceholderText(_translate("SettingsWindow", "Ollama API Key"))
+        self.labelOllamaCloudModel.setText(_translate("SettingsWindow", "Ollama Cloud Model:"))
+        self.ollamaCloudModel.setPlaceholderText(_translate("SettingsWindow", "llama3"))
 
         self.labelEmulate.setText(_translate("SettingsWindow", "Emulate:"))
         self.emulate.setItemText(0, _translate("SettingsWindow", "yes"))

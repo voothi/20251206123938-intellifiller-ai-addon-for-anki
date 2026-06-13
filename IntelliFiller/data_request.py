@@ -30,6 +30,7 @@ from .config_manager import ConfigManager
 import openai
 from .anthropic_client import SimpleAnthropicClient
 from .gemini_client import GeminiClient
+from .ollama_client import OllamaClient
 from html import unescape
 
 
@@ -133,6 +134,25 @@ def send_prompt_to_llm(prompt):
             print("Response from Custom Provider:", response)
             return response.choices[0].message.content.strip()
 
+        def try_ollama_call():
+            client = OllamaClient(
+                api_url=config.get('ollamaUrl') or 'http://localhost:11434/api/generate',
+                model=config.get('ollamaModel') or 'llama3'
+            )
+            response = client.generate_content(prompt, timeout=net_timeout)
+            print("Response from local Ollama:", response)
+            return response.strip()
+
+        def try_ollama_cloud_call():
+            client = OllamaClient(
+                api_url=config.get('ollamaCloudUrl') or 'https://ollama.com/api/generate',
+                api_key=config.get('ollamaCloudKey'),
+                model=config.get('ollamaCloudModel') or 'llama3'
+            )
+            response = client.generate_content(prompt, timeout=net_timeout)
+            print("Response from Ollama Cloud:", response)
+            return response.strip()
+
         try:
             if config['selectedApi'] == 'anthropic':
                 return try_anthropic_call()
@@ -142,6 +162,10 @@ def send_prompt_to_llm(prompt):
                 return try_openrouter_call()
             elif config['selectedApi'] == 'custom':
                 return try_custom_call()
+            elif config['selectedApi'] == 'ollama':
+                return try_ollama_call()
+            elif config['selectedApi'] == 'ollama_cloud':
+                return try_ollama_cloud_call()
             else:  # openai
                 return try_openai_call()
         except Exception as e:

@@ -83,6 +83,7 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
             self.geminiKey, 
             self.openrouterKey, 
             self.customKey, 
+            self.ollamaCloudKey,
             self.encryptionKey,
             self.backupPassword
         ]
@@ -126,6 +127,11 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
         self.customUrl.setText(config.get("customUrl", ""))
         self.customKey.setText(config.get("customKey", ""))
         self.customModel.setText(config.get("customModel", ""))
+        self.ollamaUrl.setText(config.get("ollamaUrl", ""))
+        self.ollamaModel.setText(config.get("ollamaModel", ""))
+        self.ollamaCloudUrl.setText(config.get("ollamaCloudUrl", ""))
+        self.ollamaCloudKey.setText(config.get("ollamaCloudKey", ""))
+        self.ollamaCloudModel.setText(config.get("ollamaCloudModel", ""))
         
         # Select correct API based on stored key (data)
         index = self.selectedApi.findData(config.get("selectedApi", "openai"))
@@ -417,7 +423,9 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
             "anthropicKey", "anthropicModel", 
             "geminiKey", "geminiModel", 
             "openrouterKey", "openrouterModel", 
-            "customUrl", "customKey", "customModel"
+            "customUrl", "customKey", "customModel",
+            "ollamaUrl", "ollamaModel",
+            "ollamaCloudUrl", "ollamaCloudKey", "ollamaCloudModel"
         ]
         credentials = {k: full_config.get(k, "") for k in cred_keys}
         
@@ -490,6 +498,11 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
         config["customUrl"] = self.customUrl.text()
         config["customKey"] = self.customKey.text()
         config["customModel"] = self.customModel.text()
+        config["ollamaUrl"] = self.ollamaUrl.text()
+        config["ollamaModel"] = self.ollamaModel.text()
+        config["ollamaCloudUrl"] = self.ollamaCloudUrl.text()
+        config["ollamaCloudKey"] = self.ollamaCloudKey.text()
+        config["ollamaCloudModel"] = self.ollamaCloudModel.text()
         config["selectedApi"] = self.selectedApi.currentData()
         config["emulate"] = self.emulate.currentText()
         config["overwriteField"] = self.overwriteField.isChecked()

@@ -179,7 +179,9 @@ class ConfigManager:
             "anthropicKey", "anthropicModel", 
             "geminiKey", "geminiModel", 
             "openrouterKey", "openrouterModel", 
-            "customUrl", "customKey", "customModel"
+            "customUrl", "customKey", "customModel",
+            "ollamaUrl", "ollamaModel",
+            "ollamaCloudUrl", "ollamaCloudKey", "ollamaCloudModel"
         ]
         credentials = {}
 
@@ -251,7 +253,7 @@ class ConfigManager:
     def has_legacy_secrets(cls, addon_name):
         """Checks if legacy files (meta.json/config.json) still contain plain-text secrets."""
         cred_keys = [
-            "apiKey", "anthropicKey", "geminiKey", "openrouterKey", "customKey"
+            "apiKey", "anthropicKey", "geminiKey", "openrouterKey", "customKey", "ollamaCloudKey"
         ]
         
         # Check meta.json
@@ -286,7 +288,7 @@ class ConfigManager:
     def sanitize_legacy_files(cls, addon_name):
         """Removes secrets from meta.json and config.json."""
         cred_keys = [
-            "apiKey", "anthropicKey", "geminiKey", "openrouterKey", "customKey"
+            "apiKey", "anthropicKey", "geminiKey", "openrouterKey", "customKey", "ollamaCloudKey"
         ]
         
         # 1. Sanitize meta.json

@@ -178,6 +178,76 @@
     </widget>
    </item>
    <item>
+    <widget class="QLabel" name="labelOllamaUrl">
+     <property name="text">
+      <string>Ollama API URL:</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLineEdit" name="ollamaUrl">
+     <property name="placeholderText">
+      <string>http://localhost:11434/api/generate</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLabel" name="labelOllamaModel">
+     <property name="text">
+      <string>Ollama Model:</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLineEdit" name="ollamaModel">
+     <property name="placeholderText">
+      <string>llama3</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLabel" name="labelOllamaCloudUrl">
+     <property name="text">
+      <string>Ollama Cloud URL:</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLineEdit" name="ollamaCloudUrl">
+     <property name="placeholderText">
+      <string>https://ollama.com/api/generate</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLabel" name="labelOllamaCloudKey">
+     <property name="text">
+      <string>Ollama Cloud API Key:</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLineEdit" name="ollamaCloudKey">
+     <property name="placeholderText">
+      <string>Ollama API Key</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLabel" name="labelOllamaCloudModel">
+     <property name="text">
+      <string>Ollama Cloud Model:</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLineEdit" name="ollamaCloudModel">
+     <property name="placeholderText">
+      <string>llama3</string>
+     </property>
+    </widget>
+   </item>
+   <item>
     <widget class="QLabel" name="labelSelectedApi">
      <property name="text">
       <string>Selected API:</string>
@@ -209,6 +279,16 @@
      <item>
       <property name="text">
        <string>custom</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>ollama</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>ollama_cloud</string>
       </property>
      </item>
     </widget>

@@ -41,6 +41,26 @@
     "customModel": {
       "type": "string"
     },
+    "ollamaUrl": {
+      "type": "string",
+      "description": "Base URL for local Ollama API."
+    },
+    "ollamaModel": {
+      "type": "string",
+      "description": "Model ID/name for local Ollama."
+    },
+    "ollamaCloudUrl": {
+      "type": "string",
+      "description": "Base URL for Ollama Cloud API."
+    },
+    "ollamaCloudKey": {
+      "type": "string",
+      "description": "API Key for Ollama Cloud."
+    },
+    "ollamaCloudModel": {
+      "type": "string",
+      "description": "Model ID/name for Ollama Cloud."
+    },
     "selectedApi": {
       "type": "string",
       "enum": [
@@ -48,7 +68,9 @@
         "anthropic",
         "gemini",
         "openrouter",
-        "custom"
+        "custom",
+        "ollama",
+        "ollama_cloud"
       ],
       "description": "Which API to use"
     },
