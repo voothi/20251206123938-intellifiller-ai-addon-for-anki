@@ -49,7 +49,7 @@ class HorizontalScrollFilter(QObject):
                                 new_val = int(h_bar.value() - steps * h_bar.singleStep() * 3)
                                 new_val = max(h_bar.minimum(), min(new_val, h_bar.maximum()))
                                 h_bar.setValue(new_val)
-                                return True
+                            return True  # Consume the event to prevent fallback vertical/accelerated scroll
                         break
                     scroll_area = scroll_area.parentWidget()
         return super().eventFilter(obj, event)
