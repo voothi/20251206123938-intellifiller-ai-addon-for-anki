@@ -247,9 +247,9 @@ def test_settings_window_constrain_to_screen(mocker):
     mock_screen = mocker.MagicMock()
     mock_geometry = mocker.MagicMock()
     
-    # Let availableGeometry() return values: width=1000, height=600, x=10, y=20
+    # Let availableGeometry() return values: width=1000, height=800, x=10, y=20
     mock_geometry.width.return_value = 1000
-    mock_geometry.height.return_value = 600
+    mock_geometry.height.return_value = 800
     mock_geometry.x.return_value = 10
     mock_geometry.y.return_value = 20
     mock_screen.availableGeometry.return_value = mock_geometry
@@ -262,25 +262,28 @@ def test_settings_window_constrain_to_screen(mocker):
     # Mock basic functions on window to assert sizing calculations
     mock_resize = mocker.patch.object(window, "resize")
     mock_move = mocker.patch.object(window, "move")
-    mocker.patch.object(window, "width", return_value=1200)
+    mocker.patch.object(window, "width", return_value=600)
+    mocker.patch.object(window, "height", return_value=500)
     
-    # sizeHint().height() mock
+    # sizeHint().height() mock (smaller than 580 to verify target_h uses 580 minimum)
     mock_size_hint = mocker.MagicMock()
-    mock_size_hint.height.return_value = 800
+    mock_size_hint.height.return_value = 450
     mocker.patch.object(window, "sizeHint", return_value=mock_size_hint)
     
     # Execute the layout constraint function
     window._constrain_to_screen()
     
     # Assert size constrained as:
-    # max_w = min(1200, int(1000 * 0.85)) = min(1200, 850) = 850
-    # max_h = min(800, int(600 * 0.90)) = min(800, 540) = 540
-    mock_resize.assert_called_once_with(850, 540)
+    # max_w = min(600, int(1000 * 0.85)) = min(600, 850) = 600
+    # max_h = int(800 * 0.90) = 720
+    # target_h = max(500, 450, 580) = 580
+    # h = min(580, 720) = 580
+    mock_resize.assert_called_once_with(600, 580)
     
     # Assert coordinates centered:
-    # x = avail.x() + (avail.width() - w) // 2 = 10 + (1000 - 850) // 2 = 85
-    # y = avail.y() + (avail.height() - h) // 2 = 20 + (600 - 540) // 2 = 50
-    mock_move.assert_called_once_with(85, 50)
+    # x = 10 + (1000 - 600) // 2 = 210
+    # y = 20 + (800 - 580) // 2 = 130
+    mock_move.assert_called_once_with(210, 130)
 
 
 
