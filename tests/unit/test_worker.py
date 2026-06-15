@@ -304,3 +304,103 @@ def test_progress_dialog_summary_show_on_errors(mocker):
     mock_summary_dialog.assert_called_once()
     mock_summary_dialog.return_value.exec.assert_called_once()
 
+
+def test_worker_network_error_endless_retry(mocker):
+    import aqt
+    mock_note = mocker.Mock(spec=Note)
+    col = mocker.Mock()
+    col.get_note.return_value = mock_note
+    mocker.patch.object(aqt.mw, "col", col, create=True)
+    mocker.patch("time.sleep")
+    
+    mocker.patch("IntelliFiller.process_notes.ConfigManager.load_settings", return_value={"maxNetworkRetries": -1})
+    
+    mock_enrich = mocker.patch("IntelliFiller.process_notes.enrich_without_editor")
+    # Raise error 5 times, then succeed
+    mock_enrich.side_effect = [
+        Exception("Connection timed out"),
+        Exception("Connection timed out"),
+        Exception("Connection timed out"),
+        Exception("Connection timed out"),
+        Exception("Connection timed out"),
+        None,
+    ]
+    
+    worker = MultipleNotesThreadWorker(notes=[123], browser=None, prompt_config={"promptName": "test"})
+    worker.set_permission(True)
+    worker.isInterruptionRequested = mocker.Mock(return_value=False)
+    worker.progress_made = mocker.Mock()
+    worker.status_update = mocker.Mock()
+    
+    worker.run()
+    
+    assert mock_enrich.call_count == 6
+    assert len(worker.network_failures) == 0
+    assert len(worker.successes) == 1
+
+
+def test_worker_network_error_limited_retry(mocker):
+    import aqt
+    mock_note = mocker.Mock(spec=Note)
+    col = mocker.Mock()
+    col.get_note.return_value = mock_note
+    mocker.patch.object(aqt.mw, "col", col, create=True)
+    mocker.patch("time.sleep")
+    
+    mocker.patch("IntelliFiller.process_notes.ConfigManager.load_settings", return_value={"maxNetworkRetries": 2})
+    
+    mock_enrich = mocker.patch("IntelliFiller.process_notes.enrich_without_editor")
+    # Limit is 2. So 3rd failure should trigger break.
+    mock_enrich.side_effect = [
+        Exception("Connection timed out"), # retry 1
+        Exception("Connection timed out"), # retry 2
+        Exception("Connection timed out"), # retry 3 -> break
+        None,
+    ]
+    
+    worker = MultipleNotesThreadWorker(notes=[123], browser=None, prompt_config={"promptName": "test"})
+    worker.set_permission(True)
+    worker.isInterruptionRequested = mocker.Mock(return_value=False)
+    worker.progress_made = mocker.Mock()
+    worker.status_update = mocker.Mock()
+    
+    worker.run()
+    
+    # 3 failures, since limit of retries is 2, it fails on the 3rd attempt's error (which is retry 3)
+    assert mock_enrich.call_count == 3
+    assert len(worker.network_failures) == 1
+    assert worker.network_failures[0]["retries"] == 3
+    assert len(worker.successes) == 0
+
+
+def test_worker_network_error_zero_retry(mocker):
+    import aqt
+    mock_note = mocker.Mock(spec=Note)
+    col = mocker.Mock()
+    col.get_note.return_value = mock_note
+    mocker.patch.object(aqt.mw, "col", col, create=True)
+    mocker.patch("time.sleep")
+    
+    mocker.patch("IntelliFiller.process_notes.ConfigManager.load_settings", return_value={"maxNetworkRetries": 0})
+    
+    mock_enrich = mocker.patch("IntelliFiller.process_notes.enrich_without_editor")
+    # Limit is 0. So 1st failure should trigger break immediately.
+    mock_enrich.side_effect = [
+        Exception("Connection timed out"),
+        None,
+    ]
+    
+    worker = MultipleNotesThreadWorker(notes=[123], browser=None, prompt_config={"promptName": "test"})
+    worker.set_permission(True)
+    worker.isInterruptionRequested = mocker.Mock(return_value=False)
+    worker.progress_made = mocker.Mock()
+    worker.status_update = mocker.Mock()
+    
+    worker.run()
+    
+    assert mock_enrich.call_count == 1
+    assert len(worker.network_failures) == 1
+    assert worker.network_failures[0]["retries"] == 1
+    assert len(worker.successes) == 0
+
+

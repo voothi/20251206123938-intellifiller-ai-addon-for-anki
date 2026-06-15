@@ -172,6 +172,7 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
         self.flatMenu.setChecked(config.get("flatMenu", False))
         self.maxFavorites.setValue(config.get("maxFavorites", 3))
         self.netTimeout.setValue(config.get("netTimeout", 10))
+        self.maxNetworkRetries.setValue(config.get("maxNetworkRetries", -1))
         # Default to True (Security by Default)
         self.obfuscateCreds.setChecked(config.get("obfuscateCreds", True))
         self.encryptionKey.setText(config.get("encryptionKey", ""))
@@ -564,6 +565,7 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
         config["flatMenu"] = self.flatMenu.isChecked()
         config["maxFavorites"] = self.maxFavorites.value()
         config["netTimeout"] = self.netTimeout.value()
+        config["maxNetworkRetries"] = self.maxNetworkRetries.value()
         config["obfuscateCreds"] = self.obfuscateCreds.isChecked()
         config["encryptionKey"] = self.encryptionKey.text()
         

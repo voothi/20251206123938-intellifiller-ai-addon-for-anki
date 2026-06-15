@@ -44,10 +44,11 @@ class MultipleNotesThreadWorker(QThread):
         self.skips = []  # list of {"note_id", "deck", "reason"}
         self.json_failures = []  # list of {"note_id", "deck", "reason"}
         self.network_failures = []  # list of {"note_id", "deck", "reason", "retries"}
-        self.max_network_retries = 3
+        self.max_network_retries = -1
 
         # Load Batch Settings
         settings = ConfigManager.load_settings()
+        self.max_network_retries = int(settings.get("maxNetworkRetries", -1))
         batch_cfg = settings.get("batchProcessing", {})
         self.batch_enabled = batch_cfg.get("enabled", True)
         self.batch_size = batch_cfg.get("batchSize", 20)
@@ -183,7 +184,7 @@ class MultipleNotesThreadWorker(QThread):
                         if self.isInterruptionRequested():
                             break
                         net_retry_count += 1
-                        if net_retry_count > self.max_network_retries:
+                        if self.max_network_retries >= 0 and net_retry_count > self.max_network_retries:
                             self._record_network_failure(note_id, deck_name, err_message, net_retry_count)
                             break
                         time.sleep(3)

@@ -91,6 +91,11 @@
       "description": "If true, always show the Summary window. If false, show only if errors occur.",
       "default": false
     },
+    "maxNetworkRetries": {
+      "type": "integer",
+      "description": "Maximum number of network retries before giving up on a note. Set to -1 for endless retries.",
+      "default": -1
+    },
     "flatMenu": {
       "type": "boolean",
       "description": "If true, show items directly in the root context menu.",

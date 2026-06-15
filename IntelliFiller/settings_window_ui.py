@@ -176,6 +176,12 @@ class Ui_SettingsWindow(object):
         self.netTimeout.setRange(5, 300)
         self.netTimeout.setSuffix(" sec")
         self.emulationLayout.addRow(self.labelNetTimeout, self.netTimeout)
+
+        self.labelMaxNetworkRetries = QtWidgets.QLabel(self.tabApi)
+        self.maxNetworkRetries = QtWidgets.QSpinBox(self.tabApi)
+        self.maxNetworkRetries.setRange(-1, 100)
+        self.maxNetworkRetries.setSpecialValueText("Endless")
+        self.emulationLayout.addRow(self.labelMaxNetworkRetries, self.maxNetworkRetries)
         
         self.tabApiLayout.addLayout(self.emulationLayout)
         
@@ -503,6 +509,9 @@ class Ui_SettingsWindow(object):
         
         self.labelNetTimeout.setText(_translate("SettingsWindow", "Network Timeout:"))
         self.netTimeout.setToolTip(_translate("SettingsWindow", "Time in seconds to wait for an API response before giving up."))
+        
+        self.labelMaxNetworkRetries.setText(_translate("SettingsWindow", "Max Network Retries:"))
+        self.maxNetworkRetries.setToolTip(_translate("SettingsWindow", "Maximum number of network retries before giving up on a note. Set to -1 for endless retries."))
         
         self.batchGroup.setTitle(_translate("SettingsWindow", "Batch Processing"))
         self.batchEnabled.setText(_translate("SettingsWindow", ""))

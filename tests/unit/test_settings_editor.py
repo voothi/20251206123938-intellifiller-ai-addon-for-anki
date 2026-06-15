@@ -15,7 +15,8 @@ def test_settings_window_initialization():
         "netTimeout": 15,
         "obfuscateCreds": True,
         "encryptionKey": "test-editor-salt",
-        "alwaysShowSummary": True
+        "alwaysShowSummary": True,
+        "maxNetworkRetries": 5
     }
     ConfigManager.save_settings({k: v for k, v in config.items() if k not in ["ollamaCloudKey"]})
     ConfigManager.save_credentials({"ollamaCloudKey": "test-cloud-key"}, key="test-editor-salt", obfuscate=True)
@@ -32,6 +33,7 @@ def test_settings_window_initialization():
     assert window.netTimeout.value() == 15
     assert window.encryptionKey.text() == "test-editor-salt"
     assert window.alwaysShowSummary.isChecked() is True
+    assert window.maxNetworkRetries.value() == 5
 
 def test_settings_window_save():
     # Setup initial config
@@ -39,11 +41,13 @@ def test_settings_window_save():
         "selectedApi": "openai",
         "netTimeout": 10,
         "encryptionKey": "old-salt",
-        "alwaysShowSummary": False
+        "alwaysShowSummary": False,
+        "maxNetworkRetries": -1
     })
     
     window = SettingsWindow()
     assert window.alwaysShowSummary.isChecked() is False
+    assert window.maxNetworkRetries.value() == -1
     
     # Simulate user changing some fields in the UI
     window.selectedApi.setCurrentData("ollama_cloud")
@@ -53,6 +57,7 @@ def test_settings_window_save():
     window.netTimeout.setValue(30)
     window.encryptionKey.setText("new-salt-key")
     window.alwaysShowSummary.setChecked(True)
+    window.maxNetworkRetries.setValue(2)
     
     # Simulate clicking OK/Save
     window.on_ok_clicked()
@@ -66,6 +71,7 @@ def test_settings_window_save():
     assert saved_config.get("netTimeout") == 30
     assert saved_config.get("encryptionKey") == "new-salt-key"
     assert saved_config.get("alwaysShowSummary") is True
+    assert saved_config.get("maxNetworkRetries") == 2
 
 
 @pytest.mark.security

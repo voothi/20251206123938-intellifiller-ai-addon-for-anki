@@ -61,6 +61,8 @@ class ConfigManager:
                      settings["netTimeout"] = 10
                  if "alwaysShowSummary" not in settings:
                      settings["alwaysShowSummary"] = False
+                 if "maxNetworkRetries" not in settings:
+                     settings["maxNetworkRetries"] = -1
                  return settings
         return {}
 

@@ -19,6 +19,7 @@
   "emulate": "no",
   "overwriteField": false,
   "alwaysShowSummary": false,
+  "maxNetworkRetries": -1,
   "maxFavorites": 3,
   "netTimeout": 10,
   "batchProcessing": {
