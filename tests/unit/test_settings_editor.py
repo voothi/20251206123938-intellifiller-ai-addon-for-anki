@@ -242,4 +242,46 @@ def test_settings_window_duplicate_prompt(monkeypatch, tmp_path):
     assert window.prompts[3]["promptName"] == "English Translation - Copy (1)"
 
 
+def test_settings_window_constrain_to_screen(mocker):
+    # Mock QGuiApplication.primaryScreen
+    mock_screen = mocker.MagicMock()
+    mock_geometry = mocker.MagicMock()
+    
+    # Let availableGeometry() return values: width=1000, height=600, x=10, y=20
+    mock_geometry.width.return_value = 1000
+    mock_geometry.height.return_value = 600
+    mock_geometry.x.return_value = 10
+    mock_geometry.y.return_value = 20
+    mock_screen.availableGeometry.return_value = mock_geometry
+    
+    mocker.patch("IntelliFiller.settings_editor.QGuiApplication.primaryScreen", return_value=mock_screen)
+    
+    ConfigManager.save_settings({})
+    window = SettingsWindow()
+    
+    # Mock basic functions on window to assert sizing calculations
+    mock_resize = mocker.patch.object(window, "resize")
+    mock_move = mocker.patch.object(window, "move")
+    mocker.patch.object(window, "width", return_value=1200)
+    
+    # sizeHint().height() mock
+    mock_size_hint = mocker.MagicMock()
+    mock_size_hint.height.return_value = 800
+    mocker.patch.object(window, "sizeHint", return_value=mock_size_hint)
+    
+    # Execute the layout constraint function
+    window._constrain_to_screen()
+    
+    # Assert size constrained as:
+    # max_w = min(1200, int(1000 * 0.85)) = min(1200, 850) = 850
+    # max_h = min(800, int(600 * 0.90)) = min(800, 540) = 540
+    mock_resize.assert_called_once_with(850, 540)
+    
+    # Assert coordinates centered:
+    # x = avail.x() + (avail.width() - w) // 2 = 10 + (1000 - 850) // 2 = 85
+    # y = avail.y() + (avail.height() - h) // 2 = 20 + (600 - 540) // 2 = 50
+    mock_move.assert_called_once_with(85, 50)
+
+
+
 

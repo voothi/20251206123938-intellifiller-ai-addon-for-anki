@@ -340,10 +340,18 @@ class Ui_SettingsWindow(object):
         # --- Backup Tab ---
         self.tabBackups = QtWidgets.QWidget()
         self.tabBackups.setObjectName("tabBackups")
-        self.tabBackupsLayout = QtWidgets.QVBoxLayout(self.tabBackups)
+        self.tabBackupsOuterLayout = QtWidgets.QVBoxLayout(self.tabBackups)
+        self.tabBackupsOuterLayout.setContentsMargins(0, 0, 0, 0)
+        
+        self.tabBackupsScrollArea = QtWidgets.QScrollArea(self.tabBackups)
+        self.tabBackupsScrollArea.setWidgetResizable(True)
+        self.tabBackupsScrollArea.setFrameShape(QtWidgets.QFrame.Shape.NoFrame)
+
+        self.tabBackupsContent = QtWidgets.QWidget()
+        self.tabBackupsLayout = QtWidgets.QVBoxLayout(self.tabBackupsContent)
         
         # General Settings Group
-        self.backupGeneralGroup = QtWidgets.QGroupBox("General Settings", self.tabBackups)
+        self.backupGeneralGroup = QtWidgets.QGroupBox("General Settings", self.tabBackupsContent)
         self.backupGeneralLayout = QtWidgets.QFormLayout(self.backupGeneralGroup)
         
         self.backupEnabled = QtWidgets.QCheckBox(self.backupGeneralGroup)
@@ -368,7 +376,7 @@ class Ui_SettingsWindow(object):
         self.tabBackupsLayout.addWidget(self.backupGeneralGroup)
         
         # Paths Group
-        self.backupPathsGroup = QtWidgets.QGroupBox("Storage Locations", self.tabBackups)
+        self.backupPathsGroup = QtWidgets.QGroupBox("Storage Locations", self.tabBackupsContent)
         self.backupPathsLayout = QtWidgets.QGridLayout(self.backupPathsGroup)
         
         self.labelLocalPath = QtWidgets.QLabel("Local Backup Path:", self.backupPathsGroup)
@@ -390,7 +398,7 @@ class Ui_SettingsWindow(object):
         self.tabBackupsLayout.addWidget(self.backupPathsGroup)
         
         # Rotation Policy Group
-        self.backupRotationGroup = QtWidgets.QGroupBox("Retention Policy (GFS Rotation)", self.tabBackups)
+        self.backupRotationGroup = QtWidgets.QGroupBox("Retention Policy (GFS Rotation)", self.tabBackupsContent)
         self.backupRotationLayout = QtWidgets.QFormLayout(self.backupRotationGroup)
         
         self.keepTenMin = QtWidgets.QSpinBox(self.backupRotationGroup)
@@ -415,6 +423,9 @@ class Ui_SettingsWindow(object):
 
         self.tabBackupsLayout.addWidget(self.backupRotationGroup)
         self.tabBackupsLayout.addStretch()
+
+        self.tabBackupsScrollArea.setWidget(self.tabBackupsContent)
+        self.tabBackupsOuterLayout.addWidget(self.tabBackupsScrollArea)
 
         self.tabWidget.addTab(self.tabBackups, "")
 

@@ -87,6 +87,26 @@ class DummyQtClass(metaclass=DummyQtMetaclass):
         return 0
     def __iter__(self):
         return iter([])
+    def __mul__(self, other):
+        return 0
+    def __rmul__(self, other):
+        return 0
+    def __add__(self, other):
+        return 0
+    def __radd__(self, other):
+        return 0
+    def __sub__(self, other):
+        return 0
+    def __rsub__(self, other):
+        return 0
+    def __truediv__(self, other):
+        return 0
+    def __rtruediv__(self, other):
+        return 0
+    def __floordiv__(self, other):
+        return 0
+    def __rfloordiv__(self, other):
+        return 0
     class DialogCode:
         Accepted = 1
     class StandardButton:
