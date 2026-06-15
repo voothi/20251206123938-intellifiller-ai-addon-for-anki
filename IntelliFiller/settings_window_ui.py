@@ -505,8 +505,6 @@ class Ui_SettingsWindow(object):
         self.encryptionKey.setPlaceholderText(_translate("SettingsWindow", "Leave empty for default portable key"))
         self.encryptionKey.setToolTip(_translate("SettingsWindow", "Custom string used to encrypt the credentials file. If changed, the file will be re-encrypted."))
         
-        self.encryptionKey.setToolTip(_translate("SettingsWindow", "Custom string used to encrypt the credentials file. If changed, the file will be re-encrypted."))
-        
         self.labelNetTimeout.setText(_translate("SettingsWindow", "Network Timeout:"))
         self.netTimeout.setToolTip(_translate("SettingsWindow", "Time in seconds to wait for an API response before giving up."))
         

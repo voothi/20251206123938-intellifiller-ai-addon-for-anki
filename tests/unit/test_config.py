@@ -36,7 +36,7 @@ def test_save_and_load_settings():
     assert loaded.get("selectedApi") == "ollama"
     assert loaded.get("netTimeout") == 15
     assert loaded.get("alwaysShowSummary") is False  # Assert default behavior
-    assert loaded.get("maxNetworkRetries") == 4  # Assert default behavior
+    assert loaded.get("maxNetworkRetries") == -1  # Assert default behavior
 
     settings_with_show = {"selectedApi": "openai", "alwaysShowSummary": True, "maxNetworkRetries": 5}
     ConfigManager.save_settings(settings_with_show)

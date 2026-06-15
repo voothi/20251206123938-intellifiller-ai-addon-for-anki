@@ -28,7 +28,7 @@ class MultipleNotesThreadWorker(QThread):
     status_update = pyqtSignal(str)
     deck_update = pyqtSignal(str)
     refresh_browser = pyqtSignal()
-    # error_occurred = pyqtSignal(str) # No longer needed for UI, we use stderr directly
+    # error_occurred = pyqtSignal(str) # No longer needed for UI, we print directly to stdout
 
     def __init__(self, notes, browser, prompt_config):
         super().__init__()
@@ -184,7 +184,7 @@ class MultipleNotesThreadWorker(QThread):
                 except Exception as e:
                     err_message = str(e)
                     err_str = err_message.lower()
-                    is_net_error = any(x in err_str for x in ["connect", "time", "network", "socket", "proxy", "50", "429"])
+                    is_net_error = any(x in err_str for x in ["connect", "time", "network", "socket", "proxy", "500", "502", "503", "504", "429"])
 
                     if not self.has_shown_error:
                         print(f"IntelliFiller Error: {err_message}")
@@ -551,6 +551,7 @@ class ProgressDialog(QDialog):
 
     def start_processing(self):
         """Called by ExecutionManager when it's our turn"""
+        self.setWindowTitle("Processing Notes...") # Reset title to active state
         if self.worker:
             self.worker.set_permission(True)
             if not self.worker.isRunning():
@@ -596,11 +597,6 @@ class ProgressDialog(QDialog):
     def set_queue_position(self, position):
         self.setWindowTitle(f"Queue: #{position} - Processing Notes...")
 
-    def start_processing(self):
-        # Called by ExecutionManager when it's our turn
-        self.setWindowTitle("Processing Notes...") # Reset title to active state
-        self.worker.set_permission(True)
-        self.worker.start()
 
     def update_deck_info(self, deck_name):
         text = f"deck:{deck_name}"
@@ -723,7 +719,6 @@ class ProgressDialog(QDialog):
         # Reset UI (e.g. Browser list) so partially processed changes are visible
         mw.reset()
         
-        # Close immediately so the user isn't stuck
         # Close immediately so the user isn't stuck
         ExecutionManager.instance().notify_finished(self)
         self.close()
