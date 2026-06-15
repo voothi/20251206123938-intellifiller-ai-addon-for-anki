@@ -16,6 +16,7 @@ class Ui_SettingsWindow(object):
 
         self.tabWidget = QtWidgets.QTabWidget(SettingsWindow)
         self.tabWidget.setObjectName("tabWidget")
+        self.tabWidget.setSizePolicy(QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Ignored))
         
         # --- API Tab ---
         self.tabApi = QtWidgets.QWidget()

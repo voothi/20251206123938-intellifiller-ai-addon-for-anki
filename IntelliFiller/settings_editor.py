@@ -86,10 +86,17 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
 
         # Constrain window size to the usable screen area (excluding taskbar)
         try:
-            self.adjustSize()
             geom = QGuiApplication.primaryScreen().availableGeometry()
-            w = min(self.width(), geom.width() - 40)
-            h = min(self.height(), geom.height() - 60)
+            max_h = geom.height() - 60
+            max_w = geom.width() - 40
+            self.setMinimumHeight(350)
+            self.setMaximumHeight(max_h)
+            self.setMinimumWidth(500)
+            self.setMaximumWidth(max_w)
+            
+            # Default to 700 width, 650 height (or capped by screen size)
+            w = min(700, max_w)
+            h = min(650, max_h)
             self.resize(int(w), int(h))
         except (TypeError, AttributeError):
             pass
