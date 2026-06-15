@@ -59,7 +59,7 @@ class HorizontalScrollFilter(QObject):
                                         new_val = int(h_bar.value() - steps * h_bar.singleStep() * 3 * multiplier)
                                         new_val = max(h_bar.minimum(), min(new_val, h_bar.maximum()))
                                         h_bar.setValue(new_val)
-                                    return True
+                                        return True  # Scroll happened, consume event
                                 else:
                                     # Alt-only vertical scroll acceleration
                                     v_bar = scroll_area.verticalScrollBar()
@@ -68,9 +68,13 @@ class HorizontalScrollFilter(QObject):
                                         new_val = int(v_bar.value() - steps * v_bar.singleStep() * 3 * multiplier)
                                         new_val = max(v_bar.minimum(), min(new_val, v_bar.maximum()))
                                         v_bar.setValue(new_val)
-                                    return True
-                            break
+                                        return True  # Scroll happened, consume event
                         scroll_area = scroll_area.parentWidget()
+                    
+                    # If we didn't find any scrollable area in the hierarchy:
+                    # For Shift, we still consume the event to prevent standard fallback to vertical scroll
+                    if has_shift:
+                        return True
         return super().eventFilter(obj, event)
 
 class SettingsWindow(QDialog, Ui_SettingsWindow):
