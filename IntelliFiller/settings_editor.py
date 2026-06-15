@@ -148,7 +148,7 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
         max_w = int(avail.width() * 0.85)
         max_h = int(avail.height() * 0.90)
         w = min(self.width(), max_w)
-        target_h = max(self.height(), self.sizeHint().height(), 580)
+        target_h = max(self.height(), self.sizeHint().height(), 640)
         h = min(target_h, max_h)
         self.resize(w, h)
         # Center on available geometry

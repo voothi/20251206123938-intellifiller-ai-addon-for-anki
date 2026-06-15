@@ -265,7 +265,7 @@ def test_settings_window_constrain_to_screen(mocker):
     mocker.patch.object(window, "width", return_value=600)
     mocker.patch.object(window, "height", return_value=500)
     
-    # sizeHint().height() mock (smaller than 580 to verify target_h uses 580 minimum)
+    # sizeHint().height() mock (smaller than 640 to verify target_h uses 640 minimum)
     mock_size_hint = mocker.MagicMock()
     mock_size_hint.height.return_value = 450
     mocker.patch.object(window, "sizeHint", return_value=mock_size_hint)
@@ -276,14 +276,14 @@ def test_settings_window_constrain_to_screen(mocker):
     # Assert size constrained as:
     # max_w = min(600, int(1000 * 0.85)) = min(600, 850) = 600
     # max_h = int(800 * 0.90) = 720
-    # target_h = max(500, 450, 580) = 580
-    # h = min(580, 720) = 580
-    mock_resize.assert_called_once_with(600, 580)
+    # target_h = max(500, 450, 640) = 640
+    # h = min(640, 720) = 640
+    mock_resize.assert_called_once_with(600, 640)
     
     # Assert coordinates centered:
     # x = 10 + (1000 - 600) // 2 = 210
-    # y = 20 + (800 - 580) // 2 = 130
-    mock_move.assert_called_once_with(210, 130)
+    # y = 20 + (800 - 640) // 2 = 100
+    mock_move.assert_called_once_with(210, 100)
 
 
 

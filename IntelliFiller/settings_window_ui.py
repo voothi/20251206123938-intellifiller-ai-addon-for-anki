@@ -9,7 +9,7 @@ class Ui_SettingsWindow(object):
     def setupUi(self, SettingsWindow):
         SettingsWindow.setObjectName("SettingsWindow")
         SettingsWindow.setWindowModality(QtCore.Qt.WindowModality.NonModal)
-        SettingsWindow.resize(600, 580)
+        SettingsWindow.resize(600, 640)
         
         self.verticalLayout = QtWidgets.QVBoxLayout(SettingsWindow)
         self.verticalLayout.setObjectName("verticalLayout")
