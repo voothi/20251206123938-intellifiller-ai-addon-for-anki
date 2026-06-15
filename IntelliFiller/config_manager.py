@@ -62,7 +62,7 @@ class ConfigManager:
                  if "alwaysShowSummary" not in settings:
                      settings["alwaysShowSummary"] = False
                  if "maxNetworkRetries" not in settings:
-                     settings["maxNetworkRetries"] = -1
+                     settings["maxNetworkRetries"] = 4
                  return settings
         return {}
 

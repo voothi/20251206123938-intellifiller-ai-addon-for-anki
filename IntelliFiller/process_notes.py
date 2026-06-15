@@ -44,11 +44,11 @@ class MultipleNotesThreadWorker(QThread):
         self.skips = []  # list of {"note_id", "deck", "reason"}
         self.json_failures = []  # list of {"note_id", "deck", "reason"}
         self.network_failures = []  # list of {"note_id", "deck", "reason", "retries"}
-        self.max_network_retries = -1
+        self.max_network_retries = 4
 
         # Load Batch Settings
         settings = ConfigManager.load_settings()
-        self.max_network_retries = int(settings.get("maxNetworkRetries", -1))
+        self.max_network_retries = int(settings.get("maxNetworkRetries", 4))
         batch_cfg = settings.get("batchProcessing", {})
         self.batch_enabled = batch_cfg.get("enabled", True)
         self.batch_size = batch_cfg.get("batchSize", 20)
