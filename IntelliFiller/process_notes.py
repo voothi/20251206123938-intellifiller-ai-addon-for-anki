@@ -476,8 +476,14 @@ class ProgressDialog(QDialog):
             self.watchdog_timer.stop()
         self.close()  # close the dialog when the worker finishes
         if summary:
-            summary_dialog = SummaryDialog(self.parent(), summary, self.worker.prompt_config)
-            summary_dialog.exec()
+            has_errors = (
+                len(summary.get("skips", [])) > 0 or
+                len(summary.get("json_failures", [])) > 0 or
+                len(summary.get("network_failures", [])) > 0
+            )
+            if has_errors:
+                summary_dialog = SummaryDialog(self.parent(), summary, self.worker.prompt_config)
+                summary_dialog.exec()
 
     def check_worker_activity(self):
         if not self.worker or not self.worker.isRunning() or self.worker.is_user_paused or not self.worker.run_permission:
