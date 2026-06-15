@@ -305,8 +305,11 @@ def test_horizontal_scroll_filter(mocker):
     mocker.patch.object(Qt.KeyboardModifier, "AltModifier", 8, create=True)
     mocker.patch.object(Qt.KeyboardModifier, "ShiftModifier", 2, create=True)
     
+    modifiers_mock = mocker.MagicMock()
+    event.modifiers.return_value = modifiers_mock
+    
     # 1. Test Alt only (should scroll horizontal scrollbar by 1x multiplier)
-    event.modifiers.return_value = 8 # AltModifier value
+    modifiers_mock.testFlag.side_effect = lambda flag: flag == 8
     event.angleDelta.return_value.y.return_value = 120 # scroll up
     
     h_bar.setValue.reset_mock()
@@ -318,7 +321,7 @@ def test_horizontal_scroll_filter(mocker):
     h_bar.setValue.assert_called_with(35)
     
     # 2. Test Shift + Alt (should scroll horizontal scrollbar by 5x multiplier)
-    event.modifiers.return_value = 10 # AltModifier (8) + ShiftModifier (2)
+    modifiers_mock.testFlag.side_effect = lambda flag: flag in (8, 2)
     h_bar.setValue.reset_mock()
     res = filter_obj.eventFilter(child, event)
     assert res is True
@@ -328,7 +331,7 @@ def test_horizontal_scroll_filter(mocker):
     h_bar.setValue.assert_called_with(0)
     
     # 3. Test Shift only (should NOT trigger horizontal scroll and return False/None to propagate)
-    event.modifiers.return_value = 2 # ShiftModifier (2)
+    modifiers_mock.testFlag.side_effect = lambda flag: flag == 2
     h_bar.setValue.reset_mock()
     res = filter_obj.eventFilter(child, event)
     assert res is not True
