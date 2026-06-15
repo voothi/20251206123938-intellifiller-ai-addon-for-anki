@@ -240,6 +240,34 @@
     },
     {
       "fieldMapping": {
+        "en": "WordEnglish",
+        "ipa": "WordSourceIPA",
+        "lemma": "WordSource",
+        "morphology": "WordSourceMorphologyAI",
+        "ru": "WordDestination",
+        "ua": "WordUkrainian"
+      },
+      "pinned": false,
+      "prompt": "### Role\nYou are an expert German Computational Linguist.\n\n### Task\nAnalyze the \"Candidate Word\" based on the \"Context\" and \"Translations\".\nOutput a SINGLE valid JSON object containing the keys below.\n\n### Fields Guide\n1. \"lemma\": Verify the \"Candidate Word\". Correct it if it is an inflected form, plural noun, or separable verb (e.g., 'fängt...an' -> 'anfangen'). Output the CORRECT dictionary form.\n2. \"ipa\": Standard German IPA (Hochdeutsch) for the lemma. No brackets/slashes.\n3. \"morphology\": Break down the word into morphemes (Root, Prefix, Suffix). Briefly explain the meaning/role of each part in Russian (e.g. \"prefix 'ver-' indicates change\").\n4. \"ru\": Translate the lemma to Russian. Use the \"Literal Translation\" or \"Literary Translation\" to find the exact meaning. Output ONE word (Nominative/Infinitive).\n5. \"en\": Translate the lemma to English (Lemma).\n6. \"ua\": Translate the lemma to Ukrainian (Lemma).\n\n### Examples\nInput Context: Er fängt heute an.\nInput Literal: Он начинает сегодня.\nInput Word: fängt\nInput Form: fängt...an\n\nOutput:\n{\n\"lemma\": \"anfangen\",\n\"ipa\": \"ˈanfaŋən\",\n\"morphology\": \"an- (приставка: начало действия) + fangen (корень: ловить)\",\n\"ru\": \"начинать\",\n\"en\": \"begin\",\n\"ua\": \"починати\"\n}\n\nInput Context: Die Unabhängigkeit ist важно.\nInput Literal: Независимость - это важно.\nInput Word: Unabhängigkeit\nInput Form: Unabhängigkeit\n\nOutput:\n{\n\"lemma\": \"Unabhängigkeit\",\n\"ipa\": \"ˈʊnaphɛŋɪçkaɪ̯t\",\n\"morphology\": \"Un- (отрицание) + hängig (зависимый) + -keit (суффикс сущ.)\",\n\"ru\": \"независимость\",\n\"en\": \"independence\",\n\"ua\": \"незалежність\"\n}\n\n### Input Data\nContext: {{{SentenceSource}}}\nLiteral Translation: {{{SentenceDestination}}}\nLiterary Translation: {{{SentenceDestination2}}}\nCandidate Word: {{{WordSource}}}\nInflected Form: {{{WordSourceInflectedForm}}}\n\n### Output\nReturn ONLY the raw JSON object. No Markdown. No explanations.",
+      "promptName": "German Vocabulary Analysis and Translation (JSON)",
+      "responseFormat": "json",
+      "targetField": ""
+    },
+    {
+      "fieldMapping": {
+        "en": "WordEnglish",
+        "morphology": "WordSourceMorphologyAI",
+        "ru": "WordDestinationInflectedForm",
+        "ua": "WordUkrainian"
+      },
+      "pinned": false,
+      "prompt": "### Role\nYou are an expert German-Russian translator and computational linguist.\n\n### Task\nTranslate the German \"Candidate Phrase\" into Russian, English, and Ukrainian based on the context of the sentence, and provide a brief grammatical note.\nOutput a SINGLE valid JSON object containing the keys below.\n\n### Fields Guide\n1. \"ru\": Translate the \"Candidate Phrase\" into Russian. Use the \"Literal Translation\" or \"Literary Translation\" of the sentence as context to find the exact meaning of the phrase as it is used in the sentence. Output ONLY the translated phrase (in the appropriate grammatical form/case/context matching the original German phrase).\n2. \"en\": Translate the \"Candidate Phrase\" into English.\n3. \"ua\": Translate the \"Candidate Phrase\" into Ukrainian.\n4. \"morphology\": A brief grammatical note or explanation of the phrase's structure, type, or usage in Russian (e.g., phrasal/separable verb details, idiom origin/syntax, preposition choice, etc.).\n\n### Examples\nInput Context: Er fing gestern mit der Arbeit an.\nInput Literal: Он начал вчера работу.\nInput Phrase: fing ... an\n\nOutput:\n{\n\"ru\": \"начал\",\n\"en\": \"started\",\n\"ua\": \"почав\",\n\"morphology\": \"Форма прошедшего времени Präteritum от отделяемого глагола anfangen (начинать). Fing — личная форма 3-го л. ед. ч., an — отделяемая приставка.\"\n}\n\nInput Context: Wir müssen das im Auge behalten.\nInput Literal: Мы должны держать это во внимании.\nInput Phrase: im Auge behalten\n\nOutput:\n{\n\"ru\": \"держать во внимании\",\n\"en\": \"keep in mind / keep an eye on\",\n\"ua\": \"тримати в полі зору / мати на увазі\",\n\"morphology\": \"Устойчивое выражение (идиома): im Auge behalten — буквально 'держать в глазу', означает следить за чем-то, не упускать из виду. Состоит из слияния предлога с артиклем (in + dem = im), существительного Auge (глаз) и глагола behalten (сохранять, удерживать).\"\n}\n\nInput Context: Es kommt darauf an, wie das Wetter wird.\nInput Literal: Это зависит от того, какая будет погода.\nInput Phrase: kommt darauf an\n\nOutput:\n{\n\"ru\": \"зависит\",\n\"en\": \"depends\",\n\"ua\": \"залежить\",\n\"morphology\": \"Устойчивое выражение (драйвер управления): darauf ankommen — зависеть от чего-то. Состоит из местоименного наречия darauf (на это), предлога an и личной формы глагола kommen (3-е л. ед. ч. Present).\"\n}\n\n### Input Data\nContext: {{{SentenceSource}}}\nLiteral Translation: {{{SentenceDestination}}}\nLiterary Translation: {{{SentenceDestination2}}}\nCandidate Phrase: {{{WordSourceInflectedForm}}}\n\n### Output\nReturn ONLY the raw JSON object. No Markdown. No explanations.",
+      "promptName": "German Phrase Translation (JSON)",
+      "responseFormat": "json",
+      "targetField": ""
+    },
+    {
+      "fieldMapping": {
         "de": "WordGerman",
         "ipa": "WordSourceIPA",
         "lemma": "WordSource",
