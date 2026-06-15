@@ -166,7 +166,7 @@ class MultipleNotesThreadWorker(QThread):
 
                     # If we reached here, success!
                     self.update_activity()
-                    self.successes.append({"note_id": note_id, "deck": deck_name})
+                    self.successes.append({"note_id": note_id, "deck": deck_name, "retries": net_retry_count})
                     break
 
                 except Exception as e:
@@ -175,7 +175,7 @@ class MultipleNotesThreadWorker(QThread):
                     is_net_error = any(x in err_str for x in ["connect", "time", "network", "socket", "proxy", "50", "429"])
 
                     if not self.has_shown_error:
-                        sys.stderr.write(f"IntelliFiller Error: {err_message}")
+                        print(f"IntelliFiller Error: {err_message}")
                         self.has_shown_error = True
 
                     if is_net_error:
@@ -221,7 +221,7 @@ class SummaryDialog(QDialog):
         layout.addWidget(header)
 
         self.tabs = QTabWidget()
-        self.tabs.addTab(self._build_table(summary["successes"], include_error=False), "Successful")
+        self.tabs.addTab(self._build_table(summary["successes"], include_error=False, include_retries=True), "Successful")
 
         all_failures = []
         for x in summary["skips"]:
@@ -298,7 +298,9 @@ class SummaryDialog(QDialog):
                 table.setItem(row, column, QTableWidgetItem(entry.get("reason", "")))
                 column += 1
             if include_retries:
-                table.setItem(row, column, QTableWidgetItem(str(entry.get("retries", ""))))
+                val = entry.get("retries", "")
+                val_str = str(val) if val != 0 and val != "" else ""
+                table.setItem(row, column, QTableWidgetItem(val_str))
 
         table.resizeColumnsToContents()
         table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)

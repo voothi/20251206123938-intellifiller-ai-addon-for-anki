@@ -71,6 +71,8 @@ def test_worker_successful_run(mocker):
 
     worker.progress_made.emit.assert_called_once_with(1)
     mock_enrich.assert_called_once_with(mock_note, {"promptName": "test"})
+    assert len(worker.successes) == 1
+    assert worker.successes[0]["retries"] == 0
 
 
 def test_worker_uses_note_instance_fast_path(mocker):
@@ -130,6 +132,8 @@ def test_worker_network_error_retry(mocker):
     mock_sleep.assert_called_once_with(3)
     worker.progress_made.emit.assert_called_once_with(1)
     assert mock_enrich.call_count == 2
+    assert len(worker.successes) == 1
+    assert worker.successes[0]["retries"] == 1
 
 
 def test_worker_non_network_error_skips_after_one_attempt(mocker):
