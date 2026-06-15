@@ -192,3 +192,54 @@ def mocker_stub_event():
             self.ignored = True
     return _Event()
 
+
+def test_settings_window_duplicate_prompt(monkeypatch, tmp_path):
+    import os
+    # Set up temporary prompts dir to avoid interfering with real config
+    monkeypatch.setattr(ConfigManager, "USER_FILES_DIR", str(tmp_path))
+    monkeypatch.setattr(ConfigManager, "SETTINGS_FILE", os.path.join(str(tmp_path), "settings.json"))
+    monkeypatch.setattr(ConfigManager, "PROMPTS_DIR", os.path.join(str(tmp_path), "prompts"))
+    
+    # Save a prompt first
+    prompt_data = {
+        "promptName": "English Translation",
+        "prompt": "Translate {{{Word}}} to English",
+        "targetField": "Translation",
+        "pinned": True,
+        "responseFormat": "text",
+        "fieldMapping": {}
+    }
+    ConfigManager.save_prompt(prompt_data)
+    ConfigManager.save_settings({"selectedApi": "openai"})
+
+    window = SettingsWindow()
+    assert len(window.prompts) == 1
+    assert window.prompts[0]["promptName"] == "English Translation"
+
+    # Mock currentRow selection
+    window.promptsList.currentRow = lambda: 0
+
+    # Click duplicate button or invoke the method directly
+    window.duplicate_selected_prompt()
+
+    # Verify a new prompt is added with " - Copy" suffix
+    assert len(window.prompts) == 2
+    assert window.prompts[1]["promptName"] == "English Translation - Copy"
+    assert window.prompts[1]["prompt"] == "Translate {{{Word}}} to English"
+    assert window.prompts[1]["targetField"] == "Translation"
+    assert window.prompts[1]["pinned"] is True
+
+    # Test duplicating again produces unique name with counter
+    window.promptsList.currentRow = lambda: 1
+    window.duplicate_selected_prompt()
+    assert len(window.prompts) == 3
+    assert window.prompts[2]["promptName"] == "English Translation - Copy - Copy"
+
+    # Test duplicating the first one again produces "English Translation - Copy (1)"
+    window.promptsList.currentRow = lambda: 0
+    window.duplicate_selected_prompt()
+    assert len(window.prompts) == 4
+    assert window.prompts[3]["promptName"] == "English Translation - Copy (1)"
+
+
+

@@ -214,6 +214,8 @@ class Ui_SettingsWindow(object):
         
         self.addPromptButton = QtWidgets.QPushButton(self.tabPrompts)
         self.promptsListLayout.addWidget(self.addPromptButton)
+        self.duplicatePromptButton = QtWidgets.QPushButton(self.tabPrompts)
+        self.promptsListLayout.addWidget(self.duplicatePromptButton)
         self.removePromptButton = QtWidgets.QPushButton(self.tabPrompts)
         self.promptsListLayout.addWidget(self.removePromptButton)
         
@@ -495,6 +497,7 @@ class Ui_SettingsWindow(object):
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabApi), _translate("SettingsWindow", "API Settings"))
         
         self.addPromptButton.setText(_translate("SettingsWindow", "Add Prompt"))
+        self.duplicatePromptButton.setText(_translate("SettingsWindow", "Duplicate Prompt"))
         self.removePromptButton.setText(_translate("SettingsWindow", "Remove Prompt"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabPrompts), _translate("SettingsWindow", "Prompts"))
         

@@ -203,6 +203,7 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
         # Prompts Setup
         self.promptsList.currentRowChanged.connect(self.display_prompt_details)
         self.addPromptButton.clicked.connect(self.add_new_prompt)
+        self.duplicatePromptButton.clicked.connect(self.duplicate_selected_prompt)
         self.removePromptButton.clicked.connect(self.remove_selected_prompt)
         
         # Connect Prompt Detail Change Signals
@@ -336,6 +337,7 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
 
         if row < 0 or row >= len(self.prompts):
             self.promptDetailsGroup.setEnabled(False)
+            self.duplicatePromptButton.setEnabled(False)
             self.promptName.clear()
             self.promptPinnedCheckbox.setChecked(False)
             self.promptResponseFormat.setCurrentIndex(0) # Text
@@ -344,6 +346,7 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
             self.promptText.clear()
         else:
             self.promptDetailsGroup.setEnabled(True)
+            self.duplicatePromptButton.setEnabled(True)
             prompt = self.prompts[row]
             
             self.promptName.setText(prompt.get("promptName", ""))
@@ -386,6 +389,31 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
             "responseFormat": "text",
             "fieldMapping": {}
         }
+        self.prompts.append(new_prompt)
+        self.refresh_prompts_list()
+        self.promptsList.setCurrentRow(len(self.prompts) - 1)
+        self.promptName.setFocus()
+        self.promptName.selectAll()
+
+    def duplicate_selected_prompt(self):
+        row = self.promptsList.currentRow()
+        if row < 0 or row >= len(self.prompts):
+            return
+
+        import copy
+        original_prompt = self.prompts[row]
+        new_prompt = copy.deepcopy(original_prompt)
+
+        base_name = new_prompt.get("promptName", "Unnamed Prompt")
+        new_name = f"{base_name} - Copy"
+
+        existing_names = {p.get("promptName", "") for p in self.prompts}
+        counter = 1
+        while new_name in existing_names:
+            new_name = f"{base_name} - Copy ({counter})"
+            counter += 1
+
+        new_prompt["promptName"] = new_name
         self.prompts.append(new_prompt)
         self.refresh_prompts_list()
         self.promptsList.setCurrentRow(len(self.prompts) - 1)
