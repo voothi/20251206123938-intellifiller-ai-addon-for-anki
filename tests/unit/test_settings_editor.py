@@ -243,3 +243,4 @@ def test_settings_window_duplicate_prompt(monkeypatch, tmp_path):
 
 
 
+
