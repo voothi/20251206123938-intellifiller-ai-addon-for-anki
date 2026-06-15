@@ -242,5 +242,99 @@ def test_settings_window_duplicate_prompt(monkeypatch, tmp_path):
     assert window.prompts[3]["promptName"] == "English Translation - Copy (1)"
 
 
+def test_horizontal_scroll_filter(mocker):
+    from aqt.qt import QObject, QEvent, QWidget
+    from IntelliFiller.settings_editor import HorizontalScrollFilter
+    
+    class RealMockScrollArea(QWidget):
+        pass
+        
+    mocker.patch("IntelliFiller.settings_editor.QAbstractScrollArea", RealMockScrollArea)
+    
+    class MockWidget(QWidget):
+        def __init__(self):
+            super().__init__()
+            self._parent = None
+        def parentWidget(self):
+            return self._parent
+        def isAncestorOf(self, other):
+            return True
+            
+    class MockScrollArea(RealMockScrollArea):
+        def __init__(self):
+            super().__init__()
+            self._parent = None
+            self._h_bar = mocker.MagicMock()
+            self._v_bar = mocker.MagicMock()
+        def parentWidget(self):
+            return self._parent
+        def horizontalScrollBar(self):
+            return self._h_bar
+        def verticalScrollBar(self):
+            return self._v_bar
+            
+    parent = MockWidget()
+    scroll_area = MockScrollArea()
+    child = MockWidget()
+    
+    # Setup hierarchy
+    child._parent = scroll_area
+    scroll_area._parent = parent
+    
+    # Mock scrollbar properties
+    h_bar = scroll_area.horizontalScrollBar()
+    h_bar.minimum.return_value = 0
+    h_bar.maximum.return_value = 100
+    h_bar.value.return_value = 50
+    h_bar.singleStep.return_value = 5
+    
+    v_bar = scroll_area.verticalScrollBar()
+    v_bar.minimum.return_value = 0
+    v_bar.maximum.return_value = 100
+    v_bar.value.return_value = 50
+    v_bar.singleStep.return_value = 5
+    
+    filter_obj = HorizontalScrollFilter(parent)
+    
+    # Mock event
+    event = mocker.MagicMock()
+    event.type.return_value = QEvent.Type.Wheel
+    
+    from aqt.qt import Qt
+    mocker.patch.object(QObject, "eventFilter", return_value=False, create=True)
+    mocker.patch.object(Qt.KeyboardModifier, "AltModifier", 8, create=True)
+    mocker.patch.object(Qt.KeyboardModifier, "ShiftModifier", 2, create=True)
+    
+    # 1. Test Alt only (should scroll horizontal scrollbar by 1x multiplier)
+    event.modifiers.return_value = 8 # AltModifier value
+    event.angleDelta.return_value.y.return_value = 120 # scroll up
+    
+    h_bar.setValue.reset_mock()
+    res = filter_obj.eventFilter(child, event)
+    assert res is True
+    h_bar.setValue.assert_called_once()
+    # steps = 120/120 = 1.0. multiplier = 1. step = 5.
+    # val = 50 - 1.0 * 5 * 3 * 1 = 35
+    h_bar.setValue.assert_called_with(35)
+    
+    # 2. Test Shift + Alt (should scroll horizontal scrollbar by 5x multiplier)
+    event.modifiers.return_value = 10 # AltModifier (8) + ShiftModifier (2)
+    h_bar.setValue.reset_mock()
+    res = filter_obj.eventFilter(child, event)
+    assert res is True
+    h_bar.setValue.assert_called_once()
+    # steps = 1.0. multiplier = 5. step = 5.
+    # val = 50 - 1.0 * 5 * 3 * 5 = -25 -> bounded to min 0
+    h_bar.setValue.assert_called_with(0)
+    
+    # 3. Test Shift only (should NOT trigger horizontal scroll and return False/None to propagate)
+    event.modifiers.return_value = 2 # ShiftModifier (2)
+    h_bar.setValue.reset_mock()
+    res = filter_obj.eventFilter(child, event)
+    assert res is not True
+    h_bar.setValue.assert_not_called()
+
+
+
 
 

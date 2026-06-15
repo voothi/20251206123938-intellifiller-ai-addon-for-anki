@@ -38,11 +38,11 @@ class HorizontalScrollFilter(QObject):
     def eventFilter(self, obj, event):
         if event.type() == QEvent.Type.Wheel:
             modifiers = event.modifiers()
-            has_alt = bool(modifiers & Qt.KeyboardModifier.AltModifier)
-            has_shift = bool(modifiers & Qt.KeyboardModifier.ShiftModifier)
+            has_alt = int(modifiers & Qt.KeyboardModifier.AltModifier) != 0
+            has_shift = int(modifiers & Qt.KeyboardModifier.ShiftModifier) != 0
             
             if has_alt:
-                if isinstance(obj, QWidget) and (self.parent_window.isAncestorOf(obj) or obj is self.parent_window):
+                if hasattr(obj, "parentWidget") and (self.parent_window.isAncestorOf(obj) or obj is self.parent_window):
                     scroll_area = obj
                     while scroll_area is not None:
                         if isinstance(scroll_area, QAbstractScrollArea):
