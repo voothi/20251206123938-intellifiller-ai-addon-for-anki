@@ -18,13 +18,23 @@ class Ui_SettingsWindow(object):
         self.tabWidget.setObjectName("tabWidget")
         
         # --- API Tab ---
+        # The API tab has many fields and can exceed laptop screen height.
+        # Wrap all content in a QScrollArea so the dialog is not forced to expand.
         self.tabApi = QtWidgets.QWidget()
         self.tabApi.setObjectName("tabApi")
-        self.tabApiLayout = QtWidgets.QVBoxLayout(self.tabApi)
+        self.tabApiOuterLayout = QtWidgets.QVBoxLayout(self.tabApi)
+        self.tabApiOuterLayout.setContentsMargins(0, 0, 0, 0)
+
+        self.tabApiScrollArea = QtWidgets.QScrollArea(self.tabApi)
+        self.tabApiScrollArea.setWidgetResizable(True)
+        self.tabApiScrollArea.setFrameShape(QtWidgets.QFrame.Shape.NoFrame)
+
+        self.tabApiContent = QtWidgets.QWidget()
+        self.tabApiLayout = QtWidgets.QVBoxLayout(self.tabApiContent)
         
         # 1. API Selector at the top
-        self.labelSelectedApi = QtWidgets.QLabel(self.tabApi)
-        self.selectedApi = QtWidgets.QComboBox(self.tabApi)
+        self.labelSelectedApi = QtWidgets.QLabel(self.tabApiContent)
+        self.selectedApi = QtWidgets.QComboBox(self.tabApiContent)
         self.selectedApi.addItem("OpenAI", "openai")
         self.selectedApi.addItem("Anthropic", "anthropic")
         self.selectedApi.addItem("Google Gemini", "gemini")
@@ -38,7 +48,7 @@ class Ui_SettingsWindow(object):
         self.tabApiLayout.addLayout(self.apiSelectorLayout)
         
         # 2. Stacked Widget for Provider specific fields
-        self.stackedWidget = QtWidgets.QStackedWidget(self.tabApi)
+        self.stackedWidget = QtWidgets.QStackedWidget(self.tabApiContent)
         self.tabApiLayout.addWidget(self.stackedWidget)
         
         # Page 0: OpenAI
@@ -127,40 +137,40 @@ class Ui_SettingsWindow(object):
 
         # Emulation (Outside stack, always visible)
         self.emulationLayout = QtWidgets.QFormLayout()
-        self.labelEmulate = QtWidgets.QLabel(self.tabApi)
-        self.emulate = QtWidgets.QComboBox(self.tabApi)
+        self.labelEmulate = QtWidgets.QLabel(self.tabApiContent)
+        self.emulate = QtWidgets.QComboBox(self.tabApiContent)
         self.emulate.addItems(["yes", "no"])
         self.emulationLayout.addRow(self.labelEmulate, self.emulate)
 
         # Test Connection Button (covers currently selected provider)
-        self.testConnectionButton = QtWidgets.QPushButton(self.tabApi)
-        self.emulationLayout.addRow(QtWidgets.QLabel("Test Connection:", self.tabApi), self.testConnectionButton)
+        self.testConnectionButton = QtWidgets.QPushButton(self.tabApiContent)
+        self.emulationLayout.addRow(QtWidgets.QLabel("Test Connection:", self.tabApiContent), self.testConnectionButton)
 
-        self.overwriteFieldLabel = QtWidgets.QLabel(self.tabApi)
-        self.overwriteField = QtWidgets.QCheckBox(self.tabApi)
+        self.overwriteFieldLabel = QtWidgets.QLabel(self.tabApiContent)
+        self.overwriteField = QtWidgets.QCheckBox(self.tabApiContent)
         self.emulationLayout.addRow(self.overwriteFieldLabel, self.overwriteField)
         
-        self.flatMenuLabel = QtWidgets.QLabel(self.tabApi)
-        self.flatMenu = QtWidgets.QCheckBox(self.tabApi)
+        self.flatMenuLabel = QtWidgets.QLabel(self.tabApiContent)
+        self.flatMenu = QtWidgets.QCheckBox(self.tabApiContent)
         self.emulationLayout.addRow(self.flatMenuLabel, self.flatMenu)
         
-        self.labelMaxFavorites = QtWidgets.QLabel(self.tabApi)
-        self.maxFavorites = QtWidgets.QSpinBox(self.tabApi)
+        self.labelMaxFavorites = QtWidgets.QLabel(self.tabApiContent)
+        self.maxFavorites = QtWidgets.QSpinBox(self.tabApiContent)
         self.maxFavorites.setMinimum(0)
         self.maxFavorites.setMaximum(10)
         self.emulationLayout.addRow(self.labelMaxFavorites, self.maxFavorites)
 
-        self.labelObfuscate = QtWidgets.QLabel(self.tabApi)
-        self.obfuscateCreds = QtWidgets.QCheckBox(self.tabApi)
+        self.labelObfuscate = QtWidgets.QLabel(self.tabApiContent)
+        self.obfuscateCreds = QtWidgets.QCheckBox(self.tabApiContent)
         self.emulationLayout.addRow(self.labelObfuscate, self.obfuscateCreds)
 
-        self.labelEncryptionKey = QtWidgets.QLabel(self.tabApi)
-        self.encryptionKey = QtWidgets.QLineEdit(self.tabApi)
+        self.labelEncryptionKey = QtWidgets.QLabel(self.tabApiContent)
+        self.encryptionKey = QtWidgets.QLineEdit(self.tabApiContent)
         self.encryptionKey.setEchoMode(QtWidgets.QLineEdit.EchoMode.Password)
         self.emulationLayout.addRow(self.labelEncryptionKey, self.encryptionKey)
 
-        self.labelNetTimeout = QtWidgets.QLabel(self.tabApi)
-        self.netTimeout = QtWidgets.QSpinBox(self.tabApi)
+        self.labelNetTimeout = QtWidgets.QLabel(self.tabApiContent)
+        self.netTimeout = QtWidgets.QSpinBox(self.tabApiContent)
         self.netTimeout.setRange(5, 300)
         self.netTimeout.setSuffix(" sec")
         self.emulationLayout.addRow(self.labelNetTimeout, self.netTimeout)
@@ -168,7 +178,7 @@ class Ui_SettingsWindow(object):
         self.tabApiLayout.addLayout(self.emulationLayout)
         
         # Batch Processing
-        self.batchGroup = QtWidgets.QGroupBox("Batch Processing", self.tabApi)
+        self.batchGroup = QtWidgets.QGroupBox("Batch Processing", self.tabApiContent)
         self.batchLayout = QtWidgets.QFormLayout(self.batchGroup)
         
         self.batchEnabled = QtWidgets.QCheckBox(self.batchGroup)
@@ -199,6 +209,10 @@ class Ui_SettingsWindow(object):
         
         # Spacer to push everything up
         self.tabApiLayout.addStretch()
+
+        # Finish scroll area setup
+        self.tabApiScrollArea.setWidget(self.tabApiContent)
+        self.tabApiOuterLayout.addWidget(self.tabApiScrollArea)
 
         self.tabWidget.addTab(self.tabApi, "")
 

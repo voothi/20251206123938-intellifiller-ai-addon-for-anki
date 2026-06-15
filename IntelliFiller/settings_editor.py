@@ -84,6 +84,9 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
         self._connection_test_worker = None
         self._set_test_button_state(True)
 
+        # Constrain dialog size to available screen (excludes taskbar)
+        self._constrain_to_screen()
+
     def _set_test_button_state(self, enabled):
         self.testConnectionButton.setEnabled(enabled)
         self.testConnectionButton.setText("Test Connection" if enabled else "Testing...")
@@ -136,9 +139,21 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
         
         action.triggered.connect(toggle)
 
-    def setWindowSize(self):
-        screen_size = QGuiApplication.primaryScreen().geometry()
-        self.resize(screen_size.width() * 0.8, screen_size.height() * 0.8)
+    def _constrain_to_screen(self):
+        """Cap the dialog size to the available screen area (excludes taskbar)."""
+        screen = QGuiApplication.primaryScreen()
+        if screen is None:
+            return
+        avail = screen.availableGeometry()
+        max_w = int(avail.width() * 0.85)
+        max_h = int(avail.height() * 0.90)
+        w = min(self.width(), max_w)
+        h = min(self.sizeHint().height(), max_h)
+        self.resize(w, h)
+        # Center on available geometry
+        x = avail.x() + (avail.width() - w) // 2
+        y = avail.y() + (avail.height() - h) // 2
+        self.move(x, y)
 
     def setup_config(self, config):
         self.apiKey.setText(config.get("apiKey", ""))
