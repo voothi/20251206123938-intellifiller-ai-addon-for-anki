@@ -205,7 +205,15 @@ class Ui_SettingsWindow(object):
         # --- Prompts Tab ---
         self.tabPrompts = QtWidgets.QWidget()
         self.tabPrompts.setObjectName("tabPrompts")
-        self.tabPromptsLayout = QtWidgets.QHBoxLayout(self.tabPrompts)
+        self.tabPromptsOuterLayout = QtWidgets.QVBoxLayout(self.tabPrompts)
+        self.tabPromptsOuterLayout.setContentsMargins(0, 0, 0, 0)
+        self.tabPromptsScroll = QtWidgets.QScrollArea(self.tabPrompts)
+        self.tabPromptsScroll.setWidgetResizable(True)
+        self.tabPromptsScroll.setFrameShape(QtWidgets.QFrame.Shape.NoFrame)
+        self.tabPromptsOuterLayout.addWidget(self.tabPromptsScroll)
+        self.tabPromptsScrollContent = QtWidgets.QWidget()
+        self.tabPromptsScroll.setWidget(self.tabPromptsScrollContent)
+        self.tabPromptsLayout = QtWidgets.QHBoxLayout(self.tabPromptsScrollContent)
         
         # Left: List of Prompts
         self.promptsListLayout = QtWidgets.QVBoxLayout()
@@ -279,7 +287,15 @@ class Ui_SettingsWindow(object):
         # --- Pipelines Tab ---
         self.tabPipelines = QtWidgets.QWidget()
         self.tabPipelines.setObjectName("tabPipelines")
-        self.tabPipelinesLayout = QtWidgets.QHBoxLayout(self.tabPipelines)
+        self.tabPipelinesOuterLayout = QtWidgets.QVBoxLayout(self.tabPipelines)
+        self.tabPipelinesOuterLayout.setContentsMargins(0, 0, 0, 0)
+        self.tabPipelinesScroll = QtWidgets.QScrollArea(self.tabPipelines)
+        self.tabPipelinesScroll.setWidgetResizable(True)
+        self.tabPipelinesScroll.setFrameShape(QtWidgets.QFrame.Shape.NoFrame)
+        self.tabPipelinesOuterLayout.addWidget(self.tabPipelinesScroll)
+        self.tabPipelinesScrollContent = QtWidgets.QWidget()
+        self.tabPipelinesScroll.setWidget(self.tabPipelinesScrollContent)
+        self.tabPipelinesLayout = QtWidgets.QHBoxLayout(self.tabPipelinesScrollContent)
         
         # Left: List of Pipelines
         self.pipelinesListLayout = QtWidgets.QVBoxLayout()
