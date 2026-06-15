@@ -71,17 +71,28 @@ class MultipleNotesThreadWorker(QThread):
         self.is_user_paused = paused
 
     def _record_skip(self, note_id, deck_name, reason):
-        self.skips.append({"note_id": note_id, "deck": deck_name, "reason": reason})
+        self.skips.append({
+            "note_id": note_id,
+            "deck": deck_name,
+            "reason": reason,
+            "attempt_errors": [reason],
+        })
 
     def _record_json_failure(self, note_id, deck_name, reason):
-        self.json_failures.append({"note_id": note_id, "deck": deck_name, "reason": reason})
+        self.json_failures.append({
+            "note_id": note_id,
+            "deck": deck_name,
+            "reason": reason,
+            "attempt_errors": [reason],
+        })
 
-    def _record_network_failure(self, note_id, deck_name, reason, retries):
+    def _record_network_failure(self, note_id, deck_name, reason, retries, attempt_errors=None):
         self.network_failures.append({
             "note_id": note_id,
             "deck": deck_name,
             "reason": reason,
             "retries": retries,
+            "attempt_errors": attempt_errors or [],
         })
 
     def get_summary(self):
@@ -135,6 +146,7 @@ class MultipleNotesThreadWorker(QThread):
 
             # Retry loop for the distinct note
             net_retry_count = 0
+            attempt_errors = []
             while True:
                 self.update_activity()
                 if self.isInterruptionRequested():
@@ -166,7 +178,7 @@ class MultipleNotesThreadWorker(QThread):
 
                     # If we reached here, success!
                     self.update_activity()
-                    self.successes.append({"note_id": note_id, "deck": deck_name, "retries": net_retry_count})
+                    self.successes.append({"note_id": note_id, "deck": deck_name, "retries": net_retry_count, "attempt_errors": list(attempt_errors)})
                     break
 
                 except Exception as e:
@@ -183,9 +195,10 @@ class MultipleNotesThreadWorker(QThread):
                         self.status_update.emit("Network error. Retrying...")
                         if self.isInterruptionRequested():
                             break
+                        attempt_errors.append(err_message)
                         net_retry_count += 1
                         if self.max_network_retries >= 0 and net_retry_count > self.max_network_retries:
-                            self._record_network_failure(note_id, deck_name, err_message, net_retry_count)
+                            self._record_network_failure(note_id, deck_name, err_message, net_retry_count, attempt_errors)
                             break
                         time.sleep(3)
                         continue
@@ -289,18 +302,46 @@ class SummaryDialog(QDialog):
             note_item = QTableWidgetItem(str(entry.get("note_id", "")))
             note_item.setData(Qt.ItemDataRole.UserRole, entry.get("note_id"))
             table.setItem(row, 0, note_item)
-            table.setItem(row, 1, QTableWidgetItem(entry.get("deck", "")))
+            
+            deck_item = QTableWidgetItem(entry.get("deck", ""))
+            table.setItem(row, 1, deck_item)
+            
             column = 2
+            type_item = None
             if include_type:
-                table.setItem(row, column, QTableWidgetItem(entry.get("type", "")))
+                type_item = QTableWidgetItem(entry.get("type", ""))
+                table.setItem(row, column, type_item)
                 column += 1
+                
+            reason_item = None
             if include_error:
-                table.setItem(row, column, QTableWidgetItem(entry.get("reason", "")))
+                reason_item = QTableWidgetItem(entry.get("reason", ""))
+                table.setItem(row, column, reason_item)
                 column += 1
+                
+            retries_item = None
             if include_retries:
                 val = entry.get("retries", "")
                 val_str = str(val) if val != 0 and val != "" else ""
-                table.setItem(row, column, QTableWidgetItem(val_str))
+                retries_item = QTableWidgetItem(val_str)
+                table.setItem(row, column, retries_item)
+                column += 1
+
+            errors = entry.get("attempt_errors", [])
+            if errors:
+                tooltip_lines = []
+                for idx, err in enumerate(errors, 1):
+                    tooltip_lines.append(f"Attempt {idx}: {err}")
+                tooltip_text = "\n".join(tooltip_lines)
+                
+                note_item.setToolTip(tooltip_text)
+                deck_item.setToolTip(tooltip_text)
+                if type_item:
+                    type_item.setToolTip(tooltip_text)
+                if reason_item:
+                    reason_item.setToolTip(tooltip_text)
+                if retries_item:
+                    retries_item.setToolTip(tooltip_text)
 
         table.resizeColumnsToContents()
         table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)

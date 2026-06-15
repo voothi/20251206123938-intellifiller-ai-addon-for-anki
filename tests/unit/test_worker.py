@@ -73,6 +73,7 @@ def test_worker_successful_run(mocker):
     mock_enrich.assert_called_once_with(mock_note, {"promptName": "test"})
     assert len(worker.successes) == 1
     assert worker.successes[0]["retries"] == 0
+    assert worker.successes[0]["attempt_errors"] == []
 
 
 def test_worker_uses_note_instance_fast_path(mocker):
@@ -103,6 +104,8 @@ def test_worker_skips_note_when_get_note_raises(mocker):
     worker.run()
 
     worker.progress_made.emit.assert_called_once_with(1)
+    assert len(worker.skips) == 1
+    assert worker.skips[0]["attempt_errors"] == ["Note deleted or not found"]
 
 
 def test_worker_network_error_retry(mocker):
@@ -134,6 +137,7 @@ def test_worker_network_error_retry(mocker):
     assert mock_enrich.call_count == 2
     assert len(worker.successes) == 1
     assert worker.successes[0]["retries"] == 1
+    assert worker.successes[0]["attempt_errors"] == ["Connection timed out"]
 
 
 def test_worker_non_network_error_skips_after_one_attempt(mocker):
@@ -158,6 +162,8 @@ def test_worker_non_network_error_skips_after_one_attempt(mocker):
     assert mock_enrich.call_count == 1
     mock_sleep.assert_not_called()
     worker.progress_made.emit.assert_called_once_with(1)
+    assert len(worker.skips) == 1
+    assert worker.skips[0]["attempt_errors"] == ["template malformed"]
 
 
 def test_worker_interruption_exits_immediately(mocker):
@@ -341,6 +347,7 @@ def test_worker_network_error_endless_retry(mocker):
     assert mock_enrich.call_count == 6
     assert len(worker.network_failures) == 0
     assert len(worker.successes) == 1
+    assert worker.successes[0]["attempt_errors"] == ["Connection timed out"] * 5
 
 
 def test_worker_network_error_limited_retry(mocker):
@@ -374,6 +381,7 @@ def test_worker_network_error_limited_retry(mocker):
     assert mock_enrich.call_count == 3
     assert len(worker.network_failures) == 1
     assert worker.network_failures[0]["retries"] == 3
+    assert worker.network_failures[0]["attempt_errors"] == ["Connection timed out"] * 3
     assert len(worker.successes) == 0
 
 
@@ -405,6 +413,7 @@ def test_worker_network_error_zero_retry(mocker):
     assert mock_enrich.call_count == 1
     assert len(worker.network_failures) == 1
     assert worker.network_failures[0]["retries"] == 1
+    assert worker.network_failures[0]["attempt_errors"] == ["Connection timed out"]
     assert len(worker.successes) == 0
 
 
