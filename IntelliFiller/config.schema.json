@@ -94,7 +94,7 @@
     "maxNetworkRetries": {
       "type": "integer",
       "description": "Maximum number of network retries before giving up on a note. Set to -1 for endless retries.",
-      "default": -1
+      "default": 4
     },
     "flatMenu": {
       "type": "boolean",
