@@ -243,18 +243,9 @@ class SummaryDialog(QDialog):
         self.tabs.addTab(self._build_table(summary["network_failures"], include_error=True, include_retries=True), "Network Failures")
         layout.addWidget(self.tabs)
 
-        # Tab Selection Logic: select the problem tab with the most items (first from left if equal)
-        problem_tabs = [
-            (1, len(all_failures)),
-            (2, len(summary["skips"])),
-            (3, len(summary["json_failures"])),
-            (4, len(summary["network_failures"]))
-        ]
-        active_problem_tabs = [t for t in problem_tabs if t[1] > 0]
-        if active_problem_tabs:
-            # Sort descending by count. Stable sort preserves index order.
-            active_problem_tabs.sort(key=lambda x: -x[1])
-            self.tabs.setCurrentIndex(active_problem_tabs[0][0])
+        # Tab Selection Logic: if there are failures, select the "All Failures" tab (index 1)
+        if all_failures:
+            self.tabs.setCurrentIndex(1)
 
         # Set focus to the active tab's table widget so Ctrl+A works immediately
         active_table = self.tabs.currentWidget()

@@ -404,3 +404,50 @@ def test_worker_network_error_zero_retry(mocker):
     assert len(worker.successes) == 0
 
 
+def test_summary_dialog_tab_selection(mocker):
+    # Mock Qt classes used in SummaryDialog.__init__
+    mocker.patch("IntelliFiller.process_notes.QDialog.__init__", return_value=None)
+    mocker.patch("IntelliFiller.process_notes.QVBoxLayout")
+    mocker.patch("IntelliFiller.process_notes.QHBoxLayout")
+    mocker.patch("IntelliFiller.process_notes.QLabel")
+    mocker.patch("IntelliFiller.process_notes.QPushButton")
+    mocker.patch("IntelliFiller.process_notes.QDialog.resize")
+    mocker.patch("IntelliFiller.process_notes.QDialog.setWindowTitle")
+    mocker.patch("IntelliFiller.process_notes.QDialog.setLayout")
+    
+    mock_tabs = mocker.patch("IntelliFiller.process_notes.QTabWidget")
+    mocker.patch("IntelliFiller.process_notes.SummaryDialog._build_table")
+    
+    from IntelliFiller.process_notes import SummaryDialog
+    
+    # Case 1: No errors
+    summary_no_errors = {
+        "total": 10,
+        "successes": [{"note_id": 1}],
+        "skips": [],
+        "json_failures": [],
+        "network_failures": []
+    }
+    
+    dialog = SummaryDialog(parent=None, summary=summary_no_errors, prompt_config={})
+    # Since there are no errors, setCurrentIndex should NOT be called
+    mock_tabs.return_value.setCurrentIndex.assert_not_called()
+    
+    # Case 2: Errors exist
+    summary_with_errors = {
+        "total": 10,
+        "successes": [],
+        "skips": [{"note_id": 2, "reason": "some error"}],
+        "json_failures": [],
+        "network_failures": []
+    }
+    
+    # Reset mock
+    mock_tabs.return_value.setCurrentIndex.reset_mock()
+    
+    dialog2 = SummaryDialog(parent=None, summary=summary_with_errors, prompt_config={})
+    # Since there are errors, setCurrentIndex should be called with 1 (All Failures tab)
+    mock_tabs.return_value.setCurrentIndex.assert_called_once_with(1)
+
+
+
