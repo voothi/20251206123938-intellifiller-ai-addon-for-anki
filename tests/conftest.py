@@ -124,7 +124,8 @@ qt_names = ["QThread", "pyqtSignal", "QDialog", "QVBoxLayout", "QHBoxLayout", "Q
             "QPushButton", "QLabel", "QLineEdit", "Qt", "QAction", "QStyle", "QApplication", 
             "QIcon", "QTimer", "QWidget", "QFormLayout", "QComboBox", "QSpinBox", "QCheckBox", 
             "QPlainTextEdit", "QListWidget", "QGroupBox", "QDialogButtonBox", "QMenu", "QPoint", 
-            "QMessageBox", "QInputDialog", "QFileDialog", "QGuiApplication", "QtCore", "QtGui", "QtWidgets"]
+            "QMessageBox", "QInputDialog", "QFileDialog", "QGuiApplication", "QtCore", "QtGui", 
+            "QtWidgets", "QObject", "QEvent", "QAbstractScrollArea"]
 qt.__all__ = qt_names
 aqt.qt = qt
 

@@ -30,6 +30,30 @@ class ConnectionTestWorker(QThread):
             self.failure.emit(str(e))
 
 
+class HorizontalScrollFilter(QObject):
+    def __init__(self, parent_window):
+        super().__init__(parent_window)
+        self.parent_window = parent_window
+
+    def eventFilter(self, obj, event):
+        if event.type() == QEvent.Type.Wheel and (event.modifiers() & Qt.KeyboardModifier.ShiftModifier):
+            if isinstance(obj, QWidget) and (self.parent_window.isAncestorOf(obj) or obj is self.parent_window):
+                scroll_area = obj
+                while scroll_area is not None:
+                    if isinstance(scroll_area, QAbstractScrollArea):
+                        delta = event.angleDelta().y()
+                        if delta != 0:
+                            h_bar = scroll_area.horizontalScrollBar()
+                            if h_bar.maximum() > h_bar.minimum():
+                                steps = delta / 120.0
+                                new_val = int(h_bar.value() - steps * h_bar.singleStep() * 3)
+                                new_val = max(h_bar.minimum(), min(new_val, h_bar.maximum()))
+                                h_bar.setValue(new_val)
+                                return True
+                        break
+                    scroll_area = scroll_area.parentWidget()
+        return super().eventFilter(obj, event)
+
 class SettingsWindow(QDialog, Ui_SettingsWindow):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -83,6 +107,10 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
         self.testConnectionButton.clicked.connect(self.trigger_connection_test)
         self._connection_test_worker = None
         self._set_test_button_state(True)
+        
+        # Horizontal Scroll
+        self.horizontal_scroll_filter = HorizontalScrollFilter(self)
+        QApplication.instance().installEventFilter(self.horizontal_scroll_filter)
 
     def _set_test_button_state(self, enabled):
         self.testConnectionButton.setEnabled(enabled)
@@ -716,6 +744,7 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
 
     def closeEvent(self, event):
         if self.config_saved:
+            QApplication.instance().removeEventFilter(self.horizontal_scroll_filter)
             event.accept()
             return
 
@@ -733,10 +762,13 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
 
             if reply == QMessageBox.StandardButton.Save:
                 self._save_settings_logic()
+                QApplication.instance().removeEventFilter(self.horizontal_scroll_filter)
                 event.accept()
             elif reply == QMessageBox.StandardButton.Discard:
+                QApplication.instance().removeEventFilter(self.horizontal_scroll_filter)
                 event.accept()
             else:
                 event.ignore()
         else:
+            QApplication.instance().removeEventFilter(self.horizontal_scroll_filter)
             event.accept()
