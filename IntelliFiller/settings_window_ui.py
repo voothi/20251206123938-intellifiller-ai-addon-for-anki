@@ -179,7 +179,7 @@ class Ui_SettingsWindow(object):
 
         self.labelMaxNetworkRetries = QtWidgets.QLabel(self.tabApi)
         self.maxNetworkRetries = QtWidgets.QSpinBox(self.tabApi)
-        self.maxNetworkRetries.setRange(-1, 100)
+        self.maxNetworkRetries.setRange(-1, 999999)
         self.maxNetworkRetries.setSpecialValueText("Endless")
         self.emulationLayout.addRow(self.labelMaxNetworkRetries, self.maxNetworkRetries)
         
