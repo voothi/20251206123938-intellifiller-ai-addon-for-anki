@@ -35,6 +35,12 @@ def test_save_and_load_settings():
     loaded = ConfigManager.load_settings()
     assert loaded.get("selectedApi") == "ollama"
     assert loaded.get("netTimeout") == 15
+    assert loaded.get("alwaysShowSummary") is False  # Assert default behavior
+
+    settings_with_show = {"selectedApi": "openai", "alwaysShowSummary": True}
+    ConfigManager.save_settings(settings_with_show)
+    loaded_with_show = ConfigManager.load_settings()
+    assert loaded_with_show.get("alwaysShowSummary") is True
 
 def test_save_and_load_credentials():
     credentials = {"ollamaUrl": "http://localhost:11434/api/generate", "ollamaModel": "llama3-test"}

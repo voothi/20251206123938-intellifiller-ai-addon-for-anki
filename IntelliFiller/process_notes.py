@@ -515,12 +515,14 @@ class ProgressDialog(QDialog):
             self.watchdog_timer.stop()
         self.close()  # close the dialog when the worker finishes
         if summary:
+            settings = ConfigManager.load_settings()
+            always_show = settings.get("alwaysShowSummary", False)
             has_errors = (
                 len(summary.get("skips", [])) > 0 or
                 len(summary.get("json_failures", [])) > 0 or
                 len(summary.get("network_failures", [])) > 0
             )
-            if has_errors:
+            if always_show or has_errors:
                 summary_dialog = SummaryDialog(self.parent(), summary, self.worker.prompt_config)
                 summary_dialog.exec()
 

@@ -168,6 +168,7 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
         
         self.emulate.setCurrentText(config.get("emulate", "no"))
         self.overwriteField.setChecked(config.get("overwriteField", False))
+        self.alwaysShowSummary.setChecked(config.get("alwaysShowSummary", False))
         self.flatMenu.setChecked(config.get("flatMenu", False))
         self.maxFavorites.setValue(config.get("maxFavorites", 3))
         self.netTimeout.setValue(config.get("netTimeout", 10))
@@ -559,6 +560,7 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
         config["selectedApi"] = self.selectedApi.currentData()
         config["emulate"] = self.emulate.currentText()
         config["overwriteField"] = self.overwriteField.isChecked()
+        config["alwaysShowSummary"] = self.alwaysShowSummary.isChecked()
         config["flatMenu"] = self.flatMenu.isChecked()
         config["maxFavorites"] = self.maxFavorites.value()
         config["netTimeout"] = self.netTimeout.value()

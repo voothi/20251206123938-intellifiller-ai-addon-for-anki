@@ -14,7 +14,8 @@ def test_settings_window_initialization():
         "ollamaCloudModel": "llama3-cloud-test",
         "netTimeout": 15,
         "obfuscateCreds": True,
-        "encryptionKey": "test-editor-salt"
+        "encryptionKey": "test-editor-salt",
+        "alwaysShowSummary": True
     }
     ConfigManager.save_settings({k: v for k, v in config.items() if k not in ["ollamaCloudKey"]})
     ConfigManager.save_credentials({"ollamaCloudKey": "test-cloud-key"}, key="test-editor-salt", obfuscate=True)
@@ -30,16 +31,19 @@ def test_settings_window_initialization():
     assert window.ollamaCloudModel.text() == "llama3-cloud-test"
     assert window.netTimeout.value() == 15
     assert window.encryptionKey.text() == "test-editor-salt"
+    assert window.alwaysShowSummary.isChecked() is True
 
 def test_settings_window_save():
     # Setup initial config
     ConfigManager.save_settings({
         "selectedApi": "openai",
         "netTimeout": 10,
-        "encryptionKey": "old-salt"
+        "encryptionKey": "old-salt",
+        "alwaysShowSummary": False
     })
     
     window = SettingsWindow()
+    assert window.alwaysShowSummary.isChecked() is False
     
     # Simulate user changing some fields in the UI
     window.selectedApi.setCurrentData("ollama_cloud")
@@ -48,6 +52,7 @@ def test_settings_window_save():
     window.ollamaCloudModel.setText("new-cloud-model")
     window.netTimeout.setValue(30)
     window.encryptionKey.setText("new-salt-key")
+    window.alwaysShowSummary.setChecked(True)
     
     # Simulate clicking OK/Save
     window.on_ok_clicked()
@@ -60,6 +65,7 @@ def test_settings_window_save():
     assert saved_config.get("ollamaCloudModel") == "new-cloud-model"
     assert saved_config.get("netTimeout") == 30
     assert saved_config.get("encryptionKey") == "new-salt-key"
+    assert saved_config.get("alwaysShowSummary") is True
 
 
 @pytest.mark.security

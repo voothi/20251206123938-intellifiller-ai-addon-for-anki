@@ -86,6 +86,11 @@
       "type": "boolean",
       "description": "If true, overwrite the target field. If false, append to it."
     },
+    "alwaysShowSummary": {
+      "type": "boolean",
+      "description": "If true, always show the Summary window. If false, show only if errors occur.",
+      "default": false
+    },
     "flatMenu": {
       "type": "boolean",
       "description": "If true, show items directly in the root context menu.",

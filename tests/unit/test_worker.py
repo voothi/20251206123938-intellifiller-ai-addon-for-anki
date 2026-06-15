@@ -3,6 +3,7 @@ from IntelliFiller.process_notes import (
     MultipleNotesThreadWorker,
     get_deck_name,
     update_history_config,
+    ProgressDialog,
 )
 from anki.notes import Note
 
@@ -198,3 +199,108 @@ def test_update_history_config_caps_at_20():
     loaded = ConfigManager.load_settings()
     assert len(loaded["history"]) == 20
     assert loaded["history"][0] == "item-24"
+
+
+def test_progress_dialog_summary_always_show(mocker):
+    import aqt
+    # Mock ConfigManager settings
+    mocker.patch("IntelliFiller.process_notes.ConfigManager.load_settings", return_value={"alwaysShowSummary": True})
+    
+    # Mock SummaryDialog
+    mock_summary_dialog = mocker.patch("IntelliFiller.process_notes.SummaryDialog")
+    
+    # Mock execution manager
+    mocker.patch("IntelliFiller.process_notes.ExecutionManager.instance")
+    
+    # Mock mw
+    mocker.patch("IntelliFiller.process_notes.mw")
+    
+    # Mock ProgressDialog methods and init
+    mocker.patch("IntelliFiller.process_notes.QDialog.__init__", return_value=None)
+    mocker.patch("IntelliFiller.process_notes.QProgressBar")
+    mocker.patch("IntelliFiller.process_notes.QLabel")
+    mocker.patch("IntelliFiller.process_notes.QLineEdit")
+    mocker.patch("IntelliFiller.process_notes.QPushButton")
+    mocker.patch("IntelliFiller.process_notes.QVBoxLayout")
+    mocker.patch("IntelliFiller.process_notes.QHBoxLayout")
+    
+    dialog = ProgressDialog()
+    dialog.worker = mocker.Mock()
+    dialog.worker.get_summary.return_value = {
+        "successes": [],
+        "skips": [],
+        "json_failures": [],
+        "network_failures": []
+    }
+    dialog.worker.prompt_config = {}
+    dialog.progress_bar = mocker.Mock()
+    dialog.progress_bar.maximum.return_value = 10
+    dialog.update_progress = mocker.Mock()
+    dialog.watchdog_timer = mocker.Mock()
+    dialog.close = mocker.Mock()
+    dialog.parent = mocker.Mock(return_value=None)
+    
+    dialog.on_worker_finished()
+    
+    mock_summary_dialog.assert_called_once()
+    mock_summary_dialog.return_value.exec.assert_called_once()
+
+
+def test_progress_dialog_summary_no_show_without_errors(mocker):
+    import aqt
+    mocker.patch("IntelliFiller.process_notes.ConfigManager.load_settings", return_value={"alwaysShowSummary": False})
+    mock_summary_dialog = mocker.patch("IntelliFiller.process_notes.SummaryDialog")
+    mocker.patch("IntelliFiller.process_notes.ExecutionManager.instance")
+    mocker.patch("IntelliFiller.process_notes.mw")
+    mocker.patch("IntelliFiller.process_notes.QDialog.__init__", return_value=None)
+    
+    dialog = ProgressDialog()
+    dialog.worker = mocker.Mock()
+    dialog.worker.get_summary.return_value = {
+        "successes": [{"note_id": 123}],
+        "skips": [],
+        "json_failures": [],
+        "network_failures": []
+    }
+    dialog.worker.prompt_config = {}
+    dialog.progress_bar = mocker.Mock()
+    dialog.progress_bar.maximum.return_value = 10
+    dialog.update_progress = mocker.Mock()
+    dialog.watchdog_timer = mocker.Mock()
+    dialog.close = mocker.Mock()
+    dialog.parent = mocker.Mock(return_value=None)
+    
+    dialog.on_worker_finished()
+    
+    mock_summary_dialog.assert_not_called()
+
+
+def test_progress_dialog_summary_show_on_errors(mocker):
+    import aqt
+    mocker.patch("IntelliFiller.process_notes.ConfigManager.load_settings", return_value={"alwaysShowSummary": False})
+    mock_summary_dialog = mocker.patch("IntelliFiller.process_notes.SummaryDialog")
+    mocker.patch("IntelliFiller.process_notes.ExecutionManager.instance")
+    mocker.patch("IntelliFiller.process_notes.mw")
+    mocker.patch("IntelliFiller.process_notes.QDialog.__init__", return_value=None)
+    
+    dialog = ProgressDialog()
+    dialog.worker = mocker.Mock()
+    dialog.worker.get_summary.return_value = {
+        "successes": [],
+        "skips": [{"note_id": 123, "reason": "skip"}],
+        "json_failures": [],
+        "network_failures": []
+    }
+    dialog.worker.prompt_config = {}
+    dialog.progress_bar = mocker.Mock()
+    dialog.progress_bar.maximum.return_value = 10
+    dialog.update_progress = mocker.Mock()
+    dialog.watchdog_timer = mocker.Mock()
+    dialog.close = mocker.Mock()
+    dialog.parent = mocker.Mock(return_value=None)
+    
+    dialog.on_worker_finished()
+    
+    mock_summary_dialog.assert_called_once()
+    mock_summary_dialog.return_value.exec.assert_called_once()
+

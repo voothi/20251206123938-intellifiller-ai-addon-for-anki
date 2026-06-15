@@ -148,6 +148,10 @@ class Ui_SettingsWindow(object):
         self.overwriteField = QtWidgets.QCheckBox(self.tabApi)
         self.emulationLayout.addRow(self.overwriteFieldLabel, self.overwriteField)
         
+        self.alwaysShowSummaryLabel = QtWidgets.QLabel(self.tabApi)
+        self.alwaysShowSummary = QtWidgets.QCheckBox(self.tabApi)
+        self.emulationLayout.addRow(self.alwaysShowSummaryLabel, self.alwaysShowSummary)
+        
         self.flatMenuLabel = QtWidgets.QLabel(self.tabApi)
         self.flatMenu = QtWidgets.QCheckBox(self.tabApi)
         self.emulationLayout.addRow(self.flatMenuLabel, self.flatMenu)
@@ -482,6 +486,8 @@ class Ui_SettingsWindow(object):
         self.testConnectionButton.setToolTip(_translate("SettingsWindow", "Test the connection to the currently selected provider."))
         self.overwriteFieldLabel.setText(_translate("SettingsWindow", "Overwrite Target Field:"))
         self.overwriteField.setText(_translate("SettingsWindow", ""))
+        self.alwaysShowSummaryLabel.setText(_translate("SettingsWindow", "Always Show Summary Window:"))
+        self.alwaysShowSummary.setText(_translate("SettingsWindow", ""))
         self.flatMenuLabel.setText(_translate("SettingsWindow", "Show in Root Menu:"))
         self.flatMenu.setText(_translate("SettingsWindow", ""))
         self.flatMenu.setToolTip(_translate("SettingsWindow", "If checked, removes the 'IntelliFiller' submenu and shows items directly in the main context menu."))

@@ -59,6 +59,8 @@ class ConfigManager:
                  # Ensure defaults for key settings
                  if "netTimeout" not in settings:
                      settings["netTimeout"] = 10
+                 if "alwaysShowSummary" not in settings:
+                     settings["alwaysShowSummary"] = False
                  return settings
         return {}
 

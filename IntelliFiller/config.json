@@ -18,6 +18,7 @@
   "ollamaCloudModel": "llama3",
   "emulate": "no",
   "overwriteField": false,
+  "alwaysShowSummary": false,
   "maxFavorites": 3,
   "netTimeout": 10,
   "batchProcessing": {
