@@ -289,17 +289,28 @@ class SummaryDialog(QDialog):
         self.prompt_config = prompt_config
 
         layout = QVBoxLayout()
-        header = QLabel(
-            f"Processed: {summary['total']} | "
-            f"Success: {len(summary['successes'])} | "
-            f"Skipped: {len(summary['skips'])} | "
-            f"JSON failures: {len(summary['json_failures'])} | "
-            f"Network failures: {len(summary['network_failures'])}"
-        )
+        layout.setContentsMargins(10, 10, 10, 10)
+        layout.setSpacing(6)
+
+        prompt_name = ""
+        if isinstance(prompt_config, list):
+            prompt_names = [p.get("promptName", "") for p in prompt_config if isinstance(p, dict) and p.get("promptName")]
+            prompt_name = ", ".join(prompt_names)
+        elif isinstance(prompt_config, dict):
+            prompt_name = prompt_config.get("promptName", "")
+
+        header_text = f"Total Processed: {summary['total']}"
+        if prompt_name:
+            header_text += f"  |  Prompt: {prompt_name}"
+
+        header = QLabel(header_text)
+        font = header.font()
+        font.setBold(True)
+        header.setFont(font)
         layout.addWidget(header)
 
         self.tabs = QTabWidget()
-        self.tabs.addTab(self._build_table(summary["successes"], include_error=False, include_retries=True), "Successful")
+        self.tabs.addTab(self._build_table(summary["successes"], include_error=False, include_retries=True), f"Successful ({len(summary['successes'])})")
 
         all_failures = []
         for x in summary["skips"]:
@@ -315,10 +326,10 @@ class SummaryDialog(QDialog):
             item["type"] = "Network Failure"
             all_failures.append(item)
 
-        self.tabs.addTab(self._build_table(all_failures, include_error=True, include_type=True), "All Failures")
-        self.tabs.addTab(self._build_table(summary["skips"], include_error=True), "Skipped")
-        self.tabs.addTab(self._build_table(summary["json_failures"], include_error=True), "JSON Failures")
-        self.tabs.addTab(self._build_table(summary["network_failures"], include_error=True, include_retries=True), "Network Failures")
+        self.tabs.addTab(self._build_table(all_failures, include_error=True, include_type=True), f"All Failures ({len(all_failures)})")
+        self.tabs.addTab(self._build_table(summary["skips"], include_error=True), f"Skipped ({len(summary['skips'])})")
+        self.tabs.addTab(self._build_table(summary["json_failures"], include_error=True), f"JSON Failures ({len(summary['json_failures'])})")
+        self.tabs.addTab(self._build_table(summary["network_failures"], include_error=True, include_retries=True), f"Network Failures ({len(summary['network_failures'])})")
         layout.addWidget(self.tabs)
 
         # Tab Selection Logic: if there are failures, select the "All Failures" tab (index 1)
