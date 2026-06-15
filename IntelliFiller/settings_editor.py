@@ -110,7 +110,6 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
         
         # Horizontal Scroll
         self.horizontal_scroll_filter = HorizontalScrollFilter(self)
-        QApplication.instance().installEventFilter(self.horizontal_scroll_filter)
 
     def _set_test_button_state(self, enabled):
         self.testConnectionButton.setEnabled(enabled)
@@ -744,7 +743,6 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
 
     def closeEvent(self, event):
         if self.config_saved:
-            QApplication.instance().removeEventFilter(self.horizontal_scroll_filter)
             event.accept()
             return
 
@@ -762,13 +760,19 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
 
             if reply == QMessageBox.StandardButton.Save:
                 self._save_settings_logic()
-                QApplication.instance().removeEventFilter(self.horizontal_scroll_filter)
                 event.accept()
             elif reply == QMessageBox.StandardButton.Discard:
-                QApplication.instance().removeEventFilter(self.horizontal_scroll_filter)
                 event.accept()
             else:
                 event.ignore()
         else:
-            QApplication.instance().removeEventFilter(self.horizontal_scroll_filter)
             event.accept()
+
+    def showEvent(self, event):
+        QApplication.instance().installEventFilter(self.horizontal_scroll_filter)
+        super().showEvent(event)
+
+    def hideEvent(self, event):
+        QApplication.instance().removeEventFilter(self.horizontal_scroll_filter)
+        super().hideEvent(event)
+
