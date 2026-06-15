@@ -215,6 +215,71 @@ class MultipleNotesThreadWorker(QThread):
             self.progress_made.emit(i + 1)
 
 
+class CopyableTableWidget(QTableWidget):
+    def keyPressEvent(self, event):
+        if event.key() == Qt.Key.Key_C and (event.modifiers() & Qt.KeyboardModifier.ControlModifier):
+            self.copy_selection_to_clipboard()
+        else:
+            super().keyPressEvent(event)
+
+    def copy_selection_to_clipboard(self):
+        selected_ranges = self.selectedRanges()
+        if not selected_ranges:
+            return
+
+        cols_val = self.columnCount()
+        cols = cols_val if isinstance(cols_val, int) else 0
+
+        selected_rows = []
+        try:
+            for r in selected_ranges:
+                top = r.topRow()
+                bottom = r.bottomRow()
+                if not isinstance(top, int) or not isinstance(bottom, int):
+                    continue
+                for row in range(top, bottom + 1):
+                    if row not in selected_rows:
+                        selected_rows.append(row)
+        except Exception:
+            pass
+        selected_rows.sort()
+
+        copied_blocks = []
+        for row in selected_rows:
+            tooltip_text = ""
+            note_id = ""
+            for col in range(cols):
+                item = self.item(row, col)
+                if item and not isinstance(item, QTableWidget):
+                    if col == 0:
+                        txt = item.text()
+                        note_id = txt if isinstance(txt, str) else ""
+                    if not tooltip_text:
+                        tip = item.toolTip()
+                        if isinstance(tip, str) and tip:
+                            tooltip_text = tip
+            
+            if tooltip_text:
+                if note_id:
+                    block = f"Note ID: {note_id}\n{tooltip_text}"
+                else:
+                    block = tooltip_text
+                copied_blocks.append(block)
+            else:
+                row_cells = []
+                for col in range(cols):
+                    item = self.item(row, col)
+                    if item and not isinstance(item, QTableWidget):
+                        txt = item.text()
+                        row_cells.append(txt if isinstance(txt, str) else "")
+                    else:
+                        row_cells.append("")
+                copied_blocks.append("\t".join(row_cells))
+
+        if copied_blocks:
+            QApplication.clipboard().setText("\n\n".join(copied_blocks))
+
+
 class SummaryDialog(QDialog):
     """Tabbed summary dialog showing successes, skips, JSON failures, and network failures."""
 
@@ -290,7 +355,7 @@ class SummaryDialog(QDialog):
         if include_retries:
             headers.append("Retries")
 
-        table = QTableWidget(0, len(headers))
+        table = CopyableTableWidget(0, len(headers))
         table.setHorizontalHeaderLabels(headers)
         table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)

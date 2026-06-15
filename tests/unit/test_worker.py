@@ -463,4 +463,54 @@ def test_summary_dialog_tab_selection(mocker):
     mock_tabs.return_value.setCurrentIndex.assert_called_once_with(1)
 
 
+def test_copyable_table_widget_copy(mocker):
+    from IntelliFiller.process_notes import CopyableTableWidget
+    from aqt.qt import QApplication
+    
+    mock_clipboard = mocker.Mock()
+    mocker.patch.object(QApplication, "clipboard", return_value=mock_clipboard)
+    
+    table = CopyableTableWidget()
+    
+    # Mock row selection range
+    mock_range = mocker.Mock()
+    mock_range.topRow.return_value = 0
+    mock_range.bottomRow.return_value = 0
+    table.selectedRanges = mocker.Mock(return_value=[mock_range])
+    table.columnCount = mocker.Mock(return_value=3)
+    
+    # Mock items for row 0
+    mock_item_0 = mocker.Mock()
+    mock_item_0.text.return_value = "123"
+    mock_item_0.toolTip.return_value = ""
+    
+    mock_item_1 = mocker.Mock()
+    mock_item_1.text.return_value = "DeckA"
+    mock_item_1.toolTip.return_value = ""
+    
+    mock_item_2 = mocker.Mock()
+    mock_item_2.text.return_value = "2"
+    mock_item_2.toolTip.return_value = "Attempt 1: timeout\nAttempt 2: timeout"
+    
+    def mock_item_func(row, col):
+        if row == 0:
+            if col == 0: return mock_item_0
+            if col == 1: return mock_item_1
+            if col == 2: return mock_item_2
+        return None
+        
+    table.item = mocker.Mock(side_effect=mock_item_func)
+    
+    table.copy_selection_to_clipboard()
+    mock_clipboard.setText.assert_called_once_with("Note ID: 123\nAttempt 1: timeout\nAttempt 2: timeout")
+    
+    # Test fallback path (no tooltip)
+    mock_clipboard.setText.reset_mock()
+    mock_item_2.toolTip.return_value = ""
+    
+    table.copy_selection_to_clipboard()
+    mock_clipboard.setText.assert_called_once_with("123\tDeckA\t2")
+
+
+
 
