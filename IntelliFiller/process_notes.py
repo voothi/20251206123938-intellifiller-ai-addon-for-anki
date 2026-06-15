@@ -221,10 +221,44 @@ class SummaryDialog(QDialog):
 
         self.tabs = QTabWidget()
         self.tabs.addTab(self._build_table(summary["successes"], include_error=False), "Successful")
+
+        all_failures = []
+        for x in summary["skips"]:
+            item = x.copy()
+            item["type"] = "Skipped"
+            all_failures.append(item)
+        for x in summary["json_failures"]:
+            item = x.copy()
+            item["type"] = "JSON Failure"
+            all_failures.append(item)
+        for x in summary["network_failures"]:
+            item = x.copy()
+            item["type"] = "Network Failure"
+            all_failures.append(item)
+
+        self.tabs.addTab(self._build_table(all_failures, include_error=True, include_type=True), "All Failures")
         self.tabs.addTab(self._build_table(summary["skips"], include_error=True), "Skipped")
         self.tabs.addTab(self._build_table(summary["json_failures"], include_error=True), "JSON Failures")
         self.tabs.addTab(self._build_table(summary["network_failures"], include_error=True, include_retries=True), "Network Failures")
         layout.addWidget(self.tabs)
+
+        # Tab Selection Logic: select the problem tab with the most items (first from left if equal)
+        problem_tabs = [
+            (1, len(all_failures)),
+            (2, len(summary["skips"])),
+            (3, len(summary["json_failures"])),
+            (4, len(summary["network_failures"]))
+        ]
+        active_problem_tabs = [t for t in problem_tabs if t[1] > 0]
+        if active_problem_tabs:
+            # Sort descending by count. Stable sort preserves index order.
+            active_problem_tabs.sort(key=lambda x: -x[1])
+            self.tabs.setCurrentIndex(active_problem_tabs[0][0])
+
+        # Set focus to the active tab's table widget so Ctrl+A works immediately
+        active_table = self.tabs.currentWidget()
+        if active_table:
+            active_table.setFocus()
 
         button_layout = QHBoxLayout()
         self.retry_button = QPushButton("Retry Selected")
@@ -242,8 +276,10 @@ class SummaryDialog(QDialog):
         self.setWindowTitle("IntelliFiller Summary")
         self.resize(600, 400)
 
-    def _build_table(self, items, include_error=True, include_retries=False):
+    def _build_table(self, items, include_error=True, include_retries=False, include_type=False):
         headers = ["Note ID", "Deck"]
+        if include_type:
+            headers.append("Type")
         if include_error:
             headers.append("Reason")
         if include_retries:
@@ -263,6 +299,9 @@ class SummaryDialog(QDialog):
             table.setItem(row, 0, note_item)
             table.setItem(row, 1, QTableWidgetItem(entry.get("deck", "")))
             column = 2
+            if include_type:
+                table.setItem(row, column, QTableWidgetItem(entry.get("type", "")))
+                column += 1
             if include_error:
                 table.setItem(row, column, QTableWidgetItem(entry.get("reason", "")))
                 column += 1
