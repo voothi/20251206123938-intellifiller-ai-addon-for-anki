@@ -20,7 +20,17 @@ class Ui_SettingsWindow(object):
         # --- API Tab ---
         self.tabApi = QtWidgets.QWidget()
         self.tabApi.setObjectName("tabApi")
-        self.tabApiLayout = QtWidgets.QVBoxLayout(self.tabApi)
+        
+        self.tabApiScroll = QtWidgets.QScrollArea(self.tabApi)
+        self.tabApiScroll.setWidgetResizable(True)
+        self.tabApiScroll.setFrameShape(QtWidgets.QFrame.Shape.NoFrame)
+        self.tabApiScrollContent = QtWidgets.QWidget()
+        self.tabApiLayout = QtWidgets.QVBoxLayout(self.tabApiScrollContent)
+        self.tabApiScroll.setWidget(self.tabApiScrollContent)
+        
+        self.tabApiMainLayout = QtWidgets.QVBoxLayout(self.tabApi)
+        self.tabApiMainLayout.setContentsMargins(0, 0, 0, 0)
+        self.tabApiMainLayout.addWidget(self.tabApiScroll)
         
         # 1. API Selector at the top
         self.labelSelectedApi = QtWidgets.QLabel(self.tabApi)
@@ -326,7 +336,17 @@ class Ui_SettingsWindow(object):
         # --- Backup Tab ---
         self.tabBackups = QtWidgets.QWidget()
         self.tabBackups.setObjectName("tabBackups")
-        self.tabBackupsLayout = QtWidgets.QVBoxLayout(self.tabBackups)
+        
+        self.tabBackupsScroll = QtWidgets.QScrollArea(self.tabBackups)
+        self.tabBackupsScroll.setWidgetResizable(True)
+        self.tabBackupsScroll.setFrameShape(QtWidgets.QFrame.Shape.NoFrame)
+        self.tabBackupsScrollContent = QtWidgets.QWidget()
+        self.tabBackupsLayout = QtWidgets.QVBoxLayout(self.tabBackupsScrollContent)
+        self.tabBackupsScroll.setWidget(self.tabBackupsScrollContent)
+        
+        self.tabBackupsMainLayout = QtWidgets.QVBoxLayout(self.tabBackups)
+        self.tabBackupsMainLayout.setContentsMargins(0, 0, 0, 0)
+        self.tabBackupsMainLayout.addWidget(self.tabBackupsScroll)
         
         # General Settings Group
         self.backupGeneralGroup = QtWidgets.QGroupBox("General Settings", self.tabBackups)
