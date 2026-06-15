@@ -210,6 +210,7 @@ class Ui_SettingsWindow(object):
         # Left: List of Prompts
         self.promptsListLayout = QtWidgets.QVBoxLayout()
         self.promptsList = QtWidgets.QListWidget(self.tabPrompts)
+        self.promptsList.setMinimumHeight(80)
         self.promptsListLayout.addWidget(self.promptsList)
         
         self.addPromptButton = QtWidgets.QPushButton(self.tabPrompts)
@@ -261,12 +262,14 @@ class Ui_SettingsWindow(object):
         self.promptFieldMapping = QtWidgets.QPlainTextEdit(self.promptDetailsGroup)
         self.promptFieldMapping.setPlaceholderText("translation: Word Translation\nipa: IPA Field")
         self.promptFieldMapping.setMaximumHeight(100)
+        self.promptFieldMapping.setMinimumHeight(50)
         self.promptDetailsLayout.addWidget(self.promptFieldMapping)
 
         # Prompt Text
         self.labelPromptText = QtWidgets.QLabel("Prompt Template:", self.promptDetailsGroup)
         self.promptDetailsLayout.addWidget(self.labelPromptText)
         self.promptText = QtWidgets.QPlainTextEdit(self.promptDetailsGroup)
+        self.promptText.setMinimumHeight(80)
         self.promptDetailsLayout.addWidget(self.promptText)
 
         self.tabPromptsLayout.addWidget(self.promptDetailsGroup, 2)
@@ -281,6 +284,7 @@ class Ui_SettingsWindow(object):
         # Left: List of Pipelines
         self.pipelinesListLayout = QtWidgets.QVBoxLayout()
         self.pipelinesList = QtWidgets.QListWidget(self.tabPipelines)
+        self.pipelinesList.setMinimumHeight(80)
         self.pipelinesListLayout.addWidget(self.pipelinesList)
         
         self.addPipelineButton = QtWidgets.QPushButton("Add Pipeline", self.tabPipelines)
@@ -310,6 +314,7 @@ class Ui_SettingsWindow(object):
         
         self.pipelinePromptsList = QtWidgets.QListWidget(self.pipelineDetailsGroup)
         self.pipelinePromptsList.setDragDropMode(QtWidgets.QAbstractItemView.DragDropMode.InternalMove)
+        self.pipelinePromptsList.setMinimumHeight(80)
         self.pipelineDetailsLayout.addWidget(self.pipelinePromptsList)
         
         self.pipelinePromptsControlsLayout = QtWidgets.QHBoxLayout()

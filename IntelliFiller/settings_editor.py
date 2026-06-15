@@ -84,6 +84,17 @@ class SettingsWindow(QDialog, Ui_SettingsWindow):
         self._connection_test_worker = None
         self._set_test_button_state(True)
 
+        # Constrain window size to the usable screen area (excluding taskbar)
+        try:
+            self.adjustSize()
+            geom = QGuiApplication.primaryScreen().availableGeometry()
+            w = min(self.width(), geom.width() - 40)
+            h = min(self.height(), geom.height() - 60)
+            self.resize(int(w), int(h))
+        except (TypeError, AttributeError):
+            pass
+
+
     def _set_test_button_state(self, enabled):
         self.testConnectionButton.setEnabled(enabled)
         self.testConnectionButton.setText("Test Connection" if enabled else "Testing...")
