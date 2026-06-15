@@ -36,22 +36,25 @@ class HorizontalScrollFilter(QObject):
         self.parent_window = parent_window
 
     def eventFilter(self, obj, event):
-        if event.type() == QEvent.Type.Wheel and (event.modifiers() & Qt.KeyboardModifier.ShiftModifier):
-            if isinstance(obj, QWidget) and (self.parent_window.isAncestorOf(obj) or obj is self.parent_window):
-                scroll_area = obj
-                while scroll_area is not None:
-                    if isinstance(scroll_area, QAbstractScrollArea):
-                        delta = event.angleDelta().y()
-                        if delta != 0:
-                            h_bar = scroll_area.horizontalScrollBar()
-                            if h_bar.maximum() > h_bar.minimum():
-                                steps = delta / 120.0
-                                new_val = int(h_bar.value() - steps * h_bar.singleStep() * 3)
-                                new_val = max(h_bar.minimum(), min(new_val, h_bar.maximum()))
-                                h_bar.setValue(new_val)
-                                return True
-                        break
-                    scroll_area = scroll_area.parentWidget()
+        if event.type() == QEvent.Type.Wheel:
+            modifiers = event.modifiers()
+            has_shift = (modifiers & Qt.KeyboardModifier.ShiftModifier) == Qt.KeyboardModifier.ShiftModifier
+            
+            if has_shift:
+                if isinstance(obj, QWidget) and (self.parent_window.isAncestorOf(obj) or obj is self.parent_window):
+                    scroll_area = obj
+                    while scroll_area is not None:
+                        if isinstance(scroll_area, QAbstractScrollArea):
+                            delta = event.angleDelta().y()
+                            if delta != 0:
+                                h_bar = scroll_area.horizontalScrollBar()
+                                if h_bar.maximum() > h_bar.minimum():
+                                    steps = delta / 120.0
+                                    new_val = int(h_bar.value() - steps * h_bar.singleStep() * 3)
+                                    new_val = max(h_bar.minimum(), min(new_val, h_bar.maximum()))
+                                    h_bar.setValue(new_val)
+                            return True
+                        scroll_area = scroll_area.parentWidget()
         return super().eventFilter(obj, event)
 
 class SettingsWindow(QDialog, Ui_SettingsWindow):
