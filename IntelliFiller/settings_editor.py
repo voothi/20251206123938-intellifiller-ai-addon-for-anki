@@ -36,22 +36,41 @@ class HorizontalScrollFilter(QObject):
         self.parent_window = parent_window
 
     def eventFilter(self, obj, event):
-        if event.type() == QEvent.Type.Wheel and (event.modifiers() & Qt.KeyboardModifier.ShiftModifier):
-            if isinstance(obj, QWidget) and (self.parent_window.isAncestorOf(obj) or obj is self.parent_window):
-                scroll_area = obj
-                while scroll_area is not None:
-                    if isinstance(scroll_area, QAbstractScrollArea):
-                        delta = event.angleDelta().y()
-                        if delta != 0:
-                            h_bar = scroll_area.horizontalScrollBar()
-                            if h_bar.maximum() > h_bar.minimum():
-                                steps = delta / 120.0
-                                new_val = int(h_bar.value() - steps * h_bar.singleStep() * 3)
-                                new_val = max(h_bar.minimum(), min(new_val, h_bar.maximum()))
-                                h_bar.setValue(new_val)
-                            return True  # Consume the event to prevent fallback vertical/accelerated scroll
-                        break
-                    scroll_area = scroll_area.parentWidget()
+        if event.type() == QEvent.Type.Wheel:
+            modifiers = event.modifiers()
+            has_shift = bool(modifiers & Qt.KeyboardModifier.ShiftModifier)
+            has_alt = bool(modifiers & Qt.KeyboardModifier.AltModifier)
+            
+            if has_shift or has_alt:
+                if isinstance(obj, QWidget) and (self.parent_window.isAncestorOf(obj) or obj is self.parent_window):
+                    scroll_area = obj
+                    while scroll_area is not None:
+                        if isinstance(scroll_area, QAbstractScrollArea):
+                            delta = event.angleDelta().y()
+                            if delta != 0:
+                                # 5x multiplier for Alt (VS Code standard)
+                                multiplier = 5 if has_alt else 1
+                                
+                                if has_shift:
+                                    # Horizontal scroll
+                                    h_bar = scroll_area.horizontalScrollBar()
+                                    if h_bar.maximum() > h_bar.minimum():
+                                        steps = delta / 120.0
+                                        new_val = int(h_bar.value() - steps * h_bar.singleStep() * 3 * multiplier)
+                                        new_val = max(h_bar.minimum(), min(new_val, h_bar.maximum()))
+                                        h_bar.setValue(new_val)
+                                    return True
+                                else:
+                                    # Alt-only vertical scroll acceleration
+                                    v_bar = scroll_area.verticalScrollBar()
+                                    if v_bar.maximum() > v_bar.minimum():
+                                        steps = delta / 120.0
+                                        new_val = int(v_bar.value() - steps * v_bar.singleStep() * 3 * multiplier)
+                                        new_val = max(v_bar.minimum(), min(new_val, v_bar.maximum()))
+                                        v_bar.setValue(new_val)
+                                    return True
+                            break
+                        scroll_area = scroll_area.parentWidget()
         return super().eventFilter(obj, event)
 
 class SettingsWindow(QDialog, Ui_SettingsWindow):
