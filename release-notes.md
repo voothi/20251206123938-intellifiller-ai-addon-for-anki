@@ -2,6 +2,7 @@
 
 ## Table of Contents
 
+- [v2.24.8](#release-notes-v2248)
 - [v2.24.0](#release-notes-v2240)
 - [Transition Instructions: Upgrading to v2.24.0 (Windows)](#transition-instructions-upgrading-to-v2240-windows)
 - [v2.22.12](#release-notes-v22212)
@@ -22,6 +23,37 @@
 - [v2.2.2](#release-notes-v222)
 
 ---
+
+## Release Notes v2.24.8
+
+### 🚀 New Features
+
+*   **⚙️ Configurable Max Network Retries**
+    *   Added a settings option (`maxNetworkRetries`) to customize the maximum number of network retry attempts (defaulting to `4`).
+    *   Supported range from `-1` (finite/disabled endless retry checks) up to `999999` using a flexible SpinBox control in the settings editor.
+*   **📋 Tabbed Summary Dialog Enhancements**
+    *   **All Failures Tab**: Added a consolidated failures overview tab, displaying all failed notes for convenient selection, copy, and selective retry operations.
+    *   **Smart Tab Selection**: Automatically activates the "All Failures" tab when opening the Summary Dialog if errors or failures are present.
+    *   **Retry Recovery Tracking**: Displays the number of retries it took for successfully recovered notes.
+    *   **Tooltips & Clipboard Copy**: Detailed error logs for each retry attempt are accumulated and shown as tooltips, and can be copied to the clipboard directly using the `Ctrl+C` shortcut in the tables.
+*   **📋 Prompt Duplication**
+    *   Added a new "Duplicate" button in the Settings window's Prompts tab, allowing users to clone selected prompts instantly and create new ones based on them.
+*   **🗣️ Phrase Translation & Prompt Refinement**
+    *   Adapted English and German prompts into separate Vocabulary Analysis and Phrase Translation templates.
+    *   Reworked the phrase translation prompt templates to automatically fallback to `WordSourceInflectedForm` when `WordSource` is empty, including detailed grammar commentary options.
+
+### 🐛 Bug Fixes & Polish
+
+*   **🖥️ UI Scaling and DPI Compatibility**
+    *   Resolved dialog shrinking issues on laptops and high-DPI screens by adding scroll containers for long tabs and adjusting vertical constraints, ensuring the Settings window fits properly without clipping or overlapping the taskbar.
+*   **🔇 Reduced Warning Noise**
+    *   Redirected native Anki startup/troubleshooting warning messages to standard output instead of standard error, suppressing unwanted popups while retaining useful terminal logs.
+*   **🧹 Cleaned Up Prompts**
+    *   Removed obsolete templates and cleaned up overall settings files and config schemas.
+
+**Full Changelog**: https://github.com/voothi/20251206123938-intellifiller-ai-addon-for-anki/compare/v2.24.0...v2.24.8
+
+[Return to Top](#intellifiller-release-notes)
 
 ## Release Notes v2.24.0
 
