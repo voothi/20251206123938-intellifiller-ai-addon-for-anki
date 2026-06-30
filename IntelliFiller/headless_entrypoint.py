@@ -7,9 +7,37 @@ import argparse
 # Add the parent directory of IntelliFiller to sys.path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+import re
 from IntelliFiller.config_manager import ConfigManager
 from IntelliFiller.data_request import create_prompt, send_prompt_to_llm
-from IntelliFiller.process_notes import parse_llm_json
+
+def parse_llm_json(response_text):
+    """
+    Parses JSON from LLM response, handling markdown code blocks.
+    Returns dict or None if parsing fails.
+    """
+    if not response_text:
+        return None
+        
+    pattern = r"```(?:json)?\s*(.*?)\s*```"
+    match = re.search(pattern, response_text, re.DOTALL)
+    if match:
+        json_str = match.group(1)
+    else:
+        json_str = response_text
+        
+    try:
+        return json.loads(json_str)
+    except json.JSONDecodeError:
+        start = json_str.find('{')
+        end = json_str.rfind('}')
+        if start != -1 and end != -1:
+             try:
+                 return json.loads(json_str[start:end+1])
+             except:
+                 pass
+        return None
+
 
 def write_tsv_atomically(path, header, rows):
     tmp_path = path + ".tmp"

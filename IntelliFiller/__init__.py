@@ -3,16 +3,20 @@ import sys
 import shutil
 import glob
 from pathlib import Path
-from aqt import mw
-from aqt.qt import *
-from aqt.qt import *
-from aqt.gui_hooks import editor_did_init_buttons, profile_will_close
-from aqt.editor import EditorMode, Editor
-from aqt.browser import Browser
-from aqt.addcards import AddCards
-from aqt.addons import AddonManager
-from anki.hooks import addHook
-from aqt.utils import showWarning
+try:
+    from aqt import mw
+    from aqt.qt import *
+    from aqt.gui_hooks import editor_did_init_buttons, profile_will_close
+    from aqt.editor import EditorMode, Editor
+    from aqt.browser import Browser
+    from aqt.addcards import AddCards
+    from aqt.addons import AddonManager
+    from anki.hooks import addHook
+    from aqt.utils import showWarning
+    HAS_ANKI = True
+except ImportError:
+    HAS_ANKI = False
+
 
 # --- Atomic Rename Strategy Implementation ---
 
@@ -35,31 +39,33 @@ def _gc_cleanup_trash():
 # Run GC immediately
 _gc_cleanup_trash()
 
-# Monkeypatch Anki's deleteAddon to use atomic rename for this addon
-# This prevents PermissionError when updating on Windows
-original_deleteAddon = AddonManager.deleteAddon
+if HAS_ANKI:
+    # Monkeypatch Anki's deleteAddon to use atomic rename for this addon
+    # This prevents PermissionError when updating on Windows
+    original_deleteAddon = AddonManager.deleteAddon
 
-def patched_deleteAddon(self, dir_name):
-    # Check if the deletion target matches our addon
-    my_dir_name = os.path.basename(os.path.dirname(__file__))
-    
-    if dir_name == my_dir_name:
-        try:
-            from .atomic_installer import atomic_replace
-            addon_path = Path(self.addonsFolder()) / dir_name
-            # We treat "delete" as moving to trash without replacement
-            # atomic_replace handles the "move to trash" part
-            if atomic_replace(addon_path, new_content_dir=None):
-                print(f"[IntelliFiller] Atomic delete/rename successful for {dir_name}")
-                return
-        except Exception as e:
-            print(f"[IntelliFiller] Atomic delete failed: {e}. Falling back to standard delete.")
-    
-    # Fallback to original for successful atomic delete (handled internally?) 
-    # Or for other addons
-    return original_deleteAddon(self, dir_name)
+    def patched_deleteAddon(self, dir_name):
+        # Check if the deletion target matches our addon
+        my_dir_name = os.path.basename(os.path.dirname(__file__))
+        
+        if dir_name == my_dir_name:
+            try:
+                from .atomic_installer import atomic_replace
+                addon_path = Path(self.addonsFolder()) / dir_name
+                # We treat "delete" as moving to trash without replacement
+                # atomic_replace handles the "move to trash" part
+                if atomic_replace(addon_path, new_content_dir=None):
+                    print(f"[IntelliFiller] Atomic delete/rename successful for {dir_name}")
+                    return
+            except Exception as e:
+                print(f"[IntelliFiller] Atomic delete failed: {e}. Falling back to standard delete.")
+        
+        # Fallback to original for successful atomic delete (handled internally?) 
+        # Or for other addons
+        return original_deleteAddon(self, dir_name)
 
-AddonManager.deleteAddon = patched_deleteAddon
+    AddonManager.deleteAddon = patched_deleteAddon
+
 
 # --- End Atomic Rename Implementation ---
 
@@ -95,9 +101,15 @@ print("🔍 Anki Addon Loading Dependencies From:", vendor_path)
 print("🔍 sys.path includes:", sys.path[:3])
 
 
-from .settings_editor import SettingsWindow
-from .process_notes import process_notes
-from .run_prompt_dialog import RunPromptDialog
+if HAS_ANKI:
+    from .settings_editor import SettingsWindow
+    from .process_notes import process_notes
+    from .run_prompt_dialog import RunPromptDialog
+else:
+    SettingsWindow = None
+    process_notes = None
+    RunPromptDialog = None
+
 from .config_manager import ConfigManager
 from .backup_manager import BackupManager
 
@@ -375,42 +387,42 @@ def on_setup_editor_buttons(buttons, editor):
     return buttons
 
 
-addHook("browser.onContextMenu", add_context_menu_items)
-mw.addonManager.setConfigAction(__name__, open_settings)
-addHook("browser.onContextMenu", add_context_menu_items)
-mw.addonManager.setConfigAction(__name__, open_settings)
-editor_did_init_buttons.append(on_setup_editor_buttons)
+if HAS_ANKI:
+    addHook("browser.onContextMenu", add_context_menu_items)
+    mw.addonManager.setConfigAction(__name__, open_settings)
+    addHook("browser.onContextMenu", add_context_menu_items)
+    mw.addonManager.setConfigAction(__name__, open_settings)
+    editor_did_init_buttons.append(on_setup_editor_buttons)
 
-def check_security_cleanup():
-    """Silently checks if legacy secrets exist and cleans them up."""
-    if ConfigManager.has_legacy_secrets(__name__):
-        print(f"[{ADDON_NAME}] Detected legacy secrets. Performing silent cleanup...")
-        ConfigManager.sanitize_legacy_files(__name__)
+    def check_security_cleanup():
+        """Silently checks if legacy secrets exist and cleans them up."""
+        if ConfigManager.has_legacy_secrets(__name__):
+            print(f"[{ADDON_NAME}] Detected legacy secrets. Performing silent cleanup...")
+            ConfigManager.sanitize_legacy_files(__name__)
 
-profile_will_close.append(check_security_cleanup)
+    profile_will_close.append(check_security_cleanup)
 
-# Setup Backup Timer
-def setup_backup_timer():
-    settings = ConfigManager.load_settings()
-    backup_config = settings.get('backup', {})
-    
-    if backup_config.get('enabled', False):
-        interval_minutes = backup_config.get('intervalMinutes', 10)
-        # Minimum interval 1 minute
-        if interval_minutes < 1: interval_minutes = 1
+    # Setup Backup Timer
+    def setup_backup_timer():
+        settings = ConfigManager.load_settings()
+        backup_config = settings.get('backup', {})
         
-        # QTimer takes milliseconds
-        interval_ms = interval_minutes * 60 * 1000
-        
-        timer = QTimer(mw)
-        timer.timeout.connect(backup_service.perform_backup)
-        timer.start(interval_ms)
-        
-        # Keep reference to timer to prevent garbage collection
-        mw.intellifiller_backup_timer = timer
-        
-# Initialize timer when profile loads (or strictly now if already loaded, 
-# but for Anki addons, we usually hook into profile loaded or just run at init if imported).
-# Since this __init__.py runs at Anki startup:
-setup_backup_timer()
+        if backup_config.get('enabled', False):
+            interval_minutes = backup_config.get('intervalMinutes', 10)
+            # Minimum interval 1 minute
+            if interval_minutes < 1: interval_minutes = 1
+            
+            # QTimer takes milliseconds
+            interval_ms = interval_minutes * 60 * 1000
+            
+            timer = QTimer(mw)
+            timer.timeout.connect(backup_service.perform_backup)
+            timer.start(interval_ms)
+            
+            # Keep reference to timer to prevent garbage collection
+            mw.intellifiller_backup_timer = timer
+            
+    # Initialize timer when profile loads
+    setup_backup_timer()
+
 
