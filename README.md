@@ -252,7 +252,7 @@ This will register the **IntelliFiller Fill** shortcut in your Windows "Send to"
 ### Command Line Interface
 You can call the headless entrypoint directly:
 ```bash
-python IntelliFiller/headless_entrypoint.py --tsv <tsv_path> --prompt <prompt_name> [--field-mapping <json_mapping>]
+python IntelliFiller/headless_entrypoint.py --tsv "[tsv_path]" --prompt "[prompt_name]" [--field-mapping "[json_mapping]"]
 ```
 
 - **Arguments**:
