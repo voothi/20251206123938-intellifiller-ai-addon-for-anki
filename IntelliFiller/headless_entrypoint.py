@@ -115,7 +115,9 @@ def main():
 
     # 4. Fill rows
     updated_rows = []
-    overwrite = prompt_config.get("overwriteField", False)
+    settings = ConfigManager.load_settings()
+    overwrite_global = settings.get("overwriteField", False)
+    overwrite = prompt_config.get("overwriteField", overwrite_global)
     fmt = prompt_config.get("responseFormat", "text")
 
     print(f"Running prompt '{args.prompt}' on {len(data_rows)} rows...")
