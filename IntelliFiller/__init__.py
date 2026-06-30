@@ -109,6 +109,9 @@ else:
     SettingsWindow = None
     process_notes = None
     RunPromptDialog = None
+    Editor = object
+    Browser = object
+    AddCards = object
 
 from .config_manager import ConfigManager
 from .backup_manager import BackupManager
