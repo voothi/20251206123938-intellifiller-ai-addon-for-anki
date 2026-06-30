@@ -6,8 +6,10 @@ import urllib.request
 import urllib.error
 
 
-from aqt import mw
-
+try:
+    from aqt import mw
+except ImportError:
+    mw = None
 
 import platform
 def get_platform_specific_vendor():

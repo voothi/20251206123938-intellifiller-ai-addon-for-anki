@@ -2,7 +2,12 @@ import os
 import json
 import shutil
 import base64
-from aqt import mw
+
+try:
+    from aqt import mw
+except ImportError:
+    mw = None
+
 
 class ConfigManager:
     ADDON_DIR = os.path.dirname(__file__)
@@ -170,6 +175,10 @@ class ConfigManager:
         """
         if os.path.exists(cls.SETTINGS_FILE) or os.path.exists(cls.CREDENTIALS_FILE):
             # Already migrated or in use
+            return
+
+        if mw is None:
+            # Running headless, skip migration from Anki getConfig
             return
 
         print(f"[{addon_name}] Starting configuration migration to user_files...")

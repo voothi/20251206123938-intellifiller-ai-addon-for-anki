@@ -43,6 +43,7 @@ For a detailed history of changes, please view the [release-notes.md](release-no
   - [For Cross-Platform Release](#for-cross-platform-release)
   - [Packaging](#packaging)
 - [Usage](#usage)
+- [Headless Mode (CLI)](#headless-mode-cli)
 - [Testing](#testing)
 - [Configuration Guide](#configuration-guide)
 - [Original Project](#original-project)
@@ -236,6 +237,34 @@ python scripts/packaging/create_addon_zip.py --out "C:/My/Builds"
 ### Editor Integration
 
 You can also launch IntelliFiller directly from the note editor using the dedicated button in the editor toolbar.
+
+## Headless Mode (CLI)
+
+IntelliFiller can run headlessly from the command line on any vocabulary TSV file without launching Anki.
+
+### Installation
+To install the SendTo shortcut for headless mode, run the installer:
+```bash
+python install.py
+```
+This will register the **IntelliFiller Fill** shortcut in your Windows "Send to" menu.
+
+### Command Line Interface
+You can call the headless entrypoint directly:
+```bash
+python IntelliFiller/headless_entrypoint.py --tsv <tsv_path> --prompt <prompt_name> [--field-mapping <json_mapping>]
+```
+
+- **Arguments**:
+  - `--tsv`: Absolute or relative path to the `.tsv` file containing your vocabulary data.
+  - `--prompt`: Name of the prompt to apply (e.g., `English Vocabulary Analysis and Translation (JSON)`).
+  - `--field-mapping`: (Optional) JSON string mapping JSON response keys to TSV column headers (e.g., `{"ru": "WordDestination"}`).
+
+- **Behavior**:
+  - Automatically loads settings and prompts from the local `user_files/` directory.
+  - Resolves placeholders like `{{{WordSource}}}` from TSV column values for each row.
+  - Invokes the configured LLM API (OpenAI, Anthropic, Gemini, Ollama, etc.).
+  - Writes back the filled columns atomically (preserving other fields).
 
 [Return to Top](#table-of-contents)
 
