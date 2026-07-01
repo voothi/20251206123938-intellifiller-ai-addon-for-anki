@@ -61,7 +61,16 @@ def main():
     parser.add_argument("--tsv", required=True, help="Path to vocabulary TSV file")
     parser.add_argument("--prompt", required=True, help="Prompt name to apply")
     parser.add_argument("--field-mapping", help="Optional JSON string overriding field mapping")
+    parser.add_argument("--selected-rows", help="Comma-separated list of 0-based row indices to process. If omitted, all rows are processed.")
     args = parser.parse_args()
+
+    selected_indices = None
+    if args.selected_rows:
+        try:
+            selected_indices = set(int(x.strip()) for x in args.selected_rows.split(",") if x.strip())
+        except ValueError:
+            print("Error: --selected-rows must be a comma-separated list of integers.", file=sys.stderr)
+            sys.exit(1)
 
     if not os.path.exists(args.tsv):
         print(f"Error: TSV file not found at {args.tsv}", file=sys.stderr)
@@ -123,8 +132,13 @@ def main():
     print(f"Running prompt '{args.prompt}' on {len(data_rows)} rows...")
 
     for i, row in enumerate(data_rows):
-        print(f"Processing row {i+1}/{len(data_rows)}: {row.get('WordSource', row.get('Quotation', ''))}")
         row_dict = dict(row)
+        
+        if selected_indices is not None and i not in selected_indices:
+            updated_rows.append(row_dict)
+            continue
+            
+        print(f"Processing row {i+1}/{len(data_rows)}: {row.get('WordSource', row.get('Quotation', ''))}")
         try:
             prompt_str = create_prompt(row_dict, prompt_config)
             response = send_prompt_to_llm(prompt_str)
