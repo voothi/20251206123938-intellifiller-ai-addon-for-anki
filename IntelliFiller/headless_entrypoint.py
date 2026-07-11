@@ -83,6 +83,7 @@ def main():
     parser.add_argument("--field-mapping", help="Optional JSON string overriding field mapping")
     parser.add_argument("--selected-rows", help="Comma-separated list of 0-based row indices to process. If omitted, all rows are processed.")
     parser.add_argument("--reprocess", action="store_true", help="Allow processing rows even if they already have translations")
+    parser.add_argument("--target-field", help="Specify target translation field to check for existing translations")
     args = parser.parse_args()
 
     selected_indices = None
@@ -170,14 +171,19 @@ def main():
     translation_fields = []
     other_enrichment_fields = []
     
-    target_field = prompt_config.get("targetField")
-    if target_field:
-        translation_fields.append(target_field)
-        
+    if args.target_field:
+        translation_fields.append(args.target_field)
+    else:
+        target_field = prompt_config.get("targetField")
+        if target_field:
+            translation_fields.append(target_field)
+            
+        for json_key, field in mapping.items():
+            if _is_translation_field(json_key, field):
+                translation_fields.append(field)
+                
     for json_key, field in mapping.items():
-        if _is_translation_field(json_key, field):
-            translation_fields.append(field)
-        elif not _is_source_field(json_key, field):
+        if not _is_translation_field(json_key, field) and not _is_source_field(json_key, field):
             other_enrichment_fields.append(field)
 
     print(f"Running prompt '{args.prompt}' on {len(data_rows)} rows...")
