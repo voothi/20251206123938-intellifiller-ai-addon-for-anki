@@ -173,6 +173,9 @@ def main():
     
     if args.target_field:
         translation_fields.append(args.target_field)
+        for json_key, field in mapping.items():
+            if field != args.target_field and not _is_source_field(json_key, field):
+                other_enrichment_fields.append(field)
     else:
         target_field = prompt_config.get("targetField")
         if target_field:
@@ -182,9 +185,9 @@ def main():
             if _is_translation_field(json_key, field):
                 translation_fields.append(field)
                 
-    for json_key, field in mapping.items():
-        if not _is_translation_field(json_key, field) and not _is_source_field(json_key, field):
-            other_enrichment_fields.append(field)
+        for json_key, field in mapping.items():
+            if not _is_translation_field(json_key, field) and not _is_source_field(json_key, field):
+                other_enrichment_fields.append(field)
 
     print(f"Running prompt '{args.prompt}' on {len(data_rows)} rows...")
 
