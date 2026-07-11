@@ -62,7 +62,7 @@ def write_tsv_atomically(path, comments, header, rows):
         with open(tmp_path, "w", newline="", encoding="utf-8") as f:
             for comment in comments:
                 f.write(comment + '\n')
-            writer = csv.writer(f, delimiter="\t")
+            writer = csv.writer(f, delimiter="\t", lineterminator="\n")
             writer.writerow(header)
             for row in rows:
                 writer.writerow([row.get(h, "") for h in header])
