@@ -189,10 +189,8 @@ def main():
             continue
             
         has_translation = any(row.get(f, "").strip() for f in translation_fields if f)
-        all_others_filled = all(row.get(f, "").strip() for f in other_enrichment_fields if f)
-        
-        if has_translation and all_others_filled:
-            print(f"Row {i+1} already fully filled, skipping.")
+        if has_translation:
+            print(f"Row {i+1} already has translation, skipping.")
             updated_rows.append(row_dict)
             continue
             
