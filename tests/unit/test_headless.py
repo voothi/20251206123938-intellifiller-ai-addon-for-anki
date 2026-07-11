@@ -34,6 +34,8 @@ def test_headless_fill_tsv(tmp_path, monkeypatch):
         ["banana", "I like banana.", "", ""]
     ]
     with open(tsv_path, "w", newline="", encoding="utf-8") as f:
+        f.write("# language=en\n")
+        f.write("# target_lang=ru\n")
         writer = csv.writer(f, delimiter="\t")
         writer.writerow(header)
         writer.writerows(rows)
@@ -69,9 +71,71 @@ def test_headless_fill_tsv(tmp_path, monkeypatch):
         reader = csv.reader(f, delimiter="\t")
         res_rows = list(reader)
 
+    assert res_rows[0] == ["# language=en"]
+    assert res_rows[1] == ["# target_lang=ru"]
+    assert res_rows[2] == header
+    assert res_rows[3] == ["apple", "I like apple.", "яблоко", "æpl"]
+    assert res_rows[4] == ["banana", "I like banana.", "банан", "bəˈnɑːnə"]
+
+
+def test_headless_skips_fully_filled_rows(tmp_path, monkeypatch):
+    ConfigManager.save_settings({"emulate": "yes"})
+    test_prompt_config = {
+        "promptName": "English Vocabulary Analysis and Translation (JSON)",
+        "prompt": "Analyze {{{WordSource}}}. Context: {{{SentenceSource}}}",
+        "responseFormat": "json",
+        "fieldMapping": {
+            "ru": "WordDestination",
+            "ipa": "WordSourceIPA"
+        },
+        "overwriteField": True
+    }
+    ConfigManager.save_prompt(test_prompt_config)
+
+    tsv_path = tmp_path / "test_skip.tsv"
+    header = ["WordSource", "SentenceSource", "WordDestination", "WordSourceIPA"]
+    rows = [
+        ["apple", "I like apple.", "яблоко_original", "æpl_original"],
+        ["banana", "I like banana.", "", ""]
+    ]
+    with open(tsv_path, "w", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f, delimiter="\t")
+        writer.writerow(header)
+        writer.writerows(rows)
+
+    mock_responses = [
+        '{"ru": "банан", "ipa": "bəˈnɑːnə"}'
+    ]
+    response_idx = 0
+
+    def mock_send(prompt):
+        nonlocal response_idx
+        if response_idx >= len(mock_responses):
+            pytest.fail("send_prompt_to_llm called too many times (should have skipped fully filled row!)")
+        res = mock_responses[response_idx]
+        response_idx += 1
+        return res
+
+    monkeypatch.setattr("IntelliFiller.headless_entrypoint.send_prompt_to_llm", mock_send)
+
+    test_args = [
+        "headless_entrypoint.py",
+        "--tsv", str(tsv_path),
+        "--prompt", "English Vocabulary Analysis and Translation (JSON)"
+    ]
+    monkeypatch.setattr("sys.argv", test_args)
+
+    headless_main()
+
+    with open(tsv_path, "r", encoding="utf-8") as f:
+        reader = csv.reader(f, delimiter="\t")
+        res_rows = list(reader)
+
     assert res_rows[0] == header
-    assert res_rows[1] == ["apple", "I like apple.", "яблоко", "æpl"]
+    assert res_rows[1] == ["apple", "I like apple.", "яблоко_original", "æpl_original"]
     assert res_rows[2] == ["banana", "I like banana.", "банан", "bəˈnɑːnə"]
+    assert response_idx == 1
+
 
 def test_install_script_list(capsys, monkeypatch):
     test_args = ["install.py", "--list"]

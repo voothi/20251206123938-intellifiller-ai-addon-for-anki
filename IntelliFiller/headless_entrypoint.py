@@ -11,6 +11,23 @@ import re
 from IntelliFiller.config_manager import ConfigManager
 from IntelliFiller.data_request import create_prompt, send_prompt_to_llm
 
+def _is_translation_field(json_key, column_name):
+    if json_key in ("ru", "ua", "en", "de", "translation", "dest", "word_translation"):
+        return True
+    col_lower = str(column_name).lower()
+    if "destination" in col_lower:
+        return True
+    if col_lower in ("wordrussian", "wordukrainian", "wordenglish", "wordgerman"):
+        return True
+    return False
+
+def _is_source_field(json_key, column_name):
+    if json_key in ("lemma", "word", "source", "word_source"):
+        return True
+    if str(column_name) in ("WordSource", "Quotation"):
+        return True
+    return False
+
 def parse_llm_json(response_text):
     """
     Parses JSON from LLM response, handling markdown code blocks.
@@ -39,10 +56,12 @@ def parse_llm_json(response_text):
         return None
 
 
-def write_tsv_atomically(path, header, rows):
+def write_tsv_atomically(path, comments, header, rows):
     tmp_path = path + ".tmp"
     try:
         with open(tmp_path, "w", newline="", encoding="utf-8") as f:
+            for comment in comments:
+                f.write(comment + '\n')
             writer = csv.writer(f, delimiter="\t")
             writer.writerow(header)
             for row in rows:
@@ -55,6 +74,7 @@ def write_tsv_atomically(path, header, rows):
         if os.path.exists(tmp_path):
             os.remove(tmp_path)
         raise e
+
 
 def main():
     parser = argparse.ArgumentParser(description="Headless IntelliFiller CLI Entrypoint")
@@ -98,12 +118,29 @@ def main():
             sys.exit(1)
 
     # 3. Read TSV
+    comments = []
+    headers = []
+    lines_to_parse = []
     try:
         with open(args.tsv, "r", encoding="utf-8") as f:
-            reader = csv.reader(f, delimiter="\t")
-            rows = list(reader)
+            for line in f:
+                if not headers and not lines_to_parse and line.startswith('#'):
+                    comments.append(line.rstrip('\r\n'))
+                else:
+                    lines_to_parse.append(line)
     except Exception as e:
         print(f"Error reading TSV: {e}", file=sys.stderr)
+        sys.exit(1)
+
+    if not lines_to_parse:
+        print("Error: Empty TSV file.", file=sys.stderr)
+        sys.exit(1)
+
+    try:
+        reader = csv.reader(lines_to_parse, delimiter="\t")
+        rows = list(reader)
+    except Exception as e:
+        print(f"Error parsing TSV rows: {e}", file=sys.stderr)
         sys.exit(1)
 
     if not rows:
@@ -129,12 +166,33 @@ def main():
     overwrite = prompt_config.get("overwriteField", overwrite_global)
     fmt = prompt_config.get("responseFormat", "text")
 
+    translation_fields = []
+    other_enrichment_fields = []
+    
+    target_field = prompt_config.get("targetField")
+    if target_field:
+        translation_fields.append(target_field)
+        
+    for json_key, field in mapping.items():
+        if _is_translation_field(json_key, field):
+            translation_fields.append(field)
+        elif not _is_source_field(json_key, field):
+            other_enrichment_fields.append(field)
+
     print(f"Running prompt '{args.prompt}' on {len(data_rows)} rows...")
 
     for i, row in enumerate(data_rows):
         row_dict = dict(row)
         
         if selected_indices is not None and i not in selected_indices:
+            updated_rows.append(row_dict)
+            continue
+            
+        has_translation = any(row.get(f, "").strip() for f in translation_fields if f)
+        all_others_filled = all(row.get(f, "").strip() for f in other_enrichment_fields if f)
+        
+        if has_translation and all_others_filled:
+            print(f"Row {i+1} already fully filled, skipping.")
             updated_rows.append(row_dict)
             continue
             
@@ -179,7 +237,7 @@ def main():
 
     # 5. Write updated TSV back atomically
     try:
-        write_tsv_atomically(args.tsv, header, updated_rows)
+        write_tsv_atomically(args.tsv, comments, header, updated_rows)
         print(f"Successfully processed and updated {args.tsv}")
     except Exception as e:
         print(f"Error saving TSV atomically: {e}", file=sys.stderr)
