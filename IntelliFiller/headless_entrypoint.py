@@ -82,6 +82,7 @@ def main():
     parser.add_argument("--prompt", required=True, help="Prompt name to apply")
     parser.add_argument("--field-mapping", help="Optional JSON string overriding field mapping")
     parser.add_argument("--selected-rows", help="Comma-separated list of 0-based row indices to process. If omitted, all rows are processed.")
+    parser.add_argument("--reprocess", action="store_true", help="Allow processing rows even if they already have translations")
     args = parser.parse_args()
 
     selected_indices = None
@@ -189,7 +190,7 @@ def main():
             continue
             
         has_translation = any(row.get(f, "").strip() for f in translation_fields if f)
-        if has_translation:
+        if has_translation and not args.reprocess:
             print(f"Row {i+1} already has translation, skipping.")
             updated_rows.append(row_dict)
             continue

@@ -195,6 +195,64 @@ def test_headless_skips_partially_filled_rows_with_translation(tmp_path, monkeyp
     assert response_idx == 1
 
 
+def test_headless_reprocess_does_not_skip_rows_with_translation(tmp_path, monkeypatch):
+    ConfigManager.save_settings({"emulate": "yes"})
+    test_prompt_config = {
+        "promptName": "English Vocabulary Analysis and Translation (JSON)",
+        "prompt": "Analyze {{{WordSource}}}. Context: {{{SentenceSource}}}",
+        "responseFormat": "json",
+        "fieldMapping": {
+            "ru": "WordDestination",
+            "ipa": "WordSourceIPA"
+        },
+        "overwriteField": True
+    }
+    ConfigManager.save_prompt(test_prompt_config)
+
+    tsv_path = tmp_path / "test_reprocess.tsv"
+    header = ["WordSource", "SentenceSource", "WordDestination", "WordSourceIPA"]
+    rows = [
+        ["apple", "I like apple.", "яблоко_original", ""],  # Has translation but empty IPA
+        ["banana", "I like banana.", "", ""]
+    ]
+    with open(tsv_path, "w", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f, delimiter="\t")
+        writer.writerow(header)
+        writer.writerows(rows)
+
+    mock_responses = [
+        '{"ru": "яблоко_new", "ipa": "æpl_new"}',
+        '{"ru": "банан", "ipa": "bəˈnɑːnə"}'
+    ]
+    response_idx = 0
+
+    def mock_send(prompt):
+        nonlocal response_idx
+        res = mock_responses[response_idx]
+        response_idx += 1
+        return res
+
+    monkeypatch.setattr("IntelliFiller.headless_entrypoint.send_prompt_to_llm", mock_send)
+
+    test_args = [
+        "headless_entrypoint.py",
+        "--tsv", str(tsv_path),
+        "--prompt", "English Vocabulary Analysis and Translation (JSON)",
+        "--reprocess"
+    ]
+    monkeypatch.setattr("sys.argv", test_args)
+
+    headless_main()
+
+    with open(tsv_path, "r", encoding="utf-8") as f:
+        reader = csv.reader(f, delimiter="\t")
+        res_rows = list(reader)
+
+    assert res_rows[1] == ["apple", "I like apple.", "яблоко_new", "æpl_new"]
+    assert res_rows[2] == ["banana", "I like banana.", "банан", "bəˈnɑːnə"]
+    assert response_idx == 2
+
+
 def test_install_script_list(capsys, monkeypatch):
     test_args = ["install.py", "--list"]
     monkeypatch.setattr("sys.argv", test_args)
