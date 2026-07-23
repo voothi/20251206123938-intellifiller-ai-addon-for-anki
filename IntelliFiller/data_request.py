@@ -211,7 +211,7 @@ def test_connection(config=None, timeout=15.0):
 
 def create_prompt(note, prompt_config):
     prompt_template = prompt_config['prompt']
-    pattern = re.compile(r'\{\{\{(\w+)\}\}\}')
+    pattern = re.compile(r'\{\{\{(.+?)\}\}\}')
     field_names = pattern.findall(prompt_template)
     for field_name in field_names:
         if field_name not in note:
