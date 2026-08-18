@@ -320,3 +320,95 @@ def test_install_script_list(capsys, monkeypatch):
     
     captured = capsys.readouterr()
     assert "IntelliFiller Fill" in captured.out
+
+
+def test_headless_rate_limit_error_emits_structured_envelope(tmp_path, monkeypatch, capsys):
+    ConfigManager.save_settings({"emulate": "no"})
+    test_prompt_config = {
+        "promptName": "RateLimitTest",
+        "prompt": "Analyze {{{WordSource}}}",
+        "responseFormat": "json",
+        "fieldMapping": {"ru": "WordDestination"},
+        "overwriteField": True
+    }
+    ConfigManager.save_prompt(test_prompt_config)
+
+    tsv_path = tmp_path / "test_ratelimit.tsv"
+    with open(tsv_path, "w", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f, delimiter="\t")
+        writer.writerow(["WordSource", "WordDestination"])
+        writer.writerow(["apple", ""])
+
+    def mock_send_ratelimit(prompt):
+        raise Exception("HTTP 429 Too Many Requests - Rate limit exceeded")
+
+    monkeypatch.setattr("IntelliFiller.headless_entrypoint.send_prompt_to_llm", mock_send_ratelimit)
+
+    test_args = [
+        "headless_entrypoint.py",
+        "--tsv", str(tsv_path),
+        "--prompt", "RateLimitTest",
+        "--zid", "20260818190200",
+        "--trace-id", "20260818190200:reword:row_0"
+    ]
+    monkeypatch.setattr("sys.argv", test_args)
+
+    with pytest.raises(SystemExit) as excinfo:
+        headless_main()
+
+    assert excinfo.value.code == 1
+    captured = capsys.readouterr()
+    stderr_lines = [line.strip() for line in captured.err.splitlines() if line.strip()]
+    envelope = json.loads(stderr_lines[-1])
+    assert envelope["status"] == "error"
+    assert envelope["code"] == "ERR_LLM_RATE_LIMIT"
+    assert envelope["zid"] == "20260818190200"
+    assert envelope["trace_id"] == "20260818190200:reword:row_0"
+    assert envelope["retryable"] is True
+    assert envelope["row_id"] == 0
+    assert envelope["details"]["http_status"] == 429
+
+
+def test_headless_malformed_json_emits_parse_error(tmp_path, monkeypatch, capsys):
+    ConfigManager.save_settings({"emulate": "no"})
+    test_prompt_config = {
+        "promptName": "ParseErrorTest",
+        "prompt": "Analyze {{{WordSource}}}",
+        "responseFormat": "json",
+        "fieldMapping": {"ru": "WordDestination"},
+        "overwriteField": True
+    }
+    ConfigManager.save_prompt(test_prompt_config)
+
+    tsv_path = tmp_path / "test_parse.tsv"
+    with open(tsv_path, "w", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f, delimiter="\t")
+        writer.writerow(["WordSource", "WordDestination"])
+        writer.writerow(["banana", ""])
+
+    def mock_send_malformed(prompt):
+        return "Not a valid json response at all <<<"
+
+    monkeypatch.setattr("IntelliFiller.headless_entrypoint.send_prompt_to_llm", mock_send_malformed)
+
+    test_args = [
+        "headless_entrypoint.py",
+        "--tsv", str(tsv_path),
+        "--prompt", "ParseErrorTest",
+        "--zid", "20260818190200",
+        "--trace-id", "20260818190200:reword:row_0"
+    ]
+    monkeypatch.setattr("sys.argv", test_args)
+
+    with pytest.raises(SystemExit) as excinfo:
+        headless_main()
+
+    assert excinfo.value.code == 1
+    captured = capsys.readouterr()
+    stderr_lines = [line.strip() for line in captured.err.splitlines() if line.strip()]
+    envelope = json.loads(stderr_lines[-1])
+    assert envelope["status"] == "error"
+    assert envelope["code"] == "ERR_LLM_PARSE"
+    assert envelope["retryable"] is False
+    assert "Not a valid json" in envelope["details"]["raw_response"]
+

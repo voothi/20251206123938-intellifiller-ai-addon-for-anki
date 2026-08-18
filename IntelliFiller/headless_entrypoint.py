@@ -56,6 +56,66 @@ def parse_llm_json(response_text):
         return None
 
 
+def classify_error(err, response_text=None):
+    err_str = str(err).lower()
+    if isinstance(err, (json.JSONDecodeError, ValueError)) and ("json" in err_str or "parse" in err_str):
+        return {
+            "code": "ERR_LLM_PARSE",
+            "message": str(err),
+            "retryable": False,
+            "details": {"raw_response": (response_text[:200] if response_text else "")}
+        }
+    if "429" in err_str or "rate limit" in err_str or "quota" in err_str or "too many requests" in err_str:
+        return {
+            "code": "ERR_LLM_RATE_LIMIT",
+            "message": str(err),
+            "retryable": True,
+            "details": {"http_status": 429}
+        }
+    if "401" in err_str or "403" in err_str or "auth" in err_str or "api key" in err_str or "unauthorized" in err_str:
+        status_code = 401 if "401" in err_str else (403 if "403" in err_str else 401)
+        return {
+            "code": "ERR_LLM_AUTH",
+            "message": str(err),
+            "retryable": False,
+            "details": {"http_status": status_code}
+        }
+    if "timed out" in err_str or "timeout" in err_str:
+        return {
+            "code": "ERR_LLM_TIMEOUT",
+            "message": str(err),
+            "retryable": True,
+            "details": {}
+        }
+    if "network" in err_str or "urlerror" in err_str or "connection" in err_str or "getaddrinfo" in err_str:
+        return {
+            "code": "ERR_LLM_NETWORK",
+            "message": str(err),
+            "retryable": True,
+            "details": {}
+        }
+    return {
+        "code": "ERR_LLM_REQUEST",
+        "message": str(err),
+        "retryable": False,
+        "details": {}
+    }
+
+
+def emit_error(code, message, zid=None, trace_id=None, row_id=None, retryable=False, details=None):
+    envelope = {
+        "status": "error",
+        "zid": zid or "",
+        "trace_id": trace_id or "",
+        "code": code,
+        "message": message,
+        "row_id": row_id,
+        "retryable": retryable,
+        "details": details if details is not None else {}
+    }
+    print(json.dumps(envelope, ensure_ascii=False), file=sys.stderr)
+
+
 def write_tsv_atomically(path, comments, header, rows):
     tmp_path = path + ".tmp"
     try:
@@ -84,6 +144,8 @@ def main():
     parser.add_argument("--selected-rows", help="Comma-separated list of 0-based row indices to process. If omitted, all rows are processed.")
     parser.add_argument("--reprocess", action="store_true", help="Allow processing rows even if they already have translations")
     parser.add_argument("--target-field", help="Specify target translation field to check for existing translations")
+    parser.add_argument("--zid", help="Session ZID timestamp")
+    parser.add_argument("--trace-id", help="Correlation trace ID")
     args = parser.parse_args()
 
     selected_indices = None
@@ -91,11 +153,11 @@ def main():
         try:
             selected_indices = set(int(x.strip()) for x in args.selected_rows.split(",") if x.strip())
         except ValueError:
-            print("Error: --selected-rows must be a comma-separated list of integers.", file=sys.stderr)
+            emit_error("ERR_INVALID_ARGS", "--selected-rows must be a comma-separated list of integers.", zid=args.zid, trace_id=args.trace_id)
             sys.exit(1)
 
     if not os.path.exists(args.tsv):
-        print(f"Error: TSV file not found at {args.tsv}", file=sys.stderr)
+        emit_error("ERR_FILE_NOT_FOUND", f"TSV file not found at {args.tsv}", zid=args.zid, trace_id=args.trace_id)
         sys.exit(1)
 
     # 1. Load prompts and find target prompt
@@ -107,7 +169,7 @@ def main():
             break
 
     if not prompt_config:
-        print(f"Error: Prompt '{args.prompt}' not found in user prompts.", file=sys.stderr)
+        emit_error("ERR_PROMPT_NOT_FOUND", f"Prompt '{args.prompt}' not found in user prompts.", zid=args.zid, trace_id=args.trace_id)
         sys.exit(1)
 
     # 2. Get field mapping
@@ -116,7 +178,7 @@ def main():
         try:
             mapping.update(json.loads(args.field_mapping))
         except Exception as e:
-            print(f"Error parsing --field-mapping JSON: {e}", file=sys.stderr)
+            emit_error("ERR_MAPPING_INVALID", f"Error parsing --field-mapping JSON: {e}", zid=args.zid, trace_id=args.trace_id)
             sys.exit(1)
 
     # 3. Read TSV
@@ -131,22 +193,22 @@ def main():
                 else:
                     lines_to_parse.append(line)
     except Exception as e:
-        print(f"Error reading TSV: {e}", file=sys.stderr)
+        emit_error("ERR_TSV_READ", f"Error reading TSV: {e}", zid=args.zid, trace_id=args.trace_id)
         sys.exit(1)
 
     if not lines_to_parse:
-        print("Error: Empty TSV file.", file=sys.stderr)
+        emit_error("ERR_TSV_EMPTY", "Empty TSV file.", zid=args.zid, trace_id=args.trace_id)
         sys.exit(1)
 
     try:
         reader = csv.reader(lines_to_parse, delimiter="\t")
         rows = list(reader)
     except Exception as e:
-        print(f"Error parsing TSV rows: {e}", file=sys.stderr)
+        emit_error("ERR_TSV_PARSE", f"Error parsing TSV rows: {e}", zid=args.zid, trace_id=args.trace_id)
         sys.exit(1)
 
     if not rows:
-        print("Error: Empty TSV file.", file=sys.stderr)
+        emit_error("ERR_TSV_EMPTY", "Empty TSV file.", zid=args.zid, trace_id=args.trace_id)
         sys.exit(1)
 
     header = rows[0]
@@ -205,6 +267,7 @@ def main():
             continue
             
         print(f"Processing row {i+1}/{len(data_rows)}: {row.get('WordSource', row.get('Quotation', ''))}")
+        response = None
         try:
             prompt_str = create_prompt(row_dict, prompt_config)
             response = send_prompt_to_llm(prompt_str)
@@ -212,7 +275,7 @@ def main():
             if fmt == "json":
                 data = parse_llm_json(response)
                 if not data:
-                    raise ValueError("Failed to parse JSON response from LLM")
+                    raise ValueError(f"Failed to parse JSON response from LLM: {response[:100] if response else ''}")
                 
                 for json_key, target_field in mapping.items():
                     if json_key in data:
@@ -238,8 +301,23 @@ def main():
                         row_dict[target_field] = formatted
 
         except Exception as e:
-            print(f"Warning: Failed to process row {i+1}: {e}", file=sys.stderr)
-            # Keep original values on failure
+            err_info = classify_error(e, response_text=response)
+            emit_error(
+                code=err_info["code"],
+                message=err_info["message"],
+                zid=args.zid,
+                trace_id=args.trace_id,
+                row_id=i,
+                retryable=err_info["retryable"],
+                details=err_info["details"]
+            )
+            # Write back any already processed rows before exiting so work is not lost
+            try:
+                full_updated = updated_rows + [dict(r) for r in data_rows[len(updated_rows):]]
+                write_tsv_atomically(args.tsv, comments, header, full_updated)
+            except Exception:
+                pass
+            sys.exit(1)
 
         updated_rows.append(row_dict)
 
@@ -248,7 +326,7 @@ def main():
         write_tsv_atomically(args.tsv, comments, header, updated_rows)
         print(f"Successfully processed and updated {args.tsv}")
     except Exception as e:
-        print(f"Error saving TSV atomically: {e}", file=sys.stderr)
+        emit_error("ERR_TSV_SAVE", f"Error saving TSV atomically: {e}", zid=args.zid, trace_id=args.trace_id)
         sys.exit(1)
 
 if __name__ == "__main__":
