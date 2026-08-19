@@ -12,6 +12,7 @@ except ImportError:
     mw = None
 
 import platform
+
 def get_platform_specific_vendor():
     system = platform.system().lower()
     machine = platform.machine().lower()
@@ -27,9 +28,34 @@ def get_platform_specific_vendor():
     else:
         raise RuntimeError(f"Unsupported platform: {system} {machine}")
 
+def get_runtime_vendor_dir():
+    addon_dir = os.path.dirname(os.path.realpath(__file__))
+    ver_tag = f"py{sys.version_info.major}{sys.version_info.minor}"
+    
+    # 1. Version-specific vendor directory (e.g. vendor/py39 or vendor/py313)
+    ver_dir = os.path.join(addon_dir, "vendor", ver_tag)
+    if os.path.isdir(ver_dir):
+        return ver_dir
+    
+    # 2. Platform-specific vendor directory (e.g. vendor/win32)
+    plat_name = get_platform_specific_vendor()
+    plat_dir = os.path.join(addon_dir, "vendor", plat_name)
+    if os.path.isdir(plat_dir):
+        return plat_dir
+
+    # 3. Base vendor directory fallback
+    return os.path.join(addon_dir, "vendor")
+
 addon_dir = os.path.dirname(os.path.realpath(__file__))
-vendor_dir = os.path.join(addon_dir, "vendor", get_platform_specific_vendor())
-sys.path.append(vendor_dir)
+vendor_dir = get_runtime_vendor_dir()
+if vendor_dir not in sys.path:
+    sys.path.insert(0, vendor_dir)
+
+# Also ensure base vendor dir is in path if distinct
+base_vendor_dir = os.path.join(addon_dir, "vendor")
+if base_vendor_dir not in sys.path:
+    sys.path.append(base_vendor_dir)
+
 
 from .config_manager import ConfigManager
 

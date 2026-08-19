@@ -69,10 +69,12 @@ if HAS_ANKI:
 
 # --- End Atomic Rename Implementation ---
 
-# Ensure our addon’s vendor folder is the first thing in sys.path
+# Ensure our addon’s vendor folder is in sys.path
 addon_dir = os.path.dirname(os.path.realpath(__file__))
 vendor_path = os.path.join(addon_dir, "vendor")
-sys.path.insert(0, vendor_path)
+
+if vendor_path not in sys.path:
+    sys.path.insert(0, vendor_path)
 
 # Platform-specific vendor support (for build_release.py structure)
 import platform
@@ -92,9 +94,19 @@ elif system == 'darwin':
 
 if sub_vendor:
     sub_vendor_path = os.path.join(vendor_path, sub_vendor)
-    if os.path.exists(sub_vendor_path):
+    if os.path.exists(sub_vendor_path) and sub_vendor_path not in sys.path:
         sys.path.insert(0, sub_vendor_path)
         print(f"🔍 Added platform vendor path: {sub_vendor}")
+
+# Version-specific vendor directory HIGHEST PRIORITY (e.g. vendor/py39 or vendor/py313)
+ver_tag = f"py{sys.version_info.major}{sys.version_info.minor}"
+ver_vendor_path = os.path.join(vendor_path, ver_tag)
+if os.path.exists(ver_vendor_path):
+    if ver_vendor_path in sys.path:
+        sys.path.remove(ver_vendor_path)
+    sys.path.insert(0, ver_vendor_path)
+    print(f"🔍 Added version vendor path: {ver_tag}")
+
 
 # Debugging information
 print("🔍 Anki Addon Loading Dependencies From:", vendor_path)
