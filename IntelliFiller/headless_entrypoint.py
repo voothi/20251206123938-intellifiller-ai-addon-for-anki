@@ -138,8 +138,11 @@ def write_tsv_atomically(path, comments, header, rows):
 
 def main():
     parser = argparse.ArgumentParser(description="Headless IntelliFiller CLI Entrypoint")
-    parser.add_argument("--tsv", required=True, help="Path to vocabulary TSV file")
-    parser.add_argument("--prompt", required=True, help="Prompt name to apply")
+    parser.add_argument("--serve", action="store_true", help="Start IntelliFiller as a persistent HTTP microservice")
+    parser.add_argument("--port", type=int, default=8083, help="Port for HTTP microservice (default: 8083)")
+    parser.add_argument("--host", default="127.0.0.1", help="Host interface for HTTP microservice (default: 127.0.0.1)")
+    parser.add_argument("--tsv", required=False, help="Path to vocabulary TSV file")
+    parser.add_argument("--prompt", required=False, help="Prompt name to apply")
     parser.add_argument("--field-mapping", help="Optional JSON string overriding field mapping")
     parser.add_argument("--selected-rows", help="Comma-separated list of 0-based row indices to process. If omitted, all rows are processed.")
     parser.add_argument("--reprocess", action="store_true", help="Allow processing rows even if they already have translations")
@@ -147,6 +150,14 @@ def main():
     parser.add_argument("--zid", help="Session ZID timestamp")
     parser.add_argument("--trace-id", help="Correlation trace ID")
     args = parser.parse_args()
+
+    if args.serve:
+        from IntelliFiller.server import start_server
+        start_server(host=args.host, port=args.port)
+        return
+
+    if not args.tsv or not args.prompt:
+        parser.error("--tsv and --prompt are required when not running with --serve")
 
     selected_indices = None
     if args.selected_rows:
