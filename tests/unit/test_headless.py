@@ -412,3 +412,132 @@ def test_headless_malformed_json_emits_parse_error(tmp_path, monkeypatch, capsys
     assert envelope["retryable"] is False
     assert "Not a valid json" in envelope["details"]["raw_response"]
 
+
+def test_headless_standalone_builtin_prompt_without_anki(tmp_path, monkeypatch):
+    # Ensure no prompts in Anki user_files
+    monkeypatch.setattr(ConfigManager, "list_prompts", lambda: [])
+
+    tsv_path = tmp_path / "test_builtin.tsv"
+    with open(tsv_path, "w", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f, delimiter="\t")
+        writer.writerow(["WordSource", "SentenceSource", "WordDestination", "WordSourceIPA", "Grammar"])
+        writer.writerow(["gehen", "Ich gehe nach Hause.", "", "", ""])
+
+    passed_config = {}
+
+    def mock_send(prompt, config=None):
+        nonlocal passed_config
+        passed_config = config or {}
+        return '{"lemma": "gehen", "ipa": "ˈɡeːən", "pos": "verb", "morphology": "1st person sg present", "translation": "идти"}'
+
+    monkeypatch.setattr("IntelliFiller.headless_entrypoint.send_prompt_to_llm", mock_send)
+
+    test_args = [
+        "headless_entrypoint.py",
+        "--tsv", str(tsv_path),
+        "--prompt", "morphology_and_ipa",
+        "--model", "qwen2.5:3b",
+        "--base-url", "http://127.0.0.1:11434/v1",
+        "--temperature", "0.0"
+    ]
+    monkeypatch.setattr("sys.argv", test_args)
+
+    headless_main()
+
+    with open(tsv_path, "r", encoding="utf-8") as f:
+        reader = csv.reader(f, delimiter="\t")
+        rows = list(reader)
+
+    assert rows[0] == ["WordSource", "SentenceSource", "WordDestination", "WordSourceIPA", "Grammar", "PartOfSpeech"]
+    assert rows[1] == ["gehen", "Ich gehe nach Hause.", "идти", "ˈɡeːən", "1st person sg present", "verb"]
+    assert passed_config.get("customModel") == "qwen2.5:3b"
+    assert passed_config.get("customUrl") == "http://127.0.0.1:11434/v1/chat/completions"
+    assert passed_config.get("temperature") == 0.0
+
+
+def test_headless_config_hierarchy(tmp_path, monkeypatch):
+    # 1. Base user_files settings
+    monkeypatch.setattr(ConfigManager, "load_settings", lambda: {"selectedApi": "openai", "openaiModel": "gpt-4o-mini"})
+    monkeypatch.setattr(ConfigManager, "load_credentials", lambda key=None: {"apiKey": "base_key"})
+    monkeypatch.setattr(ConfigManager, "list_prompts", lambda: [])
+
+    # 2. Mock config.ini
+    ini_path = tmp_path / "config.ini"
+    with open(ini_path, "w", encoding="utf-8") as f:
+        f.write("[intellifiller]\nmodel = llama3.2:3b\nbase_url = http://localhost:11434/v1\ntemperature = 0.1\n")
+
+    tsv_path = tmp_path / "test_hierarchy.tsv"
+    with open(tsv_path, "w", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f, delimiter="\t")
+        writer.writerow(["WordSource", "WordDestination"])
+        writer.writerow(["haus", ""])
+
+    passed_config = {}
+
+    def mock_send(prompt, config=None):
+        nonlocal passed_config
+        passed_config = config or {}
+        return '{"ru": "дом", "lemma": "Haus"}'
+
+    monkeypatch.setattr("IntelliFiller.headless_entrypoint.send_prompt_to_llm", mock_send)
+
+    # A) Test hierarchy: config.ini overrides user_files
+    test_args_ini = [
+        "headless_entrypoint.py",
+        "--tsv", str(tsv_path),
+        "--prompt", "lemma_extraction",
+        "--config", str(ini_path)
+    ]
+    monkeypatch.setattr("sys.argv", test_args_ini)
+    headless_main()
+    assert passed_config.get("customModel") == "llama3.2:3b"
+    assert passed_config.get("temperature") == 0.1
+
+    # B) Test hierarchy: CLI flag overrides config.ini
+    test_args_cli = [
+        "headless_entrypoint.py",
+        "--tsv", str(tsv_path),
+        "--prompt", "lemma_extraction",
+        "--config", str(ini_path),
+        "--model", "qwen2.5:3b",
+        "--temperature", "0.0",
+        "--reprocess"
+    ]
+    monkeypatch.setattr("sys.argv", test_args_cli)
+    headless_main()
+    assert passed_config.get("customModel") == "qwen2.5:3b"
+    assert passed_config.get("temperature") == 0.0
+
+
+def test_headless_custom_prompt_template(tmp_path, monkeypatch):
+    tsv_path = tmp_path / "test_template.tsv"
+    with open(tsv_path, "w", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f, delimiter="\t")
+        writer.writerow(["WordSource", "WordDestination"])
+        writer.writerow(["sun", ""])
+
+    captured_prompt = ""
+
+    def mock_send(prompt, config=None):
+        nonlocal captured_prompt
+        captured_prompt = prompt
+        return '{"ru": "солнце"}'
+
+    monkeypatch.setattr("IntelliFiller.headless_entrypoint.send_prompt_to_llm", mock_send)
+
+    test_args = [
+        "headless_entrypoint.py",
+        "--tsv", str(tsv_path),
+        "--prompt-template", "Translate word: {{{WordSource}}} into JSON",
+        "--field-mapping", json.dumps({"ru": "WordDestination"})
+    ]
+    monkeypatch.setattr("sys.argv", test_args)
+    headless_main()
+
+    assert "Translate word: sun into JSON" in captured_prompt
+    with open(tsv_path, "r", encoding="utf-8") as f:
+        reader = csv.reader(f, delimiter="\t")
+        rows = list(reader)
+    assert rows[1] == ["sun", "солнце"]
+
+

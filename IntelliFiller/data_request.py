@@ -65,7 +65,7 @@ from .ollama_client import OllamaClient
 from html import unescape
 
 
-def _http_chat_completion(url, api_key, model, prompt, timeout=60.0, extra_headers=None):
+def _http_chat_completion(url, api_key, model, prompt, timeout=60.0, extra_headers=None, temperature=None):
     """Generic OpenAI-compatible chat completion helper using urllib.
 
     Returns the assistant message content string.
@@ -83,6 +83,11 @@ def _http_chat_completion(url, api_key, model, prompt, timeout=60.0, extra_heade
         "model": model,
         "messages": [{"role": "user", "content": prompt}],
     }
+    if temperature is not None:
+        try:
+            payload["temperature"] = float(temperature)
+        except (ValueError, TypeError):
+            pass
 
     try:
         req = urllib.request.Request(
@@ -250,19 +255,23 @@ def create_prompt(note, prompt_config):
     return prompt_template
 
 
-def send_prompt_to_llm(prompt):
-    # Load settings first to get encryption key and API selector
-    settings = ConfigManager.load_settings()
-    encryption_key = settings.get("encryptionKey", "")
+def send_prompt_to_llm(prompt, config=None):
+    if config is None:
+        # Load settings first to get encryption key and API selector
+        settings = ConfigManager.load_settings()
+        encryption_key = settings.get("encryptionKey", "")
 
-    # Load credentials using the key
-    credentials = ConfigManager.load_credentials(key=encryption_key)
+        # Load credentials using the key
+        credentials = ConfigManager.load_credentials(key=encryption_key)
 
-    # Merge for easier access
-    config = {**settings, **credentials}
+        # Merge for easier access
+        config = {**settings, **credentials}
+    else:
+        config = dict(config)
 
     # Get timeout from settings (default 10s)
     net_timeout = float(config.get("netTimeout", 10.0))
+    temperature = config.get("temperature")
 
     if config.get('emulate') == 'yes':
         print("Fake request: ", prompt)
@@ -279,6 +288,7 @@ def send_prompt_to_llm(prompt):
                 model=config.get('openaiModel') or 'gpt-4o-mini',
                 prompt=prompt,
                 timeout=net_timeout,
+                temperature=temperature,
             )
 
         def try_anthropic_call():
@@ -310,6 +320,7 @@ def send_prompt_to_llm(prompt):
                     "HTTP-Referer": "https://ankiweb.net/",
                     "X-Title": "IntelliFiller Anki Addon",
                 },
+                temperature=temperature,
             )
 
         def try_custom_call():
@@ -319,14 +330,16 @@ def send_prompt_to_llm(prompt):
                 model=config.get('customModel') or 'my-model',
                 prompt=prompt,
                 timeout=net_timeout,
+                temperature=temperature,
             )
 
         def try_ollama_call():
             client = OllamaClient(
                 api_url=config.get('ollamaUrl') or 'http://localhost:11434/api/generate',
-                model=config.get('ollamaModel') or 'llama3'
+                model=config.get('ollamaModel') or 'llama3',
+                temperature=temperature,
             )
-            response = client.generate_content(prompt, timeout=net_timeout)
+            response = client.generate_content(prompt, timeout=net_timeout, temperature=temperature)
             print("Response from local Ollama:", response)
             return response.strip()
 
@@ -334,9 +347,10 @@ def send_prompt_to_llm(prompt):
             client = OllamaClient(
                 api_url=config.get('ollamaCloudUrl') or 'https://ollama.com/v1',
                 api_key=config.get('ollamaCloudKey', ''),
-                model=config.get('ollamaCloudModel') or 'llama3'
+                model=config.get('ollamaCloudModel') or 'llama3',
+                temperature=temperature,
             )
-            response = client.generate_content(prompt, timeout=net_timeout)
+            response = client.generate_content(prompt, timeout=net_timeout, temperature=temperature)
             print("Response from Ollama Cloud:", response)
             return response.strip()
 

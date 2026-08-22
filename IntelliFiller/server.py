@@ -14,7 +14,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from IntelliFiller.config_manager import ConfigManager
 from IntelliFiller.data_request import create_prompt, send_prompt_to_llm, test_connection
-from IntelliFiller.headless_entrypoint import parse_llm_json, classify_error
+from IntelliFiller.headless_entrypoint import parse_llm_json, classify_error, resolve_prompt_config
 
 logger = logging.getLogger("IntelliFiller.server")
 
@@ -181,13 +181,12 @@ class IntelliFillerRequestHandler(BaseHTTPRequestHandler):
             trace_id = body.get("trace_id") or f"{zid}:enrich"
             language = body.get("language", "")
 
-            # Look up prompt configuration
-            prompts = ConfigManager.list_prompts()
-            prompt_config = None
-            for p in prompts:
-                if p.get("promptName") == prompt_name:
-                    prompt_config = p
-                    break
+            # Resolve prompt configuration (Anki prompts + built-in fallback)
+            prompt_config = resolve_prompt_config(
+                prompt_name=prompt_name,
+                prompt_template_arg=body.get("prompt_template"),
+                field_mapping_arg=body.get("field_mapping")
+            )
 
             if not prompt_config:
                 self._send_error(400, "ERR_PROMPT_NOT_FOUND", f"Prompt '{prompt_name}' not found", zid=zid, trace_id=trace_id)
@@ -201,6 +200,31 @@ class IntelliFillerRequestHandler(BaseHTTPRequestHandler):
             settings = ConfigManager.load_settings()
             overwrite_global = settings.get("overwriteField", False)
             overwrite = prompt_config.get("overwriteField", overwrite_global)
+
+            # Support request-level LLM overrides
+            req_config = None
+            if body.get("model") or body.get("base_url") or body.get("temperature") is not None or body.get("api_key") is not None:
+                req_config = {}
+                if body.get("base_url"):
+                    req_config["selectedApi"] = "custom"
+                    b_url = str(body["base_url"]).strip()
+                    if not (b_url.endswith("/chat/completions") or b_url.endswith("/generate")):
+                        if b_url.endswith("/v1"):
+                            b_url = b_url + "/chat/completions"
+                        elif "/v1" not in b_url and not b_url.endswith("/generate"):
+                            b_url = b_url.rstrip("/") + "/v1/chat/completions"
+                    req_config["customUrl"] = b_url
+                    req_config["customModel"] = body.get("model") or "qwen2.5:3b"
+                    req_config["customKey"] = body.get("api_key") or ""
+                elif body.get("model"):
+                    selected = settings.get("selectedApi", "openai")
+                    req_config["selectedApi"] = selected
+                    req_config[f"{selected}Model"] = body["model"]
+                    if body.get("api_key") is not None:
+                        req_config[f"{selected}Key"] = body["api_key"]
+                        req_config["apiKey"] = body["api_key"]
+                if body.get("temperature") is not None:
+                    req_config["temperature"] = body["temperature"]
 
             enriched_rows = []
             for idx, row in enumerate(rows):
@@ -223,7 +247,10 @@ class IntelliFillerRequestHandler(BaseHTTPRequestHandler):
                 try:
                     prompt_str = create_prompt(row_dict, prompt_config)
                     logger.info(f"[{zid}][{trace_id}] Processing row {idx+1}/{len(rows)}: {row_dict.get('WordSource', '')}")
-                    response = send_prompt_to_llm(prompt_str)
+                    try:
+                        response = send_prompt_to_llm(prompt_str, config=req_config)
+                    except TypeError:
+                        response = send_prompt_to_llm(prompt_str)
 
                     enriched_item = {"row_id": row_id}
                     if fmt == "json":
