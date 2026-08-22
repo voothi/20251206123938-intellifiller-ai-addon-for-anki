@@ -130,6 +130,16 @@ def resolve_headless_config(args=None):
                             pass
                     if cp.has_option("intellifiller", "prompt_template"):
                         effective["prompt_template"] = cp.get("intellifiller", "prompt_template")
+                    if cp.has_option("intellifiller", "timeout"):
+                        try:
+                            effective["netTimeout"] = cp.getfloat("intellifiller", "timeout")
+                        except (ValueError, TypeError):
+                            pass
+                if cp.has_section("timeouts") and cp.has_option("timeouts", "intellifiller_timeout"):
+                    try:
+                        effective["netTimeout"] = cp.getfloat("timeouts", "intellifiller_timeout")
+                    except (ValueError, TypeError):
+                        pass
                 break
             except Exception:
                 pass
@@ -145,6 +155,8 @@ def resolve_headless_config(args=None):
         effective["temperature"] = args.temperature
     if getattr(args, 'prompt_template', None):
         effective["prompt_template"] = args.prompt_template
+    if getattr(args, 'timeout', None) is not None:
+        effective["netTimeout"] = args.timeout
 
     # 4. Map effective settings into provider connection format
     if effective.get("base_url"):
@@ -351,6 +363,7 @@ def main():
     parser.add_argument("--base-url", help="OpenAI-compatible LLM endpoint override (e.g. http://127.0.0.1:11434/v1)")
     parser.add_argument("--api-key", help="LLM API key override")
     parser.add_argument("--temperature", type=float, help="Sampling temperature override")
+    parser.add_argument("--timeout", type=float, help="Network timeout in seconds")
     parser.add_argument("--config", help="Path to config.ini file")
     parser.add_argument("--field-mapping", help="Optional JSON string overriding field mapping")
     parser.add_argument("--selected-rows", help="Comma-separated list of 0-based row indices to process. If omitted, all rows are processed.")

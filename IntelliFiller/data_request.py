@@ -269,8 +269,8 @@ def send_prompt_to_llm(prompt, config=None):
     else:
         config = dict(config)
 
-    # Get timeout from settings (default 10s)
-    net_timeout = float(config.get("netTimeout", 10.0))
+    # Get timeout from settings (default 120s for local LLM cold starts)
+    net_timeout = float(config.get("netTimeout", 120.0))
     temperature = config.get("temperature")
 
     if config.get('emulate') == 'yes':
