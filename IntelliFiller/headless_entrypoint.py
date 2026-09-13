@@ -72,14 +72,15 @@ BUILTIN_PROMPTS = {
     "german_vocabulary_analysis_and_translation": {
         "promptName": "German Vocabulary Analysis and Translation (JSON)",
         "prompt": "Analyze the German word \"{{{WordSource}}}\" in the context \"{{{SentenceSource}}}\".\n"
-                  "Provide base lemma with article for nouns (der/die/das), IPA, and Russian translation.\n"
-                  "Return valid JSON only with keys: \"ru\", \"ipa\", \"lemma\", \"pos\".",
+                  "Provide base lemma with article for nouns (der/die/das), IPA, Russian translation, POS, and gender.\n"
+                  "Return valid JSON only with keys: \"ru\", \"ipa\", \"lemma\", \"pos\", \"gender\".",
         "responseFormat": "json",
         "fieldMapping": {
             "ru": "WordDestination",
             "ipa": "WordSourceIPA",
             "lemma": "WordSource",
-            "pos": "PartOfSpeech"
+            "pos": "WordSourcePOS",
+            "gender": "WordSourceGender"
         },
         "overwriteField": True
     }
@@ -269,6 +270,23 @@ def parse_llm_json(response_text):
              except:
                  pass
         return None
+
+
+def normalize_gender_value(val):
+    """
+    Normalizes arbitrary LLM gender output into canonical ('m', 'f', 'n') or empty string.
+    """
+    if val is None:
+        return ""
+    g = str(val).strip().lower()
+    if g in ("m", "masc", "masculine", "der", "m.", "maskulin"):
+        return "m"
+    if g in ("f", "fem", "feminine", "die", "f.", "feminin"):
+        return "f"
+    if g in ("n", "neut", "neuter", "das", "n.", "neutrum", "neutral"):
+        return "n"
+    return ""
+
 
 
 def classify_error(err, response_text=None):
@@ -525,7 +543,11 @@ def main():
                 for json_key, target_field in mapping.items():
                     if json_key in data:
                         val = data[json_key]
-                        if isinstance(val, (dict, list)):
+                        if json_key == "gender" or target_field in ("WordSourceGender", "gender"):
+                            val = normalize_gender_value(val)
+                        elif val is None:
+                            val = ""
+                        elif isinstance(val, (dict, list)):
                             val = json.dumps(val, ensure_ascii=False)
                         val = str(val)
                         formatted = val.replace("\n", "<br>")

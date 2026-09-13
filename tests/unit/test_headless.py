@@ -6,7 +6,7 @@ from pathlib import Path
 from unittest.mock import patch, MagicMock
 
 from IntelliFiller.config_manager import ConfigManager
-from IntelliFiller.headless_entrypoint import main as headless_main
+from IntelliFiller.headless_entrypoint import main as headless_main, normalize_gender_value
 import install as install_module
 
 def test_headless_fill_tsv(tmp_path, monkeypatch):
@@ -539,5 +539,96 @@ def test_headless_custom_prompt_template(tmp_path, monkeypatch):
         reader = csv.reader(f, delimiter="\t")
         rows = list(reader)
     assert rows[1] == ["sun", "солнце"]
+
+
+def test_normalize_gender_value():
+    assert normalize_gender_value("m") == "m"
+    assert normalize_gender_value("Masc") == "m"
+    assert normalize_gender_value("masculine") == "m"
+    assert normalize_gender_value("der") == "m"
+    assert normalize_gender_value("f") == "f"
+    assert normalize_gender_value("fem") == "f"
+    assert normalize_gender_value("feminine") == "f"
+    assert normalize_gender_value("die") == "f"
+    assert normalize_gender_value("n") == "n"
+    assert normalize_gender_value("neut") == "n"
+    assert normalize_gender_value("neuter") == "n"
+    assert normalize_gender_value("das") == "n"
+    assert normalize_gender_value(None) == ""
+    assert normalize_gender_value("") == ""
+    assert normalize_gender_value("null") == ""
+    assert normalize_gender_value("none") == ""
+    assert normalize_gender_value("v.") == ""
+
+
+def test_headless_german_vocabulary_analysis_gender_pos_mapping(tmp_path, monkeypatch):
+    tsv_path = tmp_path / "test_de_vocab.tsv"
+    with open(tsv_path, "w", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f, delimiter="\t")
+        writer.writerow(["WordSource", "SentenceSource", "WordDestination", "WordSourceIPA", "WordSourcePOS", "WordSourceGender"])
+        writer.writerow(["Lieferpartner", "bei einem Amazon Lieferpartner", "", "", "", ""])
+
+    def mock_send(prompt, config=None):
+        return json.dumps({
+            "lemma": "Lieferpartner",
+            "pos": "n.",
+            "gender": "masculine",
+            "ru": "партнер по доставке",
+            "ipa": "ˈliːfɐˌpaʁtnɐ"
+        })
+
+    monkeypatch.setattr("IntelliFiller.headless_entrypoint.send_prompt_to_llm", mock_send)
+
+    test_args = [
+        "headless_entrypoint.py",
+        "--tsv", str(tsv_path),
+        "--prompt", "german_vocabulary_analysis_and_translation"
+    ]
+    monkeypatch.setattr("sys.argv", test_args)
+    headless_main()
+
+    with open(tsv_path, "r", encoding="utf-8") as f:
+        reader = csv.reader(f, delimiter="\t")
+        rows = list(reader)
+    row_dict = dict(zip(rows[0], rows[1]))
+    assert row_dict["WordSourceGender"] == "m"
+    assert row_dict["WordSourcePOS"] == "n."
+    assert row_dict["WordDestination"] == "партнер по доставке"
+
+
+def test_headless_german_vocabulary_verb_clears_gender(tmp_path, monkeypatch):
+    tsv_path = tmp_path / "test_de_verb.tsv"
+    with open(tsv_path, "w", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f, delimiter="\t")
+        writer.writerow(["WordSource", "SentenceSource", "WordDestination", "WordSourceIPA", "WordSourcePOS", "WordSourceGender"])
+        writer.writerow(["arbeiten", "Er will arbeiten.", "", "", "n.", "m"])
+
+    def mock_send(prompt, config=None):
+        return json.dumps({
+            "lemma": "arbeiten",
+            "pos": "v.",
+            "gender": None,
+            "ru": "работать",
+            "ipa": "ˈaʁbaɪ̯tn̩"
+        })
+
+    monkeypatch.setattr("IntelliFiller.headless_entrypoint.send_prompt_to_llm", mock_send)
+
+    test_args = [
+        "headless_entrypoint.py",
+        "--tsv", str(tsv_path),
+        "--prompt", "german_vocabulary_analysis_and_translation",
+        "--reprocess"
+    ]
+    monkeypatch.setattr("sys.argv", test_args)
+    headless_main()
+
+    with open(tsv_path, "r", encoding="utf-8") as f:
+        reader = csv.reader(f, delimiter="\t")
+        rows = list(reader)
+    row_dict = dict(zip(rows[0], rows[1]))
+    assert row_dict["WordSourceGender"] == ""
+    assert row_dict["WordSourcePOS"] == "v."
+
 
 
