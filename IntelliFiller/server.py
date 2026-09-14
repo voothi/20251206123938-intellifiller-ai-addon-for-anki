@@ -14,7 +14,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from IntelliFiller.config_manager import ConfigManager
 from IntelliFiller.data_request import create_prompt, send_prompt_to_llm, test_connection
-from IntelliFiller.headless_entrypoint import parse_llm_json, classify_error, resolve_prompt_config
+from IntelliFiller.headless_entrypoint import parse_llm_json, classify_error, resolve_prompt_config, normalize_gender_value
 
 logger = logging.getLogger("IntelliFiller.server")
 
@@ -259,10 +259,15 @@ class IntelliFillerRequestHandler(BaseHTTPRequestHandler):
                             raise ValueError(f"Failed to parse JSON response from LLM: {response[:100] if response else ''}")
                         
                         for k, v in data.items():
+                            if k == "gender":
+                                v = normalize_gender_value(v)
                             enriched_item[k] = v
                         for json_key, target_field in mapping.items():
                             if json_key in data:
-                                enriched_item[target_field] = data[json_key]
+                                val = data[json_key]
+                                if json_key == "gender" or target_field in ("WordSourceGender", "gender"):
+                                    val = normalize_gender_value(val)
+                                enriched_item[target_field] = val
                     else:
                         target_field = prompt_config.get("targetField", "translation")
                         enriched_item[target_field] = response.replace("\n", "<br>")

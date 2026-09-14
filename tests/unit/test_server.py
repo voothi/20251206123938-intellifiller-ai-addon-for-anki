@@ -247,3 +247,69 @@ def test_server_shutdown_endpoint(running_server):
         data = json.loads(resp.read().decode("utf-8"))
         assert data["status"] == "success"
         assert "Server shutting down" in data["message"]
+
+
+def test_server_enrich_gender_normalization(running_server, monkeypatch):
+    base_url, _ = running_server
+
+    test_prompt_config = {
+        "promptName": "GenderTestPrompt",
+        "prompt": "Analyze {{{WordSource}}}",
+        "responseFormat": "json",
+        "fieldMapping": {
+            "gender": "WordSourceGender",
+            "ru": "WordDestination"
+        },
+        "overwriteField": True
+    }
+    ConfigManager.save_prompt(test_prompt_config)
+
+    # Mock send_prompt_to_llm for non-noun and noun
+    mock_responses = [
+        '{"ru": "давать", "gender": "none"}',
+        '{"ru": "яблоко", "gender": "der"}',
+        '{"ru": "книга", "gender": "feminin"}'
+    ]
+    response_idx = 0
+
+    def mock_send(prompt, config=None):
+        nonlocal response_idx
+        res = mock_responses[response_idx]
+        response_idx += 1
+        return res
+
+    monkeypatch.setattr("IntelliFiller.server.send_prompt_to_llm", mock_send)
+
+    payload = {
+        "prompt": "GenderTestPrompt",
+        "language": "de",
+        "zid": "20260914103721",
+        "rows": [
+            {"row_id": 1, "WordSource": "geben"},
+            {"row_id": 2, "WordSource": "Apfel"},
+            {"row_id": 3, "WordSource": "Buch"}
+        ]
+    }
+
+    req = urllib.request.Request(
+        f"{base_url}/enrich",
+        data=json.dumps(payload).encode("utf-8"),
+        headers={"Content-Type": "application/json"},
+        method="POST"
+    )
+    with urllib.request.urlopen(req, timeout=3.0) as resp:
+        assert resp.status == 200
+        res_data = json.loads(resp.read().decode("utf-8"))
+        assert res_data["status"] == "success"
+        rows = res_data["enriched_rows"]
+        # Non-noun "geben" with "none" -> normalized to ""
+        assert rows[0]["gender"] == ""
+        assert rows[0]["WordSourceGender"] == ""
+
+        # Noun "Apfel" with "der" -> normalized to "m"
+        assert rows[1]["gender"] == "m"
+        assert rows[1]["WordSourceGender"] == "m"
+
+        # Noun "Buch" with "feminin" (mocked) -> normalized to "f"
+        assert rows[2]["gender"] == "f"
+        assert rows[2]["WordSourceGender"] == "f"
